@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DET MAKER TEMPLATE</title>
+    <!-- J-Query -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Popper -->
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
+        integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
+        crossorigin="anonymous"></script>
+    <!-- React -->
+    <script src="https://unpkg.com/react@17.0.2/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.development.js"></script>
+    <!-- Pepleware -->
+    <script src="template-content.js"></script>
+    <link rel="stylesheet" href="template.css">
+</head>
+
+<body class="bg-light">
+    <!-- Menu fixo -->
+    <nav class="navbar navbar-expand-md banner fixed-top align-items-center px-md-5">
+        <div class="d-flex">
+            <!-- Botão de menu quando em mídia pequena -->
+            <button class="navbar-toggler text-info bg-white m-2" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a id="ppw" class="navbar-brand disabled text-white fs-1 p-0 m-2" href="#">Peopleware</a>
+        </div>
+        <!-- Links do menu -->
+        <div class="collapse navbar-collapse mx-2" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mt-3">
+                <li class="nav-item">
+                    <a id="menu-identificacao" class="nav-link text-dark" href="#">IDENTIFICAÇÃO</a>
+                </li>
+                <li class="nav-item">
+                    <a id="menu-detalhamento" class="nav-link text-dark" href="#">DETALHAMENTO DOS TESTES</a>
+                </li>
+                <li class="nav-item dropdown mx-0">
+                    <a class="nav-link text-dark dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button"
+                        aria-expanded="false">EVOLUÇÃO DOS TESTES</a>
+                    <!-- Lista dos links dos testes -->
+                    <ul id="dropdown-testes" class="dropdown-menu">
+                        <div id="dropdown-testes-itens"></div>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <!-- Recuo -->
+    <div class="p-5"></div>
+    <!-- Corpo principal -->
+    <div class="container justify-content-center bg-white px-0 pb-5 my-5">
+        <!-------[PARTE 1]-------------------------------------------------------->
+        <!-- Capa com título e imagem de fundo -->
+        <div class="card border border-0 mb-5" id="capa">
+            <img src="VIVO_DET_PAGE_BACKGROUND_3.png" id="capa-background" class="card-img" alt="Imagem">
+            <div class="card-img-overlay text-center text-md-start ">
+                <div class="row">
+                    <h1 class="card-title logo-det lh-1">DET</h1>
+                    <h1 class="card-text h1 mx-3 text-primary">Documento de Evidência e Testes</h1>
+                    <h3 class="card-text h3 mx-3 text-primary">Sistema Cyber</h3>
+                    <h3 id="atividade-nome" class="card-text h3 mx-3 text-primary">Projeto Nome</h3>
+                </div>
+
+            </div>
+        </div>
+        <!-------[PARTE 2]-------------------------------------------------------->
+        <!-- Dados de identificação do documento -->
+        <div id="identificacao" class="text-center p-5">
+            <!-- Título -->
+            <div class="font-weight-bold banner py-3 mt-5 mt-md-0">
+                <h1 id="identificacao-titulo" class="">IDENTIFICAÇÃO</h1>
+            </div>
+            <!-- Tabelas -->
+            <div class="my-3">
+                <h3 class="pt-3">SOBRE O PROJETO</h3>
+                <div class="table-responsive">
+                    <table class="table table-light table-striped">
+                        <tr>
+                            <th>ID(S) DA ORIGEM</th>
+                            <th>NOME/DESCRIÇÃO DA ORIGEM</th>
+                        </tr>
+                        <tr>
+                            <td id="projeto-id">Projeto Id</td>
+                            <td id="projeto-nome">Projeto Nome</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="my-3">
+                <h3 class="pt-3">SOBRE OS TESTES</h3>
+                <div class="table-responsive">
+                    <table class="table table-light table-striped">
+                        <tr>
+                            <th>TIPO DE TESTE</th>
+                            <th>SISTEMA(S)</th>
+                        </tr>
+                        <tr>
+                            <td id="teste-tipo">Teste Tipo</td>
+                            <td id="teste-sistema">Teste Sistema</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="my-3">
+                <h3 class="pt-3">SOBRE OS ENVOLVIDOS</h3>
+                <div class="table-responsive">
+                    <table class="table table-light table-striped">
+                        <tr>
+                            <th>NOME COMPLETO</th>
+                            <th>PAPEL</th>
+                            <th>EMPRESA ÁREA</th>
+                            <th>E-MAIL</th>
+                            <th>TELEFONE</th>
+                        </tr>
+                        <tr>
+                            <td id="user-nome-1">Usuário Nome</td>
+                            <td id="user-cargo-1">Usuário Cargo</td>
+                            <td id="user-empresa-1">Usuário Empresa</td>
+                            <td id="user-email-1">Usuário E-mail</td>
+                            <td id="user-phone-1">Usuário Phone</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Recuo  -->
+        <!-------[PARTE 3]-------------------------------------------------------->
+        <div class="p-3"></div>
+        <!-- Detalhamento geral dos testes -->
+        <div id="detalhamento" class="p-5 text-center">
+            <!-- Título -->
+            <div class="font-weight-bold banner py-3 mt-5 mt-md-0">
+                <h1 id="detalhamento-titulo" class="">DETALHAMENTO DOS TESTES</h1>
+            </div>
+            <!-- Dados -->
+            <div class="my-3">
+                <div class="table-responsive">
+                    <table class="table table-light table-striped text-start">
+                        <tr>
+                            <th>Módulos Necessários</th>
+                            <td id="modulos">Detalhes dos Módulos</td>
+                        </tr>
+                        <tr>
+                            <th>Parâmetros da Execução do Sistema</th>
+                            <td id="parametros">Detalhes dos Parâmetros</td>
+                        </tr>
+                        <tr>
+                            <th>Dados de Teste</th>
+                            <td id="dados">Detalhes dos Dados</td>
+                        </tr>
+                        <tr>
+                            <th>Configuração</th>
+                            <td id="configuracao">Detalhes das Configurações</td>
+                        </tr>
+                        <tr>
+                            <th>Ambiente</th>
+                            <td id="ambiente">Detalhes dos Ambientes</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Recuo -->
+        <div class="p-3"></div>
+        <!-------[PARTE 4]-------------------------------------------------------->
+        <!-- Ficha dos testes -->
+        <div id="evolucao-testes" class="p-5 text-center">
+            <!-- Titúlo -->
+            <div class="font-weight-bold banner py-3 mt-5 mt-md-0">
+                <h1 class="banner">EVOLUÇÃO DOS TESTES</h1>
+            </div>
+            <!-- Tabelas -->
+            <div class="table-responsive">
+                <div class=" table-light table-striped m-0 text-start">
+                    <div id="tabela-testes" class="my-3"></div>
+                </div>
+                <!-- <link rel="import" href="template-teste-1.html"> -->
+            </div>
+        </div>
+    </div>
+    <!-- Recuo -->
+    <div class="p-5"></div>
+    <!-- Rodapé -->
+    <div class="banner p-3">
+        <div id="assinatura" class="text-center">
+            Assinatura contendo data, versão e informações básicas
+        </div>
+    </div>
+    <!-- Fim -->
+</body>
+
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DET MAKER TEMPLATE</title>
+    <!-- J-Query -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Popper -->
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
+        integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
+        crossorigin="anonymous"></script>
+    <!-- React -->
+    <script src="https://unpkg.com/react@17.0.2/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.development.js"></script>
+    <!-- Pepleware -->
+    <script src="det-maker-menu-content.js"></script>
+    <link rel="stylesheet" href="./det-maker-menu.css">
+</head>
+
+<body class="bg-light ">
+    <!-- Filtro de pause no loading -->
+    <div id="loading"></div>
+    <!-- Menu fixo -->
+    <nav class="navbar navbar-expand-md banner fixed-top align-items-center px-md-5 d-block text-center">
+        <div class="d-flex justify-content-start justify-content-md-center mb-2">
+            <!-- Botão de menu quando em mídia pequena -->
+            <button class="navbar-toggler text-info bg-white m-2 me-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- Logo e usuário -->
+            <a id="ppw" class="navbar-brand disabled text-white fs-1 m-0 lh-1" href="#">
+                Peopleware
+                <div class="fs-6 text-start ms-4">joao.aguiar@gmail.com</div>
+            </a>
+        </div>
+
+        <!-- Links do menu -->
+        <div class="row collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="nav row d-block d-md-flex justify-content-center mt-0 mx-3 mx-md-0 ">
+                <a id="abrir-schedule"
+                    class="row text-dark p-0 mx-0 mx-md-2 btn btn-light col d-flex align-items-center border border-0">
+                    <div class="col-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                            class="bi bi-filetype-xlsx" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M14 4.5V11h-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5L14 4.5ZM7.86 14.841a1.13 1.13 0 0 0 .401.823c.13.108.29.192.479.252.19.061.411.091.665.091.338 0 .624-.053.858-.158.237-.105.416-.252.54-.44a1.17 1.17 0 0 0 .187-.656c0-.224-.045-.41-.135-.56a1.002 1.002 0 0 0-.375-.357 2.028 2.028 0 0 0-.565-.21l-.621-.144a.97.97 0 0 1-.405-.176.37.37 0 0 1-.143-.299c0-.156.061-.284.184-.384.125-.101.296-.152.513-.152.143 0 .266.023.37.068a.624.624 0 0 1 .245.181.56.56 0 0 1 .12.258h.75a1.093 1.093 0 0 0-.199-.566 1.21 1.21 0 0 0-.5-.41 1.813 1.813 0 0 0-.78-.152c-.293 0-.552.05-.777.15-.224.099-.4.24-.527.421-.127.182-.19.395-.19.639 0 .201.04.376.123.524.082.149.199.27.351.367.153.095.332.167.54.213l.618.144c.207.049.36.113.462.193a.387.387 0 0 1 .153.326.512.512 0 0 1-.085.29.558.558 0 0 1-.255.193c-.111.047-.25.07-.413.07-.117 0-.224-.013-.32-.04a.837.837 0 0 1-.249-.115.578.578 0 0 1-.255-.384h-.764Zm-3.726-2.909h.893l-1.274 2.007 1.254 1.992h-.908l-.85-1.415h-.035l-.853 1.415H1.5l1.24-2.016-1.228-1.983h.931l.832 1.438h.036l.823-1.438Zm1.923 3.325h1.697v.674H5.266v-3.999h.791v3.325Zm7.636-3.325h.893l-1.274 2.007 1.254 1.992h-.908l-.85-1.415h-.035l-.853 1.415h-.861l1.24-2.016-1.228-1.983h.931l.832 1.438h.036l.823-1.438Z" />
+                        </svg>
+                    </div>
+                    <div class="col lh-1">
+                        Abrir Schedule
+                    </div>
+                </a>
+                <!--<a id="" class="row text-dark p-0 mx-0 mx-md-2 btn btn-light col d-flex align-items-center border border-0">
+                        <div class="col-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                                class="bi bi-eyeglasses" viewBox="0 0 16 16">
+                                <path
+                                    d="M4 6a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm2.625.547a3 3 0 0 0-5.584.953H.5a.5.5 0 0 0 0 1h.541A3 3 0 0 0 7 8a1 1 0 0 1 2 0 3 3 0 0 0 5.959.5h.541a.5.5 0 0 0 0-1h-.541a3 3 0 0 0-5.584-.953A1.993 1.993 0 0 0 8 6c-.532 0-1.016.208-1.375.547zM14 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
+                            </svg>
+                        </div>
+                        <div class="col lh-1">
+                            Revisar Schedule
+                        </div>
+                    </a>-->
+                <a id="escolher-jobs"
+                    class="row text-dark p-0 mx-0 mx-md-2 btn btn-light col d-flex align-items-center border border-0">
+                    <div class="col-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="currentColor"
+                            class="bi bi-check2-square" viewBox="0 0 16 16">
+                            <path
+                                d="M3 14.5A1.5 1.5 0 0 1 1.5 13V3A1.5 1.5 0 0 1 3 1.5h8a.5.5 0 0 1 0 1H3a.5.5 0 0 0-.5.5v10a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V8a.5.5 0 0 1 1 0v5a1.5 1.5 0 0 1-1.5 1.5H3z" />
+                            <path
+                                d="m8.354 10.354 7-7a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0z" />
+                        </svg>
+                    </div>
+                    <div class="col lh-1">
+                        Escolher Jobs
+                    </div>
+                </a>
+                <a id="config-jobs"
+                    class="row text-dark p-0 mx-0 mx-md-2 btn btn-light col d-flex align-items-center border border-0">
+                    <div class="col-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                            class="bi bi-gear" viewBox="0 0 16 16">
+                            <path
+                                d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z" />
+                            <path
+                                d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z" />
+                        </svg>
+                    </div>
+                    <div class="col lh-1">
+                        Configurar Jobs
+                    </div>
+                </a>
+                <a id="executar"
+                    class="row text-dark p-0 mx-0 mx-md-2 btn btn-light col d-flex align-items-center border border-0 banner-gold">
+                    <!-- btn-warning -->
+                    <div class="col-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="21" fill="currentColor"
+                            class="bi bi-file-play" viewBox="0 0 16 16">
+                            <path
+                                d="M6 10.117V5.883a.5.5 0 0 1 .757-.429l3.528 2.117a.5.5 0 0 1 0 .858l-3.528 2.117a.5.5 0 0 1-.757-.43z" />
+                            <path
+                                d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" />
+                        </svg>
+                    </div>
+                    <div class="col lh-1">
+                        Executar!
+                    </div>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <div class="p-3 p-md-5"></div>
+
+    <!-- Corpo principal -->
+    <div class="p-3 m-0 mt-5">
+        <!-------[ABRIR SCHEDULE]-------------------------------------------------------->
+        <!-- Card -->
+        <div class="card border border-2 p-3 mx-0 mx-md-4" id="capa-abrir">
+            <h1 class="card-title destaque lh-1 m-0 text-center">Abrir Arquivo</h1>
+            <h3 class="card-text h3 text-primary ms-2 text-center">Selecione o caminho da planilha Schedule para dar início ao Det-Maker.</h3>
+            <div class="mb-3">
+                <label for="formFile" class="form-label"></label>
+                <input class="form-control" type="file" id="formFile">
+            </div>
+        </div>
+        <!-------[REVISAR JOBS e ESCOLHER JOB]-------------------------------------------------------->
+        <!-- Tabela -->
+        <div class="card border border-2 p-3 mx-0 mx-md-4" id="capa-schedule">
+            <h1 class="card-title destaque lh-1 m-0 text-center">Schedule</h1>
+            <h3 class="card-text h3 text-primary ms-2 text-center">Documentação detalhada dos jobs disponíveis.</h3>
+            <div id="schedule-tabela">
+                <div class="my-3"></div>
+                <div class="banner py-2 p-2"></div>
+                <div class="table-responsive text-center">
+                    <table class="table table-light table-bordered table-striped align-items-center align-middle">
+                        <tr>
+                            <th>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-stack" viewBox="0 0 16 16">
+                                    <path
+                                        d="m14.12 10.163 1.715.858c.22.11.22.424 0 .534L8.267 15.34a.598.598 0 0 1-.534 0L.165 11.555a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.66zM7.733.063a.598.598 0 0 1 .534 0l7.568 3.784a.3.3 0 0 1 0 .535L8.267 8.165a.598.598 0 0 1-.534 0L.165 4.382a.299.299 0 0 1 0-.535L7.733.063z" />
+                                    <path
+                                        d="m14.12 6.576 1.715.858c.22.11.22.424 0 .534l-7.568 3.784a.598.598 0 0 1-.534 0L.165 7.968a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.659z" />
+                                </svg>
+                            </th>
+                            <th>JOB ID</th>
+                            <th>EXECUTA APÓS ID</th>
+                            <th>GRUPO CONCORRÊNCIA</th>
+                            <th>FASE</th>
+                            <th>JOB NOME</th>
+                            <th class="td-long">JOB DESCRIÇÃO</th>
+                            <th>GRUPO UDA</th>
+                            <th>PROGRAMA</th>
+                            <th>TABELAS ATUALIZADAS</th>
+                            <th>SERVIDOR</th>
+                            <th>CAMINHO JOB</th>
+                            <th>PARÂMETROS</th>
+                            <th class="td-long">DESCRIÇÕES PARÂMETROS</th>
+                            <th>ARQUIVO ENTRADA (CAMINHO)</th>
+                            <th>ARQUIVO ENTRADA (MÁSCARA)</th>
+                            <th>ARQUIVO SAÍDA (CAMINHO)</th>
+                            <th>ARQUIVO SAÍDA (MÁSCARA)</th>
+                            <th>LOG (CAMINHO)</th>
+                            <th>LOG (MÁSCARA)</th>
+                            <th>TRATAMENTO</th>
+                            <th>ESCALATION</th>
+                            <th>DATA ATUALIZAÇÃO</th>
+                            <th>ATUALZIADO POR</th>
+                        </tr>
+                        <tr class="font-monospace">
+                            <!-- ACTION -->
+                            <td><input class="form-check-input  p-3" type="checkbox" value="" id="1"></td>
+                            <!-- JOB -->
+                            <td>
+                                <div>7</div>
+                            </td>
+                            <!-- EXECUTA -->
+                            <td>
+                                <div>1</div>
+                            </td>
+                            <!-- GRUPO -->
+                            <td>
+                                <div>A</div>
+                            </td>
+                            <!-- FASE -->
+                            <td>
+                                <div>Pré-Cyber</div>
+                            </td>
+                            <!-- JOB -->
+                            <td>
+                                <div>cy3_shell_valida_IE002.ksh</div>
+                            </td>
+                            <!-- JOB DESCRIÇÃO -->
+                            <td>
+                                <div>
+                                    Processa a validação da interface de carga de faturamento que é gerado quando
+                                    ocorre atualizações financeiras de contratos. A origem do Arquivo é do BRM.
+                                </div>
+                            </td>
+                            <!-- GRUPO -->
+                            <td>
+                                <div>1</div>
+                            </td>
+                            <!-- PROGRAMA -->
+                            <td>
+                                <div>shell e beb750</div>
+                            </td>
+                            <!-- TABELAS -->
+                            <td>
+                                <div>CONTROLE</div>
+                            </td>
+                            <!-- SERVIDOR -->
+                            <td>
+                                <div>svuxpjob2</div>
+                            </td>
+                            <!-- CAMINHO -->
+                            <td>
+                                <div>/app/rcvry/shells</div>
+                            </td>
+                            <!-- PARÂMETROS -->
+                            <td>
+                                <div>AAAAMMDD</div>
+                            </td>
+                            <!-- PARAM DESCRIÇÕES -->
+                            <td>
+                                <div>$1 - Data de referencia do ciclo (formato AAAAMMDD)</div>
+                            </td>
+                            <!-- ENTRADA DIR -->
+                            <td>
+                                <div>app/rcvry/cy3/ftp/input</div>
+                            </td>
+                            <!-- ENTRADA MASK -->
+                            <td>
+                                <div>CY3_IE002_NNNNNNNN_faturas.txt</div>
+                            </td>
+                            <!-- SAIDA DIR -->
+                            <td>
+                                <div>N/A</div>
+                            </td>
+                            <!-- SAIDA MASK -->
+                            <td>
+                                <div>N/A</div>
+                            </td>
+                            <!-- LOG DIR -->
+                            <td>
+                                <div>/app/rcvry/cy3/log</div>
+                            </td>
+                            <!-- LOG MASK -->
+                            <td>
+                                <div>CY3_VALIDA_IE012_AAAAMMDD_HHMMSS.log</div>
+                            </td>
+                            <!-- TRATAMENTO -->
+                            <td>
+                                <div>Rerun</div>
+                            </td>
+                            <!-- ESCALATION -->
+                            <td>
+                                <div>Nivel 1</div>
+                            </td>
+                            <!-- DATA -->
+                            <td>
+                                <div>29/03/2023</div>
+                            </td>
+                            <!-- POR QUEM -->
+                            <td>
+                                <div>PPW</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-------[CONFIGURAR JOBS]-------------------------------------------------------->
+        <div id="capa-jobs" class="row justify-content-center border border-2 rounded rounded-2 bg-white p-3 p-md-0 mx-0 mx-md-4">
+            <h1 class="card-title destaque lh-1 m-0 text-center">Pilha de Jobs</h1>
+            <h3 class="card-text h3 text-primary ms-2 text-center">Preencha todos os campos de cada job para poder executá-los.</h3>
+            <!-- CARD JOB 1 -->
+            <div class="jobs col-12 col-md-5 card border-warning border-2 p-0 m-2 rounded-top rounded-4">
+                <!-- header -->
+                <h4 class="card-title jobs-nome lh-1 m-0 banner p-2">
+                    <span class="badge bg-white ms-1 text-primary">1</span>
+                    <span class="font-monospace text-white fw-bold">cy3_shell_valida_inventei_aqui.ksh</span>
+                </h4>
+                <!-- check-mark -->
+                <svg id="det-check" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+                    class="bi bi-check2-circle text-warning" viewBox="0 0 16 16">
+                    <path
+                        d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0z" />
+                    <path
+                        d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l7-7z" />
+                </svg>
+                <!-- infos -->
+                <div class="card-text text-dark rounded rounded-2 bg-light p-3 m-3">
+                    <!-- infos-descrição -->
+                    <p class="lh-1">
+                        <span class="badge bg-info my-1">Stack Nº1</span>
+                        <span class="badge bg-info my-1">Versão 17/01/2023</span>
+                        <span class="badge bg-info my-1">shell</span>
+                        <span class="badge bg-info my-1">Grupo UDA1</span>
+                    <div class="my-2"></div>
+                    Processa a validação da interface de carga de faturamento que é gerado
+                    quando ocorre atualizações financeiras de contratos. A origem do Arquivo é do KENNAN.
+                    </p>
+                </div>
+            </div>
+            <!-- CARD JOB 7 -->
+            <div class="jobs col-12 col-md-5 card border border-2 p-0 m-2 rounded-top rounded-4">
+                <!-- header -->
+                <h4 class="card-title jobs-nome lh-1 m-0 banner p-2">
+                    <span class="badge bg-white ms-1 text-primary">7</span>
+                    <span class="font-monospace text-white fw-bold">cy3_shell_valida_IE002.ksh</span>
+                </h4>
+                <!-- infos -->
+                <div class="card-text text-dark rounded rounded-2 bg-light p-3 m-3">
+                    <!-- infos-descrição -->
+                    <p class="lh-1">
+                        <span class="badge bg-info my-1">Stack Nº2</span>
+                        <span class="badge bg-info my-1">Versão 17/01/2023</span>
+                        <span class="badge bg-info my-1">Executar após ID 1</span>
+                        <span class="badge bg-info my-1">shell e beb750</span>
+                        <span class="badge bg-info my-1">Tabela CONTROLE</span>
+                        <span class="badge bg-info my-1">Grupo UDA1</span>
+                    <div class="my-2"></div>
+                    Processa a validação da interface de carga de faturamento que é gerado
+                    quando ocorre atualizações financeiras de contratos. A origem do Arquivo é do BRM.
+                    </p>
+                    <!-- infos-parâmetros -->
+                    <div class="p-1 mb-3 banner rounded rounded-2">
+                        <label class="form-label fw-bold text-white" for="job7-param-1">
+                            PARÂMETROS
+                        </label>
+                        <input id="job7-param-1" type="text" class="form-control" 
+                            aria-label="Sizing example input"
+                            aria-describedby="inputGroup-sizing-default"
+                            placeholder="$1 - Data de referencia do ciclo (formato AAAAMMDD)">
+                    </div>
+                    <!-- infos-query -->
+                    <div class="p-1 mb-3 banner rounded rounded-2">
+                        <label class="form-label fw-bold text-white align-items-start" for="job7-sql-1">
+                            SQL QUERIES
+                        </label>
+                        <textarea id="job7-sql-1" class="form-control" aria-label="With textarea"
+                            placeholder="SELECT * FROM CONTROLE WHERE..."></textarea>
+                    </div>
+                    <!-- infos-arquivo entrada -->
+                    <div class="p-1 mb-3 banner rounded rounded-2">
+                        <label class="form-label fw-bold text-white align-items-start" for="job7-carga-1">
+                            CARGA
+                        </label>
+                        <textarea id="job7-carga-1" class="form-control" aria-label="With textarea"
+                            placeholder="Conteúdo txt da carga"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Recuo -->
+    <div class="p-5"></div>
+    <!-- Fim -->
+</body>
+
+</html>
