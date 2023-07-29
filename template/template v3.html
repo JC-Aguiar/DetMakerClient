@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DET MAKER TEMPLATE</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Production version -->
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="template.css">
+</head>
+
+<body class="bg-light">
+
+    <script>
+        window.onload = function () {
+            const menuTestes = document.querySelector('#menu-testes');
+            const dropdownTestes = document.querySelector('#dropdown-testes');
+            const header = document.querySelector('#header');
+            const links = document.getElementsByTagName("a");
+            let cursorSobreElemento = false;
+
+            for (let i = 0; i < links.length; i++) {
+                links[i].addEventListener("click", (event) => {
+                    event.preventDefault();
+                });
+            }
+
+            menuTestes.addEventListener('click', function () {
+                console.info("ativou dropdown!");
+                dropdownTestes.style.display = 'block';
+            });
+
+            dropdownTestes.addEventListener("mouseover", () => {
+                cursorSobreElemento = true;
+            });
+            dropdownTestes.addEventListener("mousemove", () => {
+                cursorSobreElemento = true;
+            });
+            dropdownTestes.addEventListener("mouseleave", () => {
+                cursorSobreElemento = false;
+            });
+
+            document.addEventListener("mousemove", () => {
+                if (!cursorSobreElemento) {
+                    console.info("cursor fora.");
+                    dropdownTestes.style.display = 'none';
+                }
+            });
+
+        }
+    </script>
+
+    <nav class="navbar navbar-expand-lg banner fixed-top">
+        <div class="container-fluid" id="header">
+            <a class="nav-link disabled text-white h4" href="#">Peopleware</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" aria-current="page" href="#">IDENTIFICAÇÃO</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="#">DETALHAMENTO DOS TESTES</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="menu-testes" class="nav-link dropdown-toggle text-dark" href="#">
+                            EVOLUÇÃO DOS TESTES
+                        </a>
+                        <div id="dropdown-testes" class="">
+                            <div class="pt-5"></div>
+                            <a class="btn btn-link text-dark text-left d-block" href="#">Action</a>
+                            <a class="btn btn-link text-dark text-left d-block" href="#">Another action</a>
+                            <a class="btn btn-link text-dark text-left d-block" href="#">Something else here</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="container justify-content-center bg-white px-0 pb-5 my-5">
+
+        <div class="p-5"></div>
+
+        <div class="card border border-0 text-center" id="capa">
+            <img src="VIVO DET PAGE BACKGROUND.png" id="capa-background" class="card-img-top" alt="Imagem">
+            <div class="card-img-overlay">
+                <h1 class="card-title">Documento de Evidência de Testes</h1>
+                <h2 class="card-text">Sistema Cyber</h2>
+            </div>
+        </div>
+        <!-- <img src="VIVO DET PAGE BACKGROUND.png" class="mx-auto d-block p-5" id="capa-background"> -->
+
+        <div id="identificacao" class="text-center p-5">
+
+            <div class="font-weight-bold banner py-3">
+                <h1 class="banner">IDENTIFICAÇÃO</h1>
+            </div>
+
+            <div class="my-3">
+                <h3 class="pt-3">PROJETO</h3>
+                <div class="table-responsive">
+                    <table class="table table-light table-striped">
+                        <tr>
+                            <th>ID(S) DA ORIGEM <br>
+                                (PROJETO/PP /INC /PBI /PKE /WO)
+                            </th>
+                            <th>NOME/DESCRIÇÃO DA ORIGEM</th>
+                        </tr>
+                        <tr>
+                            <td>IN1920</td>
+                            <td>FENIX</td>
+                        </tr>
+                        <tr>
+                            <td>IN1920</td>
+                            <td>FENIX</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="my-3">
+                <h3 class="pt-3">TESTE</h3>
+                <div class="table-responsive">
+                    <table class="table table-light table-striped">
+                        <tr>
+                            <th>TIPO DE TESTE <br>
+                                (SISTEMA/UNITÁRIO/INTEGRADO/HOMOLOGAÇÃO)</th>
+                            <th>SISTEMA(S)</th>
+                        </tr>
+                        <tr>
+                            <td>UNITARIO</td>
+                            <td>Cyber Vivo 3</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="my-3">
+                <h3 class="pt-3">ENVOLVIDOS</h3>
+                <div class="table-responsive">
+                    <table class="table table-light table-striped">
+                        <tr>
+                            <th>NOME COMPLETO</th>
+                            <th>PAPEL</th>
+                            <th>EMPRESA ÁREA</th>
+                            <th>E-MAIL</th>
+                            <th>TELEFONE</th>
+                        </tr>
+                        <tr>
+                            <td>João Aguiar</td>
+                            <td>Desenvolvedor</td>
+                            <td>PPW</td>
+                            <td>joao.aguiar@ppware.com.br</td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3"></div>
+
+        <div id="detalhamento" class="p-5 text-center">
+
+            <div class="font-weight-bold banner py-3">
+                <h1 class="">DETALHAMENTO DOS TESTES</h1>
+                <!-- <h1 class="">CONSIDERAÇÕES</h1> -->
+            </div>
+
+            <div class="my-3">
+                <!-- <h3 class="pt-3">DETALHAMENTO DOS TESTES</h3> -->
+                <div class="table-responsive">
+                    <table class="table table-light table-striped">
+                        <tr>
+                            <th>Módulos Necessários</th>
+                            <td>Linha 1</td>
+                        </tr>
+                        <tr>
+                            <th>Parâmetros da Execução do Sistema</th>
+                            <td>Linha 2</td>
+                        </tr>
+                        <tr>
+                            <th>Dados de Teste</th>
+                            <td>Linha 3</td>
+                        </tr>
+                        <tr>
+                            <th>Configuração</th>
+                            <td>Linha 4</td>
+                        </tr>
+                        <tr>
+                            <th>Ambiente</th>
+                            <td>Linha 5</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="evolucao-testes" class="p-5 text-center">
+
+            <div class="font-weight-bold banner py-3">
+                <h1 class="banner">EVOLUÇÃO DOS TESTES</h1>
+            </div>
+
+            <div class="my-3">
+                <h3 class="pt-3" id="teste-n">CASO XIS-PÊ-TÊ-OH</h3>
+                <div class="table-responsive">
+                    <table class="table table-light table-striped m-0">
+                        <tr>
+                            <th>Nome do Caso de Teste</th>
+                            <td>Linha 2</td>
+                        </tr>
+                        <tr>
+                            <th>Descrição do Caso de Teste</th>
+                            <td>Linha 3</td>
+                        </tr>
+                        <tr>
+                            <th>Descrição das Pré-Condições</th>
+                            <td>Linha 4</td>
+                        </tr>
+                        <tr>
+                            <th>Resultado Esperado</th>
+                            <td>Linha 5</td>
+                        </tr>
+                        <tr>
+                            <th>
+                                Projeto/PP - Situação Atual<br>
+                                INC/PBI/PKE - Detalhe da Falha<br>
+                                WO - Detalhe da Solicitação<br>
+                            </th>
+                            <td>Linha 5</td>
+                        </tr>
+                        <tr>
+                            <th>Resultados Obtidos</th>
+                            <td>Linha 5</td>
+                        </tr>
+                        <tr>
+                            <th>Responsável pelo Teste</th>
+                            <td>Linha 5</td>
+                        </tr>
+                        <tr>
+                            <th>Data do Teste</th>
+                            <td>Linha 5</td>
+                        </tr>
+                        <tr>
+                            <th>Anexo/Caminho da Evidência </th>
+                            <td>Linha 5</td>
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="p-5"></div>
+    <div class="p-5"></div>
+
+    <div class="banner pt-5">
+        <div id="assinatura" class="text-center">
+            Documento gerado automaticamente by DET-MAKER<br>
+            Data: yyyy/MM/dd HH:mm:ss<br>
+            <br>
+        </div>
+    </div>
+
+</body>
+
+</html>

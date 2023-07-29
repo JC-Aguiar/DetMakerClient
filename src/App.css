@@ -1,0 +1,345 @@
+@font-face {
+  font-family: 'Futura';
+  src: local('Futura'), url(./resources/filmes-fontes/futura-bold-bt.ttf) format('truetype');
+}
+
+#mini-logo {
+  position: fixed;
+  right: 2%;
+  bottom: 1%;
+  height: 10%;
+  width: 10%;
+  background-repeat: no-repeat;
+  background-image: url("./resources/logo\ cinephile\ title\ 2.png");
+  background-position: center;
+  background-size: contain;
+  opacity: 33%;
+  z-index: 500;
+}
+
+#pagina-titulo,
+#pagina-titulo-reflexo {
+  position: absolute;
+  user-select: none;
+  padding-left: 16px;
+  /* padding-bottom: 16px; */
+  /* padding-bottom: 100px; */
+  font-size: 280px;
+  font-variant: small-caps;
+  font-family: 'Times New Roman', Times, serif;
+  text-shadow: 0 0 0.15em #c0c0c09c, 0 0 0.15em #c0c0c09c;
+}
+
+#pagina-titulo-reflexo {
+  text-shadow: none;
+  top: 210px;
+  /* margin-top: -32px; */
+  transform: scale(1, -1);
+  /* skewX(-60deg) */
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0.5) 100%);
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+}
+
+#galeria-filmes {
+  /* width: 100%;
+  margin: 0px;
+  padding: 0px; */
+  width: 100%;
+  /* padding-top: 0vh;
+  padding-bottom: 0vh;
+  padding-left: 8px;
+  padding-right: 8px; */
+}
+
+.noBg {
+  background-color: transparent;
+}
+
+.user-name {
+  color: white;
+  font-size: 200%;
+}
+
+.recent-item {
+  margin-top: 0px;
+  padding-top: 0px;
+  padding-left: 64px;
+}
+
+.menu-panel {
+  --ion-item-background: transparent !important;
+  background-color: transparent !important;
+}
+
+#menu {
+  --ion-item-background: linear-gradient(-45deg, #00003955, #00005555, #0f0f5055, #56286655, #36195c55, #00005555, #0f0f5055, #5f297555, #00005555, #00003955);
+  border: 0;
+  margin: 0;
+}
+
+
+/* INTRO --------------------------------------------------------------- */
+ion-content#logo {
+  position: fixed;
+  width: 400px;
+  height: 400px;
+  top: calc(50% - 200px);
+  left: calc(50% - 200px);
+  mask-image: url("./resources/logo\ cinephile\ title\ 2.png"); 
+  mask-size: 100px 100px;
+  mask-repeat: no-repeat;
+  mask-position: center center;
+  --background: linear-gradient(-45deg,
+      #000039, #000055, #000055,
+      #0f0f50, #562866, #562866,
+      #36195c, #000055, #000039,
+      #000039, #0f0f50, #5f2975,
+      #000055, #000055, #000039
+  );
+}
+
+@keyframes intro-animation {
+  0% {
+      mask-size: 0px 0px;
+  }
+  25% {
+      animation-timing-function: ease-out;
+      mask-size: 300px 300px;
+  }
+  100% {
+      animation-timing-function: ease-out;
+      mask-size: 400px 400px;
+      opacity: 0%;
+  }
+}
+
+ion-content#intro-bg {
+  position: fixed;
+  --ion-background-color: black;
+  z-index: -10;
+}
+
+@supports(-webkit-mask-image: url(#mask)) or (mask-image: url(#mask)) {
+
+}
+
+#avatar {
+  margin-top: -10px;
+  height: 86px;
+  width:  86px;
+  margin-left: 0px;
+  padding-right: 0;
+  margin-right: 0;
+}
+
+
+/* LOGIN --------------------------------------------------------------- */
+.menu-login {
+  padding-left: 0px;
+  margin-left: -10px;
+}
+.welcome {
+  color: white;
+  font-size: calc(80% + 12px);
+  padding-left: 15px;
+}
+
+
+/* MENU --------------------------------------------------------------- */
+.border-gold {
+  border-bottom: 2px solid yellow;
+  background-clip: padding-box;
+}
+
+#ppw-titulo::after {
+  background-image: none;
+}
+
+.banner {
+  background: linear-gradient(135deg, #0051c2, #87cefa, #dbe9f1, #1e90ff, #0f71d3);
+  background-size: 300% 500%;
+  animation: gradient 20s ease-in infinite;
+}
+
+@keyframes gradient {
+  0% {
+      background-position: 0% 50%;
+  }
+
+  30% {
+      background-position: 100% 50%;
+  }
+
+  50% {
+      background-position: 50% 0%;
+  }
+
+  100% {
+      background-position: 0% 50%;
+  }
+}
+
+/* MENU -> LOGIN  */
+.session-buttons {
+  padding-top: 0;
+  margin-top: 0;
+  width: 100%;
+  /* font-size: calc(4px + 30%); */
+  text-shadow: 0px 0px 0.55em #c0c0c09c, 0px 0px 0.55em #c0c0c09c;
+}
+.session-buttons:hover {
+  color: white;
+  text-shadow: 1px 0px 0.5em silver, -1px 0px 0.5em silver, 1px 0px 0.5em silver, -1px 0px 0.5em silver;
+}
+
+/* MODAL DE LOGIN */
+#modal-login::part(backdrop) {
+  background-color: #0c0c79;
+  --backdrop-opacity: 55%;
+}
+#modal-login::part(content) {
+  top: 0vh;
+  margin-top: 10vh;
+  margin-bottom: 30vh;
+  border: 0px;
+  height: 350px;
+  width: 46vw;
+  max-width: 46vw;
+  min-width: 300px;
+  border-radius: 20px;
+}
+.card-login {
+  height: 100%;
+}
+.login-title {
+  padding-top: 0;
+  margin-top: 0px;
+  font-size: calc(16px + 1.2vw);
+  font-family: 'Times New Roman', Times, serif;
+  text-shadow: 0 0 0.15em #c0c0c09c, 0 0 0.15em #c0c0c09c;
+}
+.close-icon {
+  padding: 0;
+  height: 32px;
+  width: 32px;
+  margin-top: 100%;
+  border-radius: 20px;
+  margin-left: 20%;
+  color: darkslategray;
+  background-color: transparent;
+  --border-color: transparent;
+  --box-shadow: 0px;
+}
+.login-item {
+  --highlight-background: blue;
+}
+.login-item::part(native) {
+}
+.login-input  {
+  font-size: smaller;
+  padding-left: 0;
+}
+.login-input-field {
+  font-size: calc(16px + 30%);
+  margin-left: 10px;
+  width: 140%;
+}
+.login-button {
+  color: var(--ion-color-primary);
+  margin-top: 12px;
+  width: 100%;
+}
+.login-button:hover {
+  color: white;
+  background-color: blue;
+  border-radius: 4px;
+}
+.login-button:focus {
+  color: var(--ion-color-primary);
+  background-color: #b8d9ff;
+  border-radius: 4px;
+  box-shadow: 0 0 1em silver;
+}
+
+/* ??? */
+#ion-react-wrapper {
+  background-color: var(--ion-color-light);
+  border-color: var(--ion-color-light);
+  margin-top: -10px;
+  margin-left: -10px;
+  margin-right: -10px;
+  border-radius: 20px;
+}
+
+/* LOADING DO LOGIN */
+#login-loading ion-backdrop {
+  background-color: #0c0c79;
+  --backdrop-opacity: 55%;
+}
+#login-loading div {
+  --background: transparent;
+  box-shadow: none;
+  margin-top: -10vh;
+}
+#login-loading div.alert-head,
+#login-loading div.alert-button-group {
+  visibility: hidden;
+  padding: 0;
+  margin: 0;
+}
+#login-loading div.alert-message {
+  text-align: center;
+  font-size: xx-large;
+  margin: 0;
+}
+
+/* GALERIA FILMES --------------------------------------------------------------- */
+#card-filme {
+  border: 2px solid black;
+  width: 80vw;
+  height: 800px;
+  max-height: 95vh;
+  margin: auto;
+  margin-bottom: 32px;
+  background-color: black;
+  box-shadow: 0 0 0.5em black;
+  user-select: none;
+}
+
+#filme-texto {
+  position: absolute;
+  z-index: 50;
+}
+
+#filme-texto ion-card-title {
+  font-size: 300%;
+  text-shadow: 0 0 0.15em #c0c0c09c, 0 0 0.15em #c0c0c09c;
+  padding: 0;
+  text-align: center;
+}
+
+/* #filme-texto ion-card-subtitle {
+  position: absolute;
+  top: 100%;
+} */
+
+#filme-capa {
+  position: absolute;
+  object-fit: cover;
+  user-select: none;
+  pointer-events: none;
+  mask-image: linear-gradient(to left, rgb(0, 0, 0) 50%, rgba(0, 0, 0, 0) 75%);
+  object-position: center center;
+}
+
+#filme-capa-mask {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  /* background-color: black; */
+  z-index: 1;
+  background: linear-gradient(to right, rgb(0, 0, 0) 20%, rgba(0, 0, 0, 0) 50%);
+}
+
+

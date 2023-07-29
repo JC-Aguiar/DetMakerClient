@@ -1,0 +1,8 @@
+{
+  "name": "det-maker-client",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react",
+  "id": "16eadd16"
+}

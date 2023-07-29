@@ -1,0 +1,6 @@
+{
+	"appId": "io.ionic.starter",
+	"appName": "det-maker-client",
+	"webDir": "build",
+	"bundledWebRuntime": false
+}
