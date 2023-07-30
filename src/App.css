@@ -389,6 +389,11 @@ ion-content#intro-bg {
   --background-hover: var(--ion-color-warning);
 }
 
+#flash {
+  height: calc(20vh + 3vw);
+  width: calc(20vh + 3vw);
+}
+
 /* ESCOLHER JOBS */
 #capa-schedule {
   padding-top: 2vh;
@@ -412,6 +417,17 @@ td div {
   overflow-y: hidden;
   width: 100%;
 }
+
+.jobs-nome {
+  word-break: break-all;
+}
+
+#det-check {
+  position: absolute;
+  right: 2%;
+  bottom: 1%;
+}
+
 
 @media (max-width: 767px) {
 

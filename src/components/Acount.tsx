@@ -1,6 +1,6 @@
 import { IonItem } from "@ionic/react";
 import React, { useState } from "react";
-import Login from "./Login";
+import Login from "../pages/Login";
 import User from "./User";
 import UsuarioModel, { UsuarioInterface } from "./UsuarioModel";
 

@@ -13,9 +13,9 @@ import {
     IonFabButton,
     IonIcon,
 } from "@ionic/react";
-import Avatar from "./Avatar";
-import LoginModal from "./LoginModal";
-import { UsuarioInterface } from "./UsuarioModel";
+import Avatar from "../components/Avatar";
+import LoginModal from "../components/LoginModal";
+import { UsuarioInterface } from "../components/UsuarioModel";
 import { logoGoogle } from "ionicons/icons";
 
 const Login = (props: any) => {

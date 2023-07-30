@@ -15,7 +15,7 @@ const EscolherJobs = (props: any) => {
                 scrollEvents={true}
             >
                 <div className='pt-3 pt-md-5'></div>
-                <div className="card border border-2 p-3 mx-0 mx-md-4" id="capa-schedule">
+                <div className="card border bg-white border-2 p-3 mx-0 mx-md-4" id="capa-schedule">
                     <h1 className="card-title destaque lh-1 m-0 text-center">
                         Schedule
                     </h1>
@@ -167,7 +167,9 @@ const EscolherJobs = (props: any) => {
                             </table>
                         </section>
                     </div>
+                    <div className='mb-5'></div>
                 </div>
+                <div className='pt-3 pt-md-5'></div>
             </IonContent>
         </IonPage>
     );

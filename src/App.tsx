@@ -26,9 +26,11 @@ import '@ionic/react/css/display.css';
 import './theme/variables.css';
 import { useState } from 'react';
 import { playCircle, radio, library, search, document, checkbox, cog, flash, personCircle } from 'ionicons/icons';
-import Login from './components/Login';
+import Login from './pages/Login';
 import AbrirSchedule from './pages/AbrirSchedule';
 import EscolherJobs from './pages/EscolherJobs';
+import ConfigurarJobs from './pages/ConfigurarJobs';
+import ExecutarJobs from './pages/ExecutarJobs';
 
 setupIonicReact();
 
@@ -83,8 +85,8 @@ const App = () => {
                     <IonRouterOutlet>
                         <Route path="/det-maker/open"   render={() => <AbrirSchedule />} exact={true} />
                         <Route path="/det-maker/select" render={() => <EscolherJobs />} exact={true} />
-                        <Route path="/det-maker/config" render={() => <Page page={page} />} exact={true} />
-                        <Route path="/det-maker/run"    render={() => <Page page={page} />} exact={true} />
+                        <Route path="/det-maker/config" render={() => <ConfigurarJobs />} exact={true} />
+                        <Route path="/det-maker/run"    render={() => <ExecutarJobs />} exact={true} />
                         <Route><Redirect to="/det-maker/open" /></Route>
                     </IonRouterOutlet>
                     <IonTabBar slot="top"
