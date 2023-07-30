@@ -3,6 +3,9 @@
   src: local('Futura'), url(./resources/filmes-fontes/futura-bold-bt.ttf) format('truetype');
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lugrasimo&family=Play:wght@700&display=swap');
+
 #mini-logo {
   position: fixed;
   right: 2%;
@@ -86,7 +89,7 @@ ion-content#logo {
   height: 400px;
   top: calc(50% - 200px);
   left: calc(50% - 200px);
-  mask-image: url("./resources/logo\ cinephile\ title\ 2.png"); 
+  mask-image: url("./resources/logo\ cinephile\ title\ 2.png");
   mask-size: 100px 100px;
   mask-repeat: no-repeat;
   mask-position: center center;
@@ -95,22 +98,23 @@ ion-content#logo {
       #0f0f50, #562866, #562866,
       #36195c, #000055, #000039,
       #000039, #0f0f50, #5f2975,
-      #000055, #000055, #000039
-  );
+      #000055, #000055, #000039);
 }
 
 @keyframes intro-animation {
   0% {
-      mask-size: 0px 0px;
+    mask-size: 0px 0px;
   }
+
   25% {
-      animation-timing-function: ease-out;
-      mask-size: 300px 300px;
+    animation-timing-function: ease-out;
+    mask-size: 300px 300px;
   }
+
   100% {
-      animation-timing-function: ease-out;
-      mask-size: 400px 400px;
-      opacity: 0%;
+    animation-timing-function: ease-out;
+    mask-size: 400px 400px;
+    opacity: 0%;
   }
 }
 
@@ -120,14 +124,12 @@ ion-content#intro-bg {
   z-index: -10;
 }
 
-@supports(-webkit-mask-image: url(#mask)) or (mask-image: url(#mask)) {
-
-}
+@supports(-webkit-mask-image: url(#mask)) or (mask-image: url(#mask)) {}
 
 #avatar {
   margin-top: -10px;
   height: 86px;
-  width:  86px;
+  width: 86px;
   margin-left: 0px;
   padding-right: 0;
   margin-right: 0;
@@ -139,6 +141,7 @@ ion-content#intro-bg {
   padding-left: 0px;
   margin-left: -10px;
 }
+
 .welcome {
   color: white;
   font-size: calc(80% + 12px);
@@ -150,6 +153,10 @@ ion-content#intro-bg {
 .border-gold {
   border-bottom: 2px solid yellow;
   background-clip: padding-box;
+}
+
+#ppw-titulo {
+  font-family: 'Roboto';
 }
 
 #ppw-titulo::after {
@@ -164,19 +171,19 @@ ion-content#intro-bg {
 
 @keyframes gradient {
   0% {
-      background-position: 0% 50%;
+    background-position: 0% 50%;
   }
 
   30% {
-      background-position: 100% 50%;
+    background-position: 100% 50%;
   }
 
   50% {
-      background-position: 50% 0%;
+    background-position: 50% 0%;
   }
 
   100% {
-      background-position: 0% 50%;
+    background-position: 0% 50%;
   }
 }
 
@@ -188,6 +195,7 @@ ion-content#intro-bg {
   /* font-size: calc(4px + 30%); */
   text-shadow: 0px 0px 0.55em #c0c0c09c, 0px 0px 0.55em #c0c0c09c;
 }
+
 .session-buttons:hover {
   color: white;
   text-shadow: 1px 0px 0.5em silver, -1px 0px 0.5em silver, 1px 0px 0.5em silver, -1px 0px 0.5em silver;
@@ -198,6 +206,7 @@ ion-content#intro-bg {
   background-color: #0c0c79;
   --backdrop-opacity: 55%;
 }
+
 #modal-login::part(content) {
   top: 0vh;
   margin-top: 10vh;
@@ -209,9 +218,11 @@ ion-content#intro-bg {
   min-width: 300px;
   border-radius: 20px;
 }
+
 .card-login {
   height: 100%;
 }
+
 .login-title {
   padding-top: 0;
   margin-top: 0px;
@@ -219,6 +230,7 @@ ion-content#intro-bg {
   font-family: 'Times New Roman', Times, serif;
   text-shadow: 0 0 0.15em #c0c0c09c, 0 0 0.15em #c0c0c09c;
 }
+
 .close-icon {
   padding: 0;
   height: 32px;
@@ -231,30 +243,36 @@ ion-content#intro-bg {
   --border-color: transparent;
   --box-shadow: 0px;
 }
+
 .login-item {
   --highlight-background: blue;
 }
-.login-item::part(native) {
-}
-.login-input  {
+
+.login-item::part(native) {}
+
+.login-input {
   font-size: smaller;
   padding-left: 0;
 }
+
 .login-input-field {
   font-size: calc(16px + 30%);
   margin-left: 10px;
   width: 140%;
 }
+
 .login-button {
   color: var(--ion-color-primary);
   margin-top: 12px;
   width: 100%;
 }
+
 .login-button:hover {
   color: white;
   background-color: blue;
   border-radius: 4px;
 }
+
 .login-button:focus {
   color: var(--ion-color-primary);
   background-color: #b8d9ff;
@@ -277,17 +295,20 @@ ion-content#intro-bg {
   background-color: #0c0c79;
   --backdrop-opacity: 55%;
 }
+
 #login-loading div {
   --background: transparent;
   box-shadow: none;
   margin-top: -10vh;
 }
+
 #login-loading div.alert-head,
 #login-loading div.alert-button-group {
   visibility: hidden;
   padding: 0;
   margin: 0;
 }
+
 #login-loading div.alert-message {
   text-align: center;
   font-size: xx-large;
@@ -342,4 +363,68 @@ ion-content#intro-bg {
   background: linear-gradient(to right, rgb(0, 0, 0) 20%, rgba(0, 0, 0, 0) 50%);
 }
 
+.destaque {
+  color: #0051c2;
+  -webkit-text-stroke: 0.3vw white;
+  text-stroke: 0.2vw white;
+  font-family: 'Play', sans-serif;
+  font-size: 8vw;
+  text-shadow: 0.4vw 0.4vw rgba(255, 255, 0, 1);
+}
 
+.login-btn {
+  left: calc(50% - (20vh + 3vw)/2);
+}
+
+.login-btn ion-fab-button,
+.login-btn ion-fab-button ion-icon {
+  position: fixed;
+  height: calc(20vh + 3vw);
+  width: calc(20vh + 3vw);
+}
+
+#google {
+  --background-activated: var(--ion-color-primary);
+  --background-focused: var(--ion-color-warning);
+  --background-hover: var(--ion-color-warning);
+}
+
+/* ESCOLHER JOBS */
+#capa-schedule {
+  padding-top: 2vh;
+  background-color: transparent;
+}
+
+th div,
+td div {
+  min-width: 3vw;
+  overflow: auto;
+}
+
+.td-long {
+  min-width: 60vw;
+  overflow: auto;
+}
+
+.scroll-x {
+  flex-wrap: nowrap;
+  overflow-x: scroll !important;
+  overflow-y: hidden;
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+
+  .destaque {
+    -webkit-text-stroke: 0.8vw white;
+    text-stroke: 0.8vw white;
+    font-size: 20vw;
+    text-shadow: 1vw 1vw rgba(255, 255, 0, 1);
+  }
+
+  .td-long {
+    min-width: 80vw;
+    overflow: auto;
+  }
+
+}

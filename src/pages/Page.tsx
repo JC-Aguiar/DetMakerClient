@@ -70,7 +70,6 @@ const Page = (props: any) => {
 
     return (
         <IonPage>
-
             <IonContent
                 fullscreen={true}
                 scrollEvents={true}
@@ -95,22 +94,6 @@ const Page = (props: any) => {
                 </IonSlides>
             </IonContent>
         </IonPage>
-        /* <IonHeader>
-                <IonToolbar>
-                    <IonButtons slot="start">
-                        <IonMenuButton />
-                    </IonButtons>
-                    <IonTitle>{name}</IonTitle>
-                </IonToolbar>
-            </IonHeader>
-            <IonContent fullscreen>
-                <IonHeader collapse="condense">
-                    <IonToolbar>
-                        <IonTitle size="large">{name}</IonTitle>
-                    </IonToolbar>
-                </IonHeader>
-                <ExploreContainer name={name} />
-            </IonContent> */
     );
 };
 
