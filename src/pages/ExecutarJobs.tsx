@@ -10,7 +10,7 @@ const ExecutarJobs = (props: any) => {
             <IonContent fullscreen={true} scrollEvents={true} >
                 <div className='pt-3 pt-md-5'></div>
                 <div className="card border border-2 p-3 mx-0 mx-md-4" id="capa-abrir">
-                    <div className="progress" role="progressbar" aria-label="Animated striped example" >
+                    <div className="progress" role="progressbar" aria-label="carregando..." >
                         <div className="progress-bar progress-bar-striped progress-bar-animated" style={{width: "100%"}}></div>
                     </div>
                     <h1 className="card-title destaque lh-1 m-0 text-center">

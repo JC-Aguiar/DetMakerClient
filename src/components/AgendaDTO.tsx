@@ -1,0 +1,30 @@
+export interface AgendaDTO {
+    dataRegistro: Date;
+    autorRegistro: string;
+    origemRegistro: string;
+    nomeArquivo: string;
+    nomePlanilha: string;
+    id: number;
+    executarAposJob: string;
+    grupoConcorrencia: string;
+    fase: string;
+    job: string;
+    descricao: string;
+    grupoUda: string;
+    programa: string;
+    tabelas: string;
+    servidor: string;
+    caminhoExec: string;
+    parametros: string;
+    descricaoParametros: string;
+    diretorioEntrada: string;
+    mascaraEntrada: string;
+    diretorioSaida: string;
+    mascaraSaida: string;
+    diretorioLog: string;
+    mascaraLog: string;
+    tratamento: string;
+    escalation: string;
+    dataAtualizacao: string;
+    atualizadoPor: string;
+}

@@ -1,11 +1,70 @@
-import { IonApp, IonButton, IonContent, IonIcon, IonPage, ScrollDetail, useIonViewDidEnter } from '@ionic/react';
-import { useParams } from 'react-router';
-import { useState } from 'react';
+import { IonApp, IonButton, IonContent, IonIcon, IonPage, IonText, ScrollDetail, useIonViewDidEnter } from '@ionic/react';
+import { useHistory, useParams } from 'react-router';
+import { ChangeEvent, useRef, useState } from 'react';
 import { folderOpen } from 'ionicons/icons';
+import { alertController } from "@ionic/core";
+import * as axiosRequest from "../components/AxiosRequest";
+import { ErroModel } from '../components/ErroModel';
+import { AgendaDTO } from '../components/AgendaDTO';
 
 const AbrirSchedule = (props: any) => {
-    const { name } = useParams<{ name: string }>();
+    const [mensagemErro, SetMensagemErro] = useState("");
+    const [enviar, setEnviar] = useState<boolean | undefined>(false);
+    const [anexo, setAnexo] = useState<File | null>(null);
+    const history = useHistory();
 
+    function getFile(event: React.ChangeEvent<HTMLInputElement>) {
+        const selectedFile = event.target.files?.[0];
+        if (selectedFile != null) {
+            setAnexo(selectedFile);
+            setEnviar(true);
+        }
+        else {
+            setAnexo(null);
+            setEnviar(false);
+        }
+    }
+
+    async function carregarArquivo() {
+        const alert = await alertController.create({
+            id: "opening-schedule",
+            message: "Lendo conteúdo",
+            buttons: [],
+            backdropDismiss: false,
+            translucent: true,
+            keyboardClose: false,
+            // TODO: adicionar estilo e talvez uma animação
+        });
+        try {
+            await alert.present();
+            if (!anexo) {
+                console.log("Nenhum arquivo para envio.");
+                return
+            };
+            const formData = new FormData();
+            formData.append('file', anexo);
+            const planilhas: AgendaDTO[] = await axiosRequest.openSchedule(anexo);
+            const json: string = JSON.stringify(planilhas);
+            //callBack(user);
+
+            history.push({
+                pathname: '/det-maker/select/', 
+                state: { data: json } 
+            });
+
+        }
+        catch (error) {
+            //await exibirModal();
+            if (error instanceof ErroModel) {
+                SetMensagemErro(error.mensagem.toString());
+                const alerta = setTimeout(() => SetMensagemErro(""), 6000);
+            }
+            console.error(error);
+        }
+        finally {
+            await alert.dismiss();
+        }
+    }
 
     return (
         <IonPage>
@@ -19,13 +78,16 @@ const AbrirSchedule = (props: any) => {
                         Selecione o caminho da planilha Schedule para dar início ao Det-Maker.
                     </h3>
                     <div className="mb-3 mx-5">
-                        <label htmlFor="formFile" className="form-label" ></label>
-                        <input className="form-control" type="file" id="formFile" />
+                        <form action="/upload" method="post" encType="multipart/form-data">
+                            <label htmlFor="formFile" className="form-label" ></label>
+                            <input className="form-control" type="file" id="formFile" onChange={getFile} />
+                        </form>
                     </div>
-                    <IonButton className='mx-5'>
+                    <IonButton className='mx-5' onClick={carregarArquivo} disabled={!enviar}>
                         <IonIcon icon={folderOpen} className='me-2'></IonIcon>
                         Abrir
                     </IonButton>
+                    <IonText id="erro-texto">{mensagemErro}</IonText>
                     <div className='mb-5'></div>
                 </div>
             </IonContent>

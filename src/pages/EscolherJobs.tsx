@@ -1,11 +1,62 @@
-import { IonApp, IonAvatar, IonButton, IonButtons, IonCol, IonContent, IonGrid, IonIcon, IonItem, IonLabel, IonMenuButton, IonPage, IonRow, IonSlide, IonSlides, IonText, IonThumbnail, IonTitle, IonToolbar, ScrollDetail, useIonViewDidEnter, withIonLifeCycle } from '@ionic/react';
-import { useParams } from 'react-router';
+import { IonContent, IonPage, useIonViewDidEnter, useIonViewWillEnter } from '@ionic/react';
+import { AgendaDTO } from '../components/AgendaDTO';
+import { useState, useEffect } from 'react';
+import { useHistory, useLocation, useRouteMatch } from 'react-router';
 
 const EscolherJobs = (props: any) => {
-    const { name } = useParams<{ name: string }>();
+    const location = useLocation<{ data: string }>();
+    const [data, setData] = useState<AgendaDTO[]>([]);
+    const history = useHistory();
+    const match = useRouteMatch('/det-maker/select');
+
+    /*
+        useEffect(() => {
+            try {
+                if (!match) {
+                    return;
+                }
+    
+                if (location.state && location.state.data) {
+                    const planilhasDTO: AgendaDTO[] = JSON.parse(location.state.data);
+                    setData(planilhasDTO);
+                    console.log(`location.state: ${location.state}`);
+                    console.log(`data: ${data}`);
+                    data.map((elemento, index) => {
+                        console.log(elemento.job);
+                    });
+                }
+                else {
+                    throw "Nenhum job informado. Retornando página.";
+                }
+            }
+            catch (error) {
+                console.error(error);
+                //history.goBack();
+            }
+        }, [location.state, match]);
+    */
 
     useIonViewDidEnter(() => {
-    });
+        try {
+            if (location.state && location.state.data) {
+                const planilhasDTO: AgendaDTO[] = JSON.parse(location.state.data);
+                setData(planilhasDTO);
+                console.log(`location.state: ${location.state}`);
+                console.log(`data: ${data}`);
+                data.map((elemento, index) => {
+                    console.log(elemento.job);
+                });
+            }
+            else {
+                throw "Nenhum job informado. Retornando página.";
+            }
+        }
+        catch (error) {
+            console.error(error);
+            history.goBack();
+        }
+    }, [location.state]);
+
 
     //scroll-x
     return (
@@ -16,6 +67,18 @@ const EscolherJobs = (props: any) => {
             >
                 <div className='pt-3 pt-md-5'></div>
                 <div className="card border bg-white border-2 p-3 mx-0 mx-md-4" id="capa-schedule">
+                    <div className='text-primary'>
+                        {
+                            data.map((elemento, index) => {
+                                return (
+                                    <div key={index}>
+                                        <h2>{elemento.job}</h2>
+                                        <p>{elemento.descricao}</p>
+                                    </div>
+                                );
+                            })
+                        }
+                    </div>
                     <h1 className="card-title destaque lh-1 m-0 text-center">
                         Schedule
                     </h1>

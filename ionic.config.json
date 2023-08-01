@@ -3,6 +3,21 @@
   "integrations": {
     "capacitor": {}
   },
+  "proxies": [
+    {
+      "path": "/agenda",
+      "proxyUrl": "http://localhost:1990/agenda",
+      "options": {
+        "changeOrigin": true,
+        "withCredentials": true,
+        "headers": {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
+        }
+      }
+    }
+  ],
   "type": "react",
   "id": "16eadd16"
 }
