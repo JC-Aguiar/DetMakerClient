@@ -1,15 +1,19 @@
-import { IonContent, IonPage, useIonViewDidEnter, useIonViewWillEnter } from '@ionic/react';
+import { IonCheckbox, IonContent, IonIcon, IonPage, useIonViewDidEnter, useIonViewWillEnter } from '@ionic/react';
 import { AgendaDTO } from '../components/AgendaDTO';
 import { useState, useEffect } from 'react';
 import { useHistory, useLocation, useRouteMatch } from 'react-router';
+import { agenda } from '../App';
+import { func } from 'prop-types';
+import { checkmarkCircle, closeCircle } from 'ionicons/icons';
 
 const EscolherJobs = (props: any) => {
     const location = useLocation<{ data: string }>();
     const [data, setData] = useState<AgendaDTO[]>([]);
+    const [checks, setChecks] = useState<boolean>(false);
     const history = useHistory();
-    const match = useRouteMatch('/det-maker/select');
 
     /*
+    CÓDIGO ÚTIL (BACK-UP):
         useEffect(() => {
             try {
                 if (!match) {
@@ -34,198 +38,159 @@ const EscolherJobs = (props: any) => {
                 //history.goBack();
             }
         }, [location.state, match]);
+
+        useIonViewDidEnter(() => {
+            try {
+                if (location.state && location.state.data) {
+                    const planilhasDTO: AgendaDTO[] = JSON.parse(location.state.data);
+                    setData(planilhasDTO);
+                    console.log(`location.state: ${location.state}`);
+                    console.log(`data: ${data}`);
+                    data.map((elemento, index) => {
+                        console.log(elemento.job);
+                    });
+                }
+                else {
+                    throw "Nenhum job informado. Retornando página.";
+                }
+            }
+            catch (error) {
+                console.error(error);
+                history.goBack();
+            }
+        }, [location.state]);
     */
 
     useIonViewDidEnter(() => {
-        try {
-            if (location.state && location.state.data) {
-                const planilhasDTO: AgendaDTO[] = JSON.parse(location.state.data);
-                setData(planilhasDTO);
-                console.log(`location.state: ${location.state}`);
-                console.log(`data: ${data}`);
-                data.map((elemento, index) => {
-                    console.log(elemento.job);
-                });
-            }
-            else {
-                throw "Nenhum job informado. Retornando página.";
-            }
-        }
-        catch (error) {
-            console.error(error);
+        if (agenda.length === 0) {
+            console.log(`[ESCOLHER-JOBS] A agenda está vazia. Retornando página.`);
             history.goBack();
         }
-    }, [location.state]);
+        else {
+            console.log(`[ESCOLHER-JOBS] Carregando tabela com base na agenda disponível.`);
+        }
+    }, []);
 
 
-    //scroll-x
+    function checkAll() {
+        setChecks(checks ? false : true);
+        console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para ${checks}.`);
+        agenda.map((elemento, index) => {
+            elemento.checked = checks;
+            checkJob(elemento, index);
+        });
+    }
+
+    function checkJob(elemento: AgendaDTO, index: number) {
+        elemento.checked = elemento.checked ? false : true;
+        const mensagem = elemento.checked ? "selecionado" : "desselecionado";
+        console.log(`[ESCOLHER-JOBS] ${mensagem} Job ${elemento.id}: ${elemento.job}.`);
+        document.getElementById(`job-index-${index}`)!.style.backgroundColor = elemento.checked ? 'yellow' : 'transparent';
+
+        //const xpath = `//table/tbody/tr[${index+1}]/td`;
+        //const result = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        //
+        //for (let i = 0; i < result.snapshotLength; i++) {
+        //    const elementoHtml = result.snapshotItem(i) as Element;
+        //    elementoHtml?.classList.add( elemento.checked ? 'bg-warning' : 'bg-transparent');
+        //    elementoHtml?.classList.remove( elemento.checked ? 'bg-transparent' : 'bg-warning');
+        //    console.log("[ESCOLHER-JOBS] elmento: " + elementoHtml?.textContent);
+        //}
+    }
+    /*
+    /html/body/div/ion-app/div/div/ion-tabs/div/ion-router-outlet/div[1]/ion-content/div[2]/div[1]/section/table/tbody/tr[1]/td[1]
+    //*[@id="capa-schedule"]/div[1]/section/table/tbody/tr[1]/td[1]
+    //table/tbody/tr[index+1]/td
+    */
+
     return (
         <IonPage>
-            <IonContent
-                fullscreen={true}
-                scrollEvents={true}
-            >
-                <div className='pt-3 pt-md-5'></div>
-                <div className="card border bg-white border-2 p-3 mx-0 mx-md-4" id="capa-schedule">
-                    <div className='text-primary'>
-                        {
-                            data.map((elemento, index) => {
-                                return (
-                                    <div key={index}>
-                                        <h2>{elemento.job}</h2>
-                                        <p>{elemento.descricao}</p>
-                                    </div>
-                                );
-                            })
-                        }
-                    </div>
+            <IonContent fullscreen={true} scrollEvents={true}>
+                <div className='pt-3 pt-md-4'></div>
+                <div className="card border bg-white border-2 mx-0 mx-md-4" id="capa-schedule">
                     <h1 className="card-title destaque lh-1 m-0 text-center">
                         Schedule
                     </h1>
                     <h3 className="card-text h3 text-primary ms-2 text-center">
                         Documentação detalhada dos jobs disponíveis.
                     </h3>
-                    <div id="schedule-tabela">
+                    <div className="schedule-tabela px-1">
                         <div className="my-3"></div>
-                        <div className="banner py-2 p-2"></div>
-                        <section className="scroll-x text-center ">
-                            <table className="table table-light table-bordered table-striped align-items-center align-middle">
-                                <thead className='align-middle'>
-                                    <tr>
-                                        <th>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                                className="bi bi-stack" viewBox="0 0 16 16">
-                                                <path
-                                                    d="m14.12 10.163 1.715.858c.22.11.22.424 0 .534L8.267 15.34a.598.598 0 0 1-.534 0L.165 11.555a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.66zM7.733.063a.598.598 0 0 1 .534 0l7.568 3.784a.3.3 0 0 1 0 .535L8.267 8.165a.598.598 0 0 1-.534 0L.165 4.382a.299.299 0 0 1 0-.535L7.733.063z" />
-                                                <path
-                                                    d="m14.12 6.576 1.715.858c.22.11.22.424 0 .534l-7.568 3.784a.598.598 0 0 1-.534 0L.165 7.968a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.659z" />
-                                            </svg>
+                        <section className="schedule-tabela scroll text-center">
+                            <table className="table  p-0 m-0"> {/* table-light table-striped */}
+                                <thead className='sticky-top align-items-center align-middle '>
+                                    <tr className='text-white '>
+                                        <th className='bg-primary'>
+                                            <button className='btn btn-outline-light p-1 m-0 d-flex' onClick={checkAll}>
+                                                <IonIcon icon={checks ? closeCircle : checkmarkCircle} size='large' />
+                                            </button>
                                         </th>
-                                        <th>JOB ID</th>
-                                        <th>EXECUTA APÓS ID</th>
-                                        <th>GRUPO CONCORRÊNCIA</th>
-                                        <th>FASE</th>
-                                        <th>JOB NOME</th>
-                                        <th className="td-long">JOB DESCRIÇÃO</th>
-                                        <th>GRUPO UDA</th>
-                                        <th>PROGRAMA</th>
-                                        <th>TABELAS ATUALIZADAS</th>
-                                        <th>SERVIDOR</th>
-                                        <th>CAMINHO JOB</th>
-                                        <th>PARÂMETROS</th>
-                                        <th className="td-long">DESCRIÇÕES PARÂMETROS</th>
-                                        <th>ARQUIVO ENTRADA (CAMINHO)</th>
-                                        <th>ARQUIVO ENTRADA (MÁSCARA)</th>
-                                        <th>ARQUIVO SAÍDA (CAMINHO)</th>
-                                        <th>ARQUIVO SAÍDA (MÁSCARA)</th>
-                                        <th>LOG (CAMINHO)</th>
-                                        <th>LOG (MÁSCARA)</th>
-                                        <th>TRATAMENTO</th>
-                                        <th>ESCALATION</th>
-                                        <th>DATA ATUALIZAÇÃO</th>
-                                        <th>ATUALZIADO POR</th>
+                                        <th className='bg-primary'>JOB ID</th>
+                                        <th className='bg-primary'>EXECUTA APÓS ID</th>
+                                        <th className='bg-primary'>GRUPO CONCORRÊNCIA</th>
+                                        <th className='bg-primary'>FASE</th>
+                                        <th className='bg-primary'>JOB NOME</th>
+                                        <th className='bg-primary td-long'>JOB DESCRIÇÃO</th>
+                                        <th className='bg-primary'>GRUPO UDA</th>
+                                        <th className='bg-primary'>PROGRAMA</th>
+                                        <th className='bg-primary'>TABELAS ATUALIZADAS</th>
+                                        <th className='bg-primary'>SERVIDOR</th>
+                                        <th className='bg-primary'>CAMINHO JOB</th>
+                                        <th className='bg-primary'>PARÂMETROS</th>
+                                        <th className='bg-primary td-long'>DESCRIÇÕES PARÂMETROS</th>
+                                        <th className='bg-primary'>ARQUIVO ENTRADA (CAMINHO)</th>
+                                        <th className='bg-primary td-long'>ARQUIVO ENTRADA (MÁSCARA)</th>
+                                        <th className='bg-primary'>ARQUIVO SAÍDA (CAMINHO)</th>
+                                        <th className='bg-primary'>ARQUIVO SAÍDA (MÁSCARA)</th>
+                                        <th className='bg-primary'>LOG (CAMINHO)</th>
+                                        <th className='bg-primary td-long'>LOG (MÁSCARA)</th>
+                                        <th className='bg-primary'>TRATAMENTO</th>
+                                        <th className='bg-primary'>ESCALATION</th>
+                                        <th className='bg-primary'>DATA ATUALIZAÇÃO</th>
+                                        <th className='bg-primary'>ATUALZIADO POR</th>
                                     </tr>
                                 </thead>
                                 <tbody> {/* style={{overflowX: 'auto', whiteSpace: 'nowrap'}} */}
-                                    <tr className="font-monospace">
-                                        {/* ACTION */}
-                                        <td><input className="form-check-input  p-3" type="checkbox" value="" id="1" /></td>
-                                        {/* JOB */}
-                                        <td>
-                                            <div>7</div>
-                                        </td>
-                                        {/* EXECUTA */}
-                                        <td>
-                                            <div>1</div>
-                                        </td>
-                                        {/* GRUPO */}
-                                        <td>
-                                            <div>A</div>
-                                        </td>
-                                        {/* FASE */}
-                                        <td>
-                                            <div>Pré-Cyber</div>
-                                        </td>
-                                        {/* JOB */}
-                                        <td>
-                                            <div>cy3_shell_valida_IE002.ksh</div>
-                                        </td>
-                                        {/* JOB DESCRIÇÃO */}
-                                        <td>
-                                            <div>
-                                                Processa a validação da interface de carga de faturamento que é gerado quando
-                                                ocorre atualizações financeiras de contratos. A origem do Arquivo é do BRM.
-                                            </div>
-                                        </td>
-                                        {/* GRUPO */}
-                                        <td>
-                                            <div>1</div>
-                                        </td>
-                                        {/* PROGRAMA */}
-                                        <td>
-                                            <div>shell e beb750</div>
-                                        </td>
-                                        {/* TABELAS */}
-                                        <td>
-                                            <div>CONTROLE</div>
-                                        </td>
-                                        {/* SERVIDOR */}
-                                        <td>
-                                            <div>svuxpjob2</div>
-                                        </td>
-                                        {/* CAMINHO */}
-                                        <td>
-                                            <div>/app/rcvry/shells</div>
-                                        </td>
-                                        {/* PARÂMETROS */}
-                                        <td>
-                                            <div>AAAAMMDD</div>
-                                        </td>
-                                        {/* PARAM DESCRIÇÕES */}
-                                        <td>
-                                            <div>$1 - Data de referencia do ciclo (formato AAAAMMDD)</div>
-                                        </td>
-                                        {/* ENTRADA DIR */}
-                                        <td>
-                                            <div>app/rcvry/cy3/ftp/input</div>
-                                        </td>
-                                        {/* ENTRADA MASK */}
-                                        <td>
-                                            <div>CY3_IE002_NNNNNNNN_faturas.txt</div>
-                                        </td>
-                                        {/* SAIDA DIR */}
-                                        <td>
-                                            <div>N/A</div>
-                                        </td>
-                                        {/* SAIDA MASK */}
-                                        <td>
-                                            <div>N/A</div>
-                                        </td>
-                                        {/* LOG DIR */}
-                                        <td>
-                                            <div>/app/rcvry/cy3/log</div>
-                                        </td>
-                                        {/* LOG MASK */}
-                                        <td>
-                                            <div>CY3_VALIDA_IE012_AAAAMMDD_HHMMSS.log</div>
-                                        </td>
-                                        {/* TRATAMENTO */}
-                                        <td>
-                                            <div>Rerun</div>
-                                        </td>
-                                        {/* ESCALATION */}
-                                        <td>
-                                            <div>Nivel 1</div>
-                                        </td>
-                                        {/* DATA */}
-                                        <td>
-                                            <div>29/03/2023</div>
-                                        </td>
-                                        {/* POR QUEM */}
-                                        <td>
-                                            <div>PPW</div>
-                                        </td>
-                                    </tr>
+                                    {
+                                        agenda.map((elemento, index) => {
+                                            const indexId: string = `job-index-${index}`;
+                                            return (
+                                                <tr className="font-monospace" id={indexId}>
+                                                    {/* ACTION */}
+                                                    <td>
+                                                        <IonCheckbox
+                                                            className="check-box bg-transparent"
+                                                            checked={elemento.checked}
+                                                            onClick={() => checkJob(elemento, index)}
+                                                        />
+                                                    </td>
+                                                    <td className='bg-transparent'> {elemento.id} </td>
+                                                    <td className='bg-transparent'> {elemento.executarAposJob} </td>
+                                                    <td className='bg-transparent'> {elemento.grupoConcorrencia} </td>
+                                                    <td className='bg-transparent'> {elemento.fase} </td>
+                                                    <td className='bg-transparent'> {elemento.job} </td>
+                                                    <td className='bg-transparent'> {elemento.descricao} </td>
+                                                    <td className='bg-transparent'> {elemento.grupoUda} </td>
+                                                    <td className='bg-transparent'> {elemento.programa} </td>
+                                                    <td className='bg-transparent'> {elemento.tabelas} </td>
+                                                    <td className='bg-transparent'> {elemento.servidor} </td>
+                                                    <td className='bg-transparent'> {elemento.caminhoExec} </td>
+                                                    <td className='bg-transparent'> {elemento.parametros} </td>
+                                                    <td className='bg-transparent'> {elemento.descricaoParametros} </td>
+                                                    <td className='bg-transparent'> {elemento.diretorioEntrada} </td>
+                                                    <td className='bg-transparent'> {elemento.mascaraEntrada} </td>
+                                                    <td className='bg-transparent'> {elemento.diretorioSaida} </td>
+                                                    <td className='bg-transparent'> {elemento.mascaraSaida} </td>
+                                                    <td className='bg-transparent'> {elemento.diretorioLog} </td>
+                                                    <td className='bg-transparent'> {elemento.mascaraLog} </td>
+                                                    <td className='bg-transparent'> {elemento.tratamento} </td>
+                                                    <td className='bg-transparent'> {elemento.escalation} </td>
+                                                    <td className='bg-transparent'> {elemento.dataAtualizacao} </td>
+                                                    <td className='bg-transparent'> {elemento.atualizadoPor} </td>
+                                                </tr>
+                                            );
+                                        })
+                                    }
                                 </tbody>
                             </table>
                         </section>

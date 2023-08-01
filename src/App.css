@@ -369,7 +369,7 @@ ion-content#intro-bg {
   text-stroke: 0.2vw white;
   font-family: 'Play', sans-serif;
   font-size: 8vw;
-  text-shadow: 0.4vw 0.4vw rgba(255, 255, 0, 1);
+  text-shadow: 0.4vw 0.4vw #ffff00;
 }
 
 .login-btn {
@@ -398,11 +398,17 @@ ion-content#intro-bg {
 #capa-schedule {
   padding-top: 2vh;
   background-color: transparent;
+  
 }
 
-th div,
-td div {
+.schedule-tabela {
+  height: 50vh; /*300px  55vh*/
+}
+
+
+th,td {
   min-width: 3vw;
+  max-width: 40vw;
   overflow: auto;
 }
 
@@ -411,11 +417,23 @@ td div {
   overflow: auto;
 }
 
-.scroll-x {
+.scroll {
   flex-wrap: nowrap;
   overflow-x: scroll !important;
-  overflow-y: hidden;
+  overflow-y: scroll !important;;
   width: 100%;
+}
+
+.check-box {
+  --size: 24px;
+  --checkbox-background: white;
+  --checkbox-background-checked: #0051c2;
+}
+
+.check-box::part(container) {
+  --background: #87cefa;
+  border-radius: 4px;
+  border: 2px solid white;
 }
 
 .jobs-nome {

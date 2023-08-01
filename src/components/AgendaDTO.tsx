@@ -1,4 +1,5 @@
 export interface AgendaDTO {
+    checked: boolean;
     dataRegistro: Date;
     autorRegistro: string;
     origemRegistro: string;

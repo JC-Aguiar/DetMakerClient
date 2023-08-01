@@ -12,6 +12,12 @@ const AbrirSchedule = (props: any) => {
     const [enviar, setEnviar] = useState<boolean | undefined>(false);
     const [anexo, setAnexo] = useState<File | null>(null);
     const history = useHistory();
+    const callBack = props.callBack;
+
+    async function scheduleCallBack(arquivoXlsx: AgendaDTO[]) {
+        console.log(`[ABRIR-SCHEDULE] Realizando callback das agendas`);
+        callBack(arquivoXlsx);
+    }
 
     function getFile(event: React.ChangeEvent<HTMLInputElement>) {
         const selectedFile = event.target.files?.[0];
@@ -38,28 +44,19 @@ const AbrirSchedule = (props: any) => {
         try {
             await alert.present();
             if (!anexo) {
-                console.log("Nenhum arquivo para envio.");
+                console.log("[ABRIR-SCHEDULE] Nenhum arquivo para envio.");
                 return
             };
             const formData = new FormData();
             formData.append('file', anexo);
             const planilhas: AgendaDTO[] = await axiosRequest.openSchedule(anexo);
-            const json: string = JSON.stringify(planilhas);
-            //callBack(user);
-
-            history.push({
-                pathname: '/det-maker/select/', 
-                state: { data: json } 
-            });
-
+            //const json: string = JSON.stringify(planilhas);
+            await scheduleCallBack(planilhas);
+            history.push('/det-maker/select/');
         }
         catch (error) {
-            //await exibirModal();
-            if (error instanceof ErroModel) {
-                SetMensagemErro(error.mensagem.toString());
-                const alerta = setTimeout(() => SetMensagemErro(""), 6000);
-            }
-            console.error(error);
+            // TODO: criar um Popup/Toast aqui para exibir o erro ao usuário 
+            console.error(`[ABRIR-SCHEDULE] ${error}`);
         }
         finally {
             await alert.dismiss();
@@ -69,7 +66,7 @@ const AbrirSchedule = (props: any) => {
     return (
         <IonPage>
             <IonContent fullscreen={true} scrollEvents={true} >
-                <div className='pt-3 pt-md-5'></div>
+                <div className='pt-3 pt-md-4'></div>
                 <div className="card border border-2 p-3 mx-0 mx-md-4" id="capa-abrir">
                     <h1 className="card-title destaque lh-1 m-0 text-center">
                         Abrir Arquivo
