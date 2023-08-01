@@ -1,8 +1,6 @@
-import { IonApp, IonCol, IonContent, IonGrid, IonHeader, IonIcon, IonLabel, IonMenuToggle, IonPopover, IonRouterOutlet, IonRow, IonSplitPane, IonTabBar, IonTabButton, IonTabs, IonTitle, IonToolbar, setupIonicReact, useIonViewDidEnter, useIonViewWillEnter } from '@ionic/react';
+import { IonApp, IonBadge, IonHeader, IonIcon, IonItem, IonLabel, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { Redirect, Route, useHistory  } from 'react-router-dom';
-import Menu from './components/Menu';
-import Page from './pages/Page';
+import { Redirect, Route } from 'react-router-dom';
 import Intro from './pages/Intro';
 import "./App.css";
 
@@ -25,33 +23,33 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import { useState } from 'react';
-import { playCircle, radio, library, search, document, checkbox, cog, flash, personCircle } from 'ionicons/icons';
+import { document, checkbox, cog, flash } from 'ionicons/icons';
 import Login from './pages/Login';
 import AbrirSchedule from './pages/AbrirSchedule';
 import EscolherJobs from './pages/EscolherJobs';
 import ConfigurarJobs from './pages/ConfigurarJobs';
 import ExecutarJobs from './pages/ExecutarJobs';
 import { AgendaDTO } from './components/AgendaDTO';
+import { ItemPilha } from './components/ItemPilha';
 
 setupIonicReact();
 
-export enum UserProfileEnum {
-    Visitante,
-    Usuário,
-    Convidado,
-    Criança,
+export interface AgendaPilha {
+    add: boolean,
+    agenda: AgendaDTO
 }
 
-export let agenda:AgendaDTO[] = [];
+export let agenda: AgendaDTO[] = [];
+
+export let pilha: ItemPilha[] = [];
 
 const App = () => {
-    const [page, setPage] = useState<string>("");
     const [boasVindas, setBoasVindas] = useState(false);
     const [popoverOpen, setPopoverOpen] = useState(false);
+    const [jobsCount, setJobsCount] = useState(0);
     const [escolherJobsOpt, setEscolherJobsOpt] = useState(false);
     const [configurarJobsOpt, setConfigurarJobsOpt] = useState(false);
     const [executarJobsOpt, setExecutarJobsOpt] = useState(false);
-    const history = useHistory();
 
     function handleUserButton(e: any) {
         if (e.detail.tab === 'user') {
@@ -68,9 +66,52 @@ const App = () => {
         console.log(`[APP] arquivoXlsx: ${arquivoXlsx}`);
         agenda = (arquivoXlsx);
         console.log(`[APP] agenda: ${agenda}`);
-        console.log(`[APP] habilitando tab 'Escolher Jobs'`);
+        console.log(`[APP] habilitando a tab 'Escolher Jobs'`);
         setEscolherJobsOpt(true);
-        console.log(`[APP] avançando para etapa 'Escolher Jobs'`);
+    }
+
+    function limparPilha() {
+        console.log(`[APP] recebendo callback para limpar pilha de execução`);
+        pilha = [];
+    }
+
+    function setPilha(agendaPilha: AgendaPilha) {
+        const mensagem = agendaPilha.add ? "adicionando" : "removendo";
+        console.log(`[APP] recebendo callback da agenda para pilha de execução`);
+        console.log(`[APP] ${mensagem} job: ${agendaPilha.agenda.job}`);
+
+        //Adicionando elemento na pilha
+        if (agendaPilha.add) {
+            pilha.push({
+                argumentos: [],
+                job: agendaPilha.agenda,
+                queries: [],
+                cargas: [],
+                pronto: false
+            });
+        }
+        //Removendo elemento na pilha
+        else {
+            pilha = pilha.filter((element) => element.job !== agendaPilha.agenda);
+        }
+        //Verificando se a tab 'Configurar Jobs' estará acessível
+        setJobsCount(pilha.length);
+        console.log(`[APP] pilha atual: [${pilha.length}] ${pilha}`);
+        if (pilha.length > 0) {
+            console.log(`[APP] habilitando a tab 'Configurar Jobs'`);
+            setConfigurarJobsOpt(true);
+        }
+        else {
+            console.log(`[APP] dessabilitada a tab 'Configurar Jobs'`);
+            setConfigurarJobsOpt(false);
+        }
+    }
+
+    function contadorConfigJobs() {
+        if (jobsCount === 0) return null;
+        return (
+            <span className='badge bg-primary config-job-count'>{jobsCount}</span>
+        );
     }
 
     function intro() {
@@ -87,22 +128,23 @@ const App = () => {
     function menu() {
         return (
             <div className='banner h-100'>
+
                 <IonHeader id='ppw-titulo' className='text-center' >
                     <div className="navbar-brand disabled text-white fs-1 m-0 lh-1" >
                         Peopleware
                         {/*<div className="fs-6">joao.aguiar@gmail.com</div>*/}
-
                     </div>
-
                 </IonHeader>
+
                 <IonTabs>
                     <IonRouterOutlet>
-                        <Route path="/det-maker/open"   exact> <AbrirSchedule callBack={setAgenda} /></Route>
-                        <Route path="/det-maker/select" exact> <EscolherJobs   /></Route>
+                        <Route path="/det-maker/open" exact> <AbrirSchedule callBack={setAgenda} /></Route>
+                        <Route path="/det-maker/select" exact> <EscolherJobs callBack={setPilha} callBackErase={limparPilha} /></Route>
                         <Route path="/det-maker/config" exact> <ConfigurarJobs /></Route>
-                        <Route path="/det-maker/run"    exact> <ExecutarJobs   /></Route>
+                        <Route path="/det-maker/run" exact> <ExecutarJobs /></Route>
                         <Route><Redirect to="/det-maker/open" /></Route>
                     </IonRouterOutlet>
+
                     <IonTabBar slot="top"
                         className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold'
                         onIonTabsWillChange={handleUserButton}
@@ -120,26 +162,31 @@ const App = () => {
                         */}
 
                         {/* ABRIR SCHEDULE */}
-                        
                         <IonTabButton tab="open" href="/det-maker/open" className='pt-1 bg-transparent fw-bold'>
                             <IonIcon icon={document} />
                             <IonLabel>Abrir Schedule</IonLabel>
                         </IonTabButton>
+
                         {/* SELECIONAR JOBS */}
                         <IonTabButton tab="select" href="/det-maker/select" className='pt-2 bg-transparent fw-bold' disabled={!escolherJobsOpt}>{/*disabled*/}
                             <IonIcon icon={checkbox} />
                             <IonLabel>Escolher Jobs</IonLabel>
                         </IonTabButton>
+
                         {/* CONFIGURAR JOBS */}
                         <IonTabButton tab="config" href="/det-maker/config" className='pt-2 bg-transparent fw-bold' disabled={!configurarJobsOpt}>
-                            <IonIcon icon={cog} />
-                            <IonLabel>Configurar Jobs</IonLabel>
+                                <IonIcon icon={cog}/>
+                                <IonLabel>Configurar Jobs {contadorConfigJobs()} </IonLabel>
                         </IonTabButton>
+                        {/* <span className='badge bg-secondary mb-5'>{jobsCount}</span> */}
+
+
                         {/* EXECUTAR PILHA */}
                         <IonTabButton tab="run" href="/det-maker/run" className='pt-2 bg-transparent fw-bold' disabled={!executarJobsOpt}>
                             <IonIcon icon={flash} />
                             <IonLabel>Executar!</IonLabel>
                         </IonTabButton>
+
                     </IonTabBar>
                 </IonTabs>
             </div>
@@ -169,10 +216,6 @@ const App = () => {
 
 export default App;
 
-
-function useRef<T>(arg0: null) {
-    throw new Error('Function not implemented.');
-}
 /* BACKUP
 <Redirect exact path="/" to="/home" />
 <IonRouterOutlet id="main">

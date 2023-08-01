@@ -394,6 +394,12 @@ ion-content#intro-bg {
   width: calc(20vh + 3vw);
 }
 
+.config-job-count {
+  position: absolute;
+  top: 0%;
+  right: calc(50% - 16px );
+}
+
 /* ESCOLHER JOBS */
 #capa-schedule {
   padding-top: 2vh;
@@ -405,10 +411,9 @@ ion-content#intro-bg {
   height: 50vh; /*300px  55vh*/
 }
 
-
 th,td {
   min-width: 3vw;
-  max-width: 40vw;
+  max-width: 28vw;
   overflow: auto;
 }
 
@@ -454,6 +459,12 @@ th,td {
     text-stroke: 0.8vw white;
     font-size: 20vw;
     text-shadow: 1vw 1vw rgba(255, 255, 0, 1);
+  }
+
+  th,td {
+    min-width: 3vw;
+    max-width: 40vw;
+    overflow: auto;
   }
 
   .td-long {

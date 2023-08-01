@@ -1,8 +1,20 @@
 import { IonApp, IonButton, IonContent, IonIcon, IonPage, ScrollDetail, useIonViewDidEnter } from '@ionic/react';
-import { useParams } from 'react-router';
+import { useHistory, useParams } from 'react-router';
+import { pilha } from '../App';
 
 const ConfigurarJobs = (props: any) => {
     const { name } = useParams<{ name: string }>();
+    const history = useHistory();
+
+    useIonViewDidEnter(() => {
+        if (pilha.length === 0) {
+            console.log(`[CONFIGURAR-JOBS] A pilha está vazia. Retornando página.`);
+            history.goBack();
+        }
+        else {
+            console.log(`[CONFIGURAR-JOBS] Carregando configuração de pilha com base nos jobs selecionados.`);
+        }
+    }, []);
 
     return (
         <IonPage>

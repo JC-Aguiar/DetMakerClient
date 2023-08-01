@@ -1,10 +1,9 @@
-import { IonApp, IonButton, IonContent, IonIcon, IonPage, IonText, ScrollDetail, useIonViewDidEnter } from '@ionic/react';
-import { useHistory, useParams } from 'react-router';
-import { ChangeEvent, useRef, useState } from 'react';
+import { IonButton, IonContent, IonIcon, IonPage, IonText } from '@ionic/react';
+import { useHistory } from 'react-router';
+import { useState } from 'react';
 import { folderOpen } from 'ionicons/icons';
 import { alertController } from "@ionic/core";
 import * as axiosRequest from "../components/AxiosRequest";
-import { ErroModel } from '../components/ErroModel';
 import { AgendaDTO } from '../components/AgendaDTO';
 
 const AbrirSchedule = (props: any) => {
@@ -52,6 +51,7 @@ const AbrirSchedule = (props: any) => {
             const planilhas: AgendaDTO[] = await axiosRequest.openSchedule(anexo);
             //const json: string = JSON.stringify(planilhas);
             await scheduleCallBack(planilhas);
+            console.log(`[ABRIR-SCHEDULE] avançando para etapa 'Escolher Jobs'`);
             history.push('/det-maker/select/');
         }
         catch (error) {

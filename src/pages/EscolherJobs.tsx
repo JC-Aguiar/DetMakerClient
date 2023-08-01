@@ -1,16 +1,26 @@
-import { IonCheckbox, IonContent, IonIcon, IonPage, useIonViewDidEnter, useIonViewWillEnter } from '@ionic/react';
+import { IonCheckbox, IonContent, IonIcon, IonPage, useIonViewDidEnter } from '@ionic/react';
 import { AgendaDTO } from '../components/AgendaDTO';
-import { useState, useEffect } from 'react';
-import { useHistory, useLocation, useRouteMatch } from 'react-router';
-import { agenda } from '../App';
-import { func } from 'prop-types';
+import { useState } from 'react';
+import { useHistory } from 'react-router';
+import { agenda, pilha } from '../App';
 import { checkmarkCircle, closeCircle } from 'ionicons/icons';
+import { ItemPilha } from '../components/ItemPilha';
 
 const EscolherJobs = (props: any) => {
-    const location = useLocation<{ data: string }>();
-    const [data, setData] = useState<AgendaDTO[]>([]);
-    const [checks, setChecks] = useState<boolean>(false);
+    const [checks, setChecks] = useState<boolean>(true);
     const history = useHistory();
+    const callBack = props.callBack;
+    const callBackErase = props.callBackErase;
+
+    async function jobsCallBack(agenda: AgendaDTO) {
+        console.log(`[CONFIGURAR-JOBS] Realizando callback do job ${agenda.job}`);
+        callBack({ add: agenda.checked, agenda: agenda });
+    }
+
+    async function jobsCallBackErase() {
+        console.log(`[CONFIGURAR-JOBS] Realizando callback para limpar todos os jobs`);
+        callBackErase();
+    }
 
     /*
     CÓDIGO ÚTIL (BACK-UP):
@@ -71,37 +81,23 @@ const EscolherJobs = (props: any) => {
         }
     }, []);
 
-
-    function checkAll() {
-        setChecks(checks ? false : true);
-        console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para ${checks}.`);
+    async function checkAll() {
+        //setChecks(checks ? false : true);
+        console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para ${checks}`);
+        jobsCallBackErase();
         agenda.map((elemento, index) => {
             elemento.checked = checks;
             checkJob(elemento, index);
         });
     }
 
-    function checkJob(elemento: AgendaDTO, index: number) {
+    async function checkJob(elemento: AgendaDTO, index: number) {
         elemento.checked = elemento.checked ? false : true;
-        const mensagem = elemento.checked ? "selecionado" : "desselecionado";
-        console.log(`[ESCOLHER-JOBS] ${mensagem} Job ${elemento.id}: ${elemento.job}.`);
+        //const mensagem = elemento.checked ? "selecionado" : "desselecionado";
+        //console.log(`[ESCOLHER-JOBS] ${mensagem} Job ${elemento.id}: ${elemento.job}`);
         document.getElementById(`job-index-${index}`)!.style.backgroundColor = elemento.checked ? 'yellow' : 'transparent';
-
-        //const xpath = `//table/tbody/tr[${index+1}]/td`;
-        //const result = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        //
-        //for (let i = 0; i < result.snapshotLength; i++) {
-        //    const elementoHtml = result.snapshotItem(i) as Element;
-        //    elementoHtml?.classList.add( elemento.checked ? 'bg-warning' : 'bg-transparent');
-        //    elementoHtml?.classList.remove( elemento.checked ? 'bg-transparent' : 'bg-warning');
-        //    console.log("[ESCOLHER-JOBS] elmento: " + elementoHtml?.textContent);
-        //}
+        await jobsCallBack(elemento);
     }
-    /*
-    /html/body/div/ion-app/div/div/ion-tabs/div/ion-router-outlet/div[1]/ion-content/div[2]/div[1]/section/table/tbody/tr[1]/td[1]
-    //*[@id="capa-schedule"]/div[1]/section/table/tbody/tr[1]/td[1]
-    //table/tbody/tr[index+1]/td
-    */
 
     return (
         <IonPage>
@@ -159,7 +155,7 @@ const EscolherJobs = (props: any) => {
                                                     {/* ACTION */}
                                                     <td>
                                                         <IonCheckbox
-                                                            className="check-box bg-transparent"
+                                                            className="check-box"
                                                             checked={elemento.checked}
                                                             onClick={() => checkJob(elemento, index)}
                                                         />
