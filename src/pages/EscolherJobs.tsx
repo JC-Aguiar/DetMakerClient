@@ -2,9 +2,9 @@ import { IonCheckbox, IonContent, IonIcon, IonPage, useIonViewDidEnter } from '@
 import { AgendaDTO } from '../components/AgendaDTO';
 import { useState } from 'react';
 import { useHistory } from 'react-router';
-import { agenda, pilha } from '../App';
+import { agenda } from '../App';
 import { checkmarkCircle, closeCircle } from 'ionicons/icons';
-import { ItemPilha } from '../components/ItemPilha';
+import { validarExibirData } from './AbrirSchedule';
 
 const EscolherJobs = (props: any) => {
     const [checks, setChecks] = useState<boolean>(true);
@@ -113,7 +113,7 @@ const EscolherJobs = (props: any) => {
                     <div className="schedule-tabela px-1">
                         <div className="my-3"></div>
                         <section className="schedule-tabela scroll text-center">
-                            <table className="table  p-0 m-0"> {/* table-light table-striped */}
+                            <table className="table p-0 m-0"> {/* table-light table-striped */}
                                 <thead className='sticky-top align-items-center align-middle '>
                                     <tr className='text-white '>
                                         <th className='bg-primary'>
@@ -146,13 +146,12 @@ const EscolherJobs = (props: any) => {
                                         <th className='bg-primary'>ATUALZIADO POR</th>
                                     </tr>
                                 </thead>
-                                <tbody> {/* style={{overflowX: 'auto', whiteSpace: 'nowrap'}} */}
+                                <tbody>
                                     {
                                         agenda.map((elemento, index) => {
                                             const indexId: string = `job-index-${index}`;
                                             return (
                                                 <tr className="font-monospace" id={indexId}>
-                                                    {/* ACTION */}
                                                     <td>
                                                         <IonCheckbox
                                                             className="check-box"
@@ -161,27 +160,27 @@ const EscolherJobs = (props: any) => {
                                                         />
                                                     </td>
                                                     <td className='bg-transparent'> {elemento.id} </td>
-                                                    <td className='bg-transparent'> {elemento.executarAposJob} </td>
+                                                    <td className='bg-transparent'> {elemento.executarAposJob.join(", ")} </td>
                                                     <td className='bg-transparent'> {elemento.grupoConcorrencia} </td>
                                                     <td className='bg-transparent'> {elemento.fase} </td>
                                                     <td className='bg-transparent'> {elemento.job} </td>
                                                     <td className='bg-transparent'> {elemento.descricao} </td>
                                                     <td className='bg-transparent'> {elemento.grupoUda} </td>
-                                                    <td className='bg-transparent'> {elemento.programa} </td>
-                                                    <td className='bg-transparent'> {elemento.tabelas} </td>
+                                                    <td className='bg-transparent'> {elemento.programa.join(", ")} </td>
+                                                    <td className='bg-transparent'> {elemento.tabelas.join(", ")} </td>
                                                     <td className='bg-transparent'> {elemento.servidor} </td>
                                                     <td className='bg-transparent'> {elemento.caminhoExec} </td>
-                                                    <td className='bg-transparent'> {elemento.parametros} </td>
-                                                    <td className='bg-transparent'> {elemento.descricaoParametros} </td>
+                                                    <td className='bg-transparent'> {elemento.parametros.join(", ")} </td>
+                                                    <td className='bg-transparent'> {elemento.descricaoParametros.join(", ")} </td>
                                                     <td className='bg-transparent'> {elemento.diretorioEntrada} </td>
-                                                    <td className='bg-transparent'> {elemento.mascaraEntrada} </td>
+                                                    <td className='bg-transparent'> {elemento.mascaraEntrada.join(", ")} </td>
                                                     <td className='bg-transparent'> {elemento.diretorioSaida} </td>
-                                                    <td className='bg-transparent'> {elemento.mascaraSaida} </td>
+                                                    <td className='bg-transparent'> {elemento.mascaraSaida.join(", ")} </td>
                                                     <td className='bg-transparent'> {elemento.diretorioLog} </td>
-                                                    <td className='bg-transparent'> {elemento.mascaraLog} </td>
+                                                    <td className='bg-transparent'> {elemento.mascaraLog.join(", ")} </td>
                                                     <td className='bg-transparent'> {elemento.tratamento} </td>
                                                     <td className='bg-transparent'> {elemento.escalation} </td>
-                                                    <td className='bg-transparent'> {elemento.dataAtualizacao} </td>
+                                                    <td className='bg-transparent'> {validarExibirData(elemento.dataAtualizacao)} </td>
                                                     <td className='bg-transparent'> {elemento.atualizadoPor} </td>
                                                 </tr>
                                             );

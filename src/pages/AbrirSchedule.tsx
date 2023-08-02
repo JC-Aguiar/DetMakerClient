@@ -5,6 +5,13 @@ import { folderOpen } from 'ionicons/icons';
 import { alertController } from "@ionic/core";
 import * as axiosRequest from "../components/AxiosRequest";
 import { AgendaDTO } from '../components/AgendaDTO';
+import dayjs from 'dayjs';
+
+export function validarExibirData(dataAtualizacao: string): string {
+    const date = dayjs(dataAtualizacao);
+    if (!dayjs(date).isValid()) return dataAtualizacao;
+    return new Intl.DateTimeFormat('pt-BR').format(date.toDate());
+}
 
 const AbrirSchedule = (props: any) => {
     const [mensagemErro, SetMensagemErro] = useState("");

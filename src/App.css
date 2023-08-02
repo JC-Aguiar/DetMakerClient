@@ -397,7 +397,7 @@ ion-content#intro-bg {
 .config-job-count {
   position: absolute;
   top: 0%;
-  right: calc(50% - 16px );
+  right: calc(50% - 18px );
 }
 
 /* ESCOLHER JOBS */

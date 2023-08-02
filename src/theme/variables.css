@@ -173,7 +173,7 @@ body {
 
   --ion-item-background: #000000;
 
-  --ion-card-background: #1c1c1d;
+  --ion-card-background: white;
 }
 
 .ios ion-modal {
@@ -227,7 +227,7 @@ body {
 
   --ion-tab-bar-background: #1f1f1f;
 
-  --ion-card-background: #1e1e1e;
+  --ion-card-background: white;
 }
 
 ion-accordion.accordion.item {

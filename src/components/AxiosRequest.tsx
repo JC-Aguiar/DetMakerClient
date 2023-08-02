@@ -71,6 +71,7 @@ export async function openSchedule(arquivoXlsx: File): Promise<AgendaDTO[]> {
         maxBodyLength: Infinity,
         url: 'http://localhost:1990/agenda/open/xlsx',
         headers: headersXlsx,
+        timeout: 30000,
         data: data
     };
 

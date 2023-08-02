@@ -39,6 +39,17 @@ export interface AgendaPilha {
     agenda: AgendaDTO
 }
 
+export const dataFormato: Intl.DateTimeFormatOptions = {
+    //year: 'numeric',    //Exibe o ano com 4 dígitos
+    //month: '2-digit',   //Exibe o mês com 2 dígitos
+    //day: '2-digit',     //Exibe o dia com 2 dígitos
+    //hour: '2-digit',    //Exibe a hora com 2 dígitos
+    //minute: '2-digit',  //Exibe o minuto com 2 dígitos
+    //second: '2-digit',  //Exibe o segundo com 2 dígitos
+    //hour12: false,      //Utiliza o formato de 24 horas
+    dateStyle: 'short', //Utiliza o formato de data curta com separador "/"
+};
+
 export let agenda: AgendaDTO[] = [];
 
 export let pilha: ItemPilha[] = [];
@@ -162,27 +173,36 @@ const App = () => {
                         */}
 
                         {/* ABRIR SCHEDULE */}
-                        <IonTabButton tab="open" href="/det-maker/open" className='pt-1 bg-transparent fw-bold'>
+                        <IonTabButton tab="open" href="/det-maker/open" 
+                            className='pt-1 bg-transparent fw-bold'
+                        >
                             <IonIcon icon={document} />
                             <IonLabel>Abrir Schedule</IonLabel>
                         </IonTabButton>
 
                         {/* SELECIONAR JOBS */}
-                        <IonTabButton tab="select" href="/det-maker/select" className='pt-2 bg-transparent fw-bold' disabled={!escolherJobsOpt}>{/*disabled*/}
+                        <IonTabButton tab="select" href="/det-maker/select" 
+                            className='pt-2 bg-transparent fw-bold' 
+                            disabled={!escolherJobsOpt}
+                        >
                             <IonIcon icon={checkbox} />
                             <IonLabel>Escolher Jobs</IonLabel>
                         </IonTabButton>
 
                         {/* CONFIGURAR JOBS */}
-                        <IonTabButton tab="config" href="/det-maker/config" className='pt-2 bg-transparent fw-bold' disabled={!configurarJobsOpt}>
-                                <IonIcon icon={cog}/>
-                                <IonLabel>Configurar Jobs {contadorConfigJobs()} </IonLabel>
+                        <IonTabButton tab="config" href="/det-maker/config" 
+                            className='pt-2 bg-transparent fw-bold' 
+                            disabled={!configurarJobsOpt}
+                        >
+                            <IonIcon icon={cog}/>
+                            <IonLabel>Configurar Jobs {contadorConfigJobs()} </IonLabel>
                         </IonTabButton>
-                        {/* <span className='badge bg-secondary mb-5'>{jobsCount}</span> */}
-
 
                         {/* EXECUTAR PILHA */}
-                        <IonTabButton tab="run" href="/det-maker/run" className='pt-2 bg-transparent fw-bold' disabled={!executarJobsOpt}>
+                        <IonTabButton tab="run" href="/det-maker/run" 
+                            className='pt-2 bg-transparent fw-bold' 
+                            disabled={!executarJobsOpt}
+                        >
                             <IonIcon icon={flash} />
                             <IonLabel>Executar!</IonLabel>
                         </IonTabButton>
