@@ -2,7 +2,7 @@ import { IonCheckbox, IonContent, IonIcon, IonPage, useIonViewDidEnter } from '@
 import { AgendaDTO } from '../components/AgendaDTO';
 import { useState } from 'react';
 import { useHistory } from 'react-router';
-import { agenda } from '../App';
+import { AgendaParaPilha, agenda } from '../App';
 import { checkmarkCircle, closeCircle } from 'ionicons/icons';
 import { validarExibirData } from './AbrirSchedule';
 
@@ -14,7 +14,11 @@ const EscolherJobs = (props: any) => {
 
     async function jobsCallBack(agenda: AgendaDTO) {
         console.log(`[CONFIGURAR-JOBS] Realizando callback do job ${agenda.job}`);
-        callBack({ add: agenda.checked, agenda: agenda });
+        const config: AgendaParaPilha = { 
+            add: agenda.checked, 
+            agenda: agenda 
+        }
+        callBack(config);
     }
 
     async function jobsCallBackErase() {

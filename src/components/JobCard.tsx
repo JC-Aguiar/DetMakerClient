@@ -1,43 +1,158 @@
-import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCol, IonGrid, IonImg, IonLabel, IonRow, IonTextarea, IonThumbnail, useIonViewDidEnter } from "@ionic/react";
-import React, { useEffect, useState } from "react";
+import { InputChangeEventDetail, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonText, IonTextarea, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from "@ionic/react";
+import React, { useState } from "react";
 import { ItemPilha } from "./ItemPilha";
-import { AgendaDTO } from "./AgendaDTO";
 import { ComandoSQL } from "./ComandoSQL";
-import { validarExibirData } from "../pages/AbrirSchedule";
+import { codeWorking } from "ionicons/icons";
+import ConfigurarJobs from '../pages/ConfigurarJobs';
 
 export interface JobCardProps {
-    dto: AgendaDTO,
-    numeroPilha: number
+    dto: ItemPilha,
+    indexPilha: number,
+    onCallBack?: (dto: ItemPilha, indexPilha: number) => void,
 }
 
-const JobCard = (item: JobCardProps) => {
-    //const job: ItemPilha = props.conteudo;
-    const [argumentos, setArgumentos] = useState<string[]>([]);
-    const agenda: AgendaDTO = (item.dto);
-    const numeroPilha: number = (item.numeroPilha);
-    const [queries, setQueries] = useState<ComandoSQL[]>([]);
-    const [cargas, setCargas] = useState<string[]>([]);
-    const [pronto, setPronto] = useState<boolean>(false);
+interface JobCardModalProps {
+    onDismiss: () => void
+}
+
+const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
+
+    //Propriedades do componente <JobCard>
+    const callBack = onCallBack;
+    const itemPilha: ItemPilha = dto;
+    const numeroPilha: number = indexPilha;
+    itemPilha.argumentos = dto.job.parametros.map(() => "");
+    itemPilha.queries = dto.job.tabelas.map((tabelaNome) => {
+        return {
+            tabela: tabelaNome,
+            query: ""
+        }
+    });
+    itemPilha.cargas = dto.job.mascaraEntrada.map(() => "");
+    itemPilha.pronto = false;
+
+    //Variáveis para manipular o ItemPilha do componente
+    const [parametros, setParametros] = useState<string[]>(itemPilha.argumentos);
+    const [queries, setQueries] = useState<ComandoSQL[]>(itemPilha.queries);
+    const [cargas, setCargas] = useState<string[]>(itemPilha.cargas);
+    const [pronto, setPronto] = useState<boolean>(itemPilha.pronto);
+
+    /**
+     * Método para callback á página {@link ConfigurarJobs}, enviando o {@link ItemPilha} do card e suas respectivas
+     * configurações e seu respectivo index
+     */
+    async function salvandoItem() {
+        const statusParametros = parametros.length === 0 || parametros.every((param) => param.trim().length > 0);
+        const statusQueries = queries.length === 0 || queries.every((comandoSql) => comandoSql.query.trim().length > 0);
+        const statusCargas = cargas.length === 0 || cargas.every((carga) => carga.trim().length > 0);
+        console.log(
+            `[CARD-JOB] Status do card job [${numeroPilha}] ${itemPilha.job.job}: ` + 
+            `Parametros ${statusParametros}, Queries ${statusQueries}, Cargas ${statusCargas}.`
+        );
+
+        if (statusParametros && statusQueries && statusCargas) 
+            itemPilha.pronto = true;
+        else 
+            itemPilha.pronto = false;
+        setPronto(itemPilha.pronto);
+        console.log(`[CARD-JOB] Card job [${numeroPilha}] ${itemPilha.job.job}: status ${itemPilha.pronto}.`);
+
+        console.log(`[CARD-JOB] Realizando callback do card job [${numeroPilha}] ${itemPilha.job.job}.`);
+        await callBack!(itemPilha, numeroPilha);
+    }
+
+    //Funções para preencher as variáveis de manipulação
+    const preencherParametro = (event: CustomEvent<InputChangeEventDetail>, index: number) => {
+        const value = (event.target as HTMLInputElement).value;
+        parametros[index] = value.trim();
+        setParametros(parametros);
+        console.log(`[CARD-JOB] ${itemPilha.job.job} parâmetro [${index}] = ${parametros[index]}.`);
+    }
+    const preencherQueries = (event: CustomEvent<TextareaChangeEventDetail>, tabela: string, index: number) => {
+        const value = (event.target as HTMLInputElement).value;
+        queries[index] = {
+            tabela: tabela,
+            query: value.trim()
+        };
+        setQueries(queries);
+        console.log(
+            `[CARD-JOB] ${itemPilha.job.job} query [${index}] ${queries[index].tabela} = ${queries[index].query}.`
+        );
+    }
+    const preencherCargas = (event: CustomEvent<TextareaChangeEventDetail>, index: number) => {
+        const value = (event.target as HTMLInputElement).value;
+        cargas[index] = value.trim();
+        setCargas(cargas);
+        console.log(`[CARD-JOB] ${itemPilha.job.job} carga [${index}] = ${cargas[index]}.`);
+    }
+
+    //Modelo da modal usada nos cards
+    const JobCardModal: React.FC<JobCardModalProps> = ({ onDismiss }) => {
+        return (
+            <IonContent className="">
+                <IonHeader className="banner p-2 m-0">
+                    <span className="badge bg-white me-1 text-primary">{itemPilha.job.id}</span>
+                    <span className="font-monospace text-white fw-bold">{itemPilha.job.job}</span>
+                </IonHeader>
+                <IonFab edge={true} vertical="top" horizontal="end">
+                    <IonFabButton className="close-icon" color="#" onClick={onDismiss} >
+                        <IonIcon icon="close" color="#" />
+                    </IonFabButton>
+                </IonFab>
+                <div className="p-2">
+                    {configParametros()}
+                    {configQuerys()}
+                    {configCarga()}
+                </div>
+            </IonContent>
+        )
+    }
+
+    //Função para desfazer a modal
+    const [modalParamOn, modelParamOff] = useIonModal(JobCardModal, {
+        onDismiss: () => {
+            salvandoItem();
+            modelParamOff()
+        }
+    });
 
     useIonViewDidEnter(() => {
-        if (!agenda) return;
-        console.log(`[CARD-JOB] renderizando card do job ${agenda.job}.`);
+        if (!itemPilha) return;
+        console.log(`[CARD-JOB] renderizando card do job ${itemPilha.job}.`);
     }, []);
 
     function configParametros() {
-        if (agenda.parametros.length === 0) return;
+        if (itemPilha.argumentos.length === 0) return;
         return (
-            <div className="p-1 mb-3 banner rounded rounded-2">
-                <label className="form-label fw-bold text-white" htmlFor={`job${agenda.id}-param`}>PARÂMETROS</label>
+            <div className="px-1 mb-2">
+                <label className="form-label fw-bold text-primary" htmlFor={`job${itemPilha.job.id}-param`}>
+                    PARÂMETROS DE EXECUÇÃO
+                </label>
                 {
-                    agenda.parametros.map((param, index) => {
+                    itemPilha.argumentos.map((param, index) => {
                         return (
-                            <input id={`job${agenda.id}-param`}
-                                type="text"
-                                className="form-control"
-                                aria-label="Sizing example input"
-                                aria-describedby="inputGroup-sizing-default"
-                                placeholder={agenda.descricaoParametros[index]} />
+                            <div className="position-relative pb-1 mt-1 mb-3">
+                                <IonLabel className="badge bg-info mx-1 sticky-top"
+                                    style={{
+                                        position: 'absolute',
+                                        top: '0%',
+                                        left: `0%`,
+                                        transform: 'translate(0%, -50%)',
+                                    }}
+                                >
+                                    {itemPilha.job.parametros[index]}
+                                </IonLabel>
+                                <IonInput id={`job${itemPilha.job.id}-param`}
+                                    type="text"
+                                    className="form-control"
+                                    aria-label="Sizing example input"
+                                    aria-describedby="inputGroup-sizing-default"
+                                    placeholder={itemPilha.job.descricaoParametros[index]}
+                                    onIonChange={(e) => preencherParametro(e, index)}
+                                    value={parametros[index]}
+                                />
+                            </div>
+
                         );
                     })
                 }
@@ -46,19 +161,35 @@ const JobCard = (item: JobCardProps) => {
     }
 
     function configQuerys() {
-        if (agenda.tabelas.length === 0) return;
+        if (itemPilha.queries.length === 0) return;
         return (
-            <div className="p-1 mb-3 banner rounded rounded-2">
-                <label className="form-label fw-bold text-white align-items-start" htmlFor={`job${agenda.id}-sql`}>SQL QUERIES</label>
+            <div className="px-1 mb-2">
+                <label className="form-label fw-bold text-primary" htmlFor={`job${itemPilha.job.id}-sql`}>
+                    QUERIES DE CONSULTA
+                </label>
                 {
-                    agenda.tabelas.map((tabelaNome) => {
+                    itemPilha.queries.map((comandoSql, index) => {
                         return (
-                            <IonTextarea id={`job${agenda.id}-sql`}
-                                className="form-control"
-                                aria-label="With textarea"
-                                autoGrow={true}
-                                placeholder={`SELECT * FROM ${tabelaNome} WHERE...`}
-                            />
+                            <div className="position-relative text-center pb-1 mt-1 mb-3">
+                                <IonLabel className="badge bg-info mx-1 sticky-top"
+                                    style={{
+                                        position: 'absolute',
+                                        top: '0%',
+                                        left: `0%`,
+                                        transform: `translate(0%, -50%)`,
+                                    }}
+                                >
+                                    {comandoSql.tabela}
+                                </IonLabel>
+                                <IonTextarea id={`job${itemPilha.job.id}-sql`}
+                                    className="form-control text-start m-0 p-0"
+                                    aria-label="With textarea"
+                                    autoGrow={true}
+                                    placeholder={`SELECT * FROM ${comandoSql.tabela} WHERE...`}
+                                    onIonChange={(e) => preencherQueries(e, comandoSql.tabela, index)}
+                                    value={queries[index].query}
+                                />
+                            </div>
                         );
                     })
                 }
@@ -67,18 +198,35 @@ const JobCard = (item: JobCardProps) => {
     }
 
     function configCarga() {
-        if (agenda.mascaraEntrada.length === 0) return;
+        if (itemPilha.cargas.length === 0) return;
         return (
-            <div className="p-1 mb-3 banner rounded rounded-2">
-                <label className="form-label fw-bold text-white align-items-start" htmlFor={`job${agenda.id}-carga`}>CARGA</label>
+            <div className="px-1 mb-2">
+                <label className="form-label fw-bold text-primary" htmlFor={`job${itemPilha.job.id}-carga`}>
+                    CARGAS DE ENTRADA
+                </label>
                 {
-                    agenda.mascaraEntrada.map(() => {
+                    itemPilha.cargas.map((carga, index) => {
                         return (
-                            <textarea id={`job${agenda.id}-carga`}
-                                className="form-control"
-                                aria-label="With textarea"
-                                placeholder="Conteúdo txt da carga"
-                            ></textarea>
+                            <div className="position-relative text-center pb-1 mt-1 mb-3">
+                                <IonLabel className="badge bg-info mx-1 sticky-top"
+                                    style={{
+                                        position: 'absolute',
+                                        top: '0%',
+                                        left: `0%`,
+                                        transform: `translate(0%, -50%)`,
+                                    }}
+                                >
+                                    {itemPilha.job.mascaraEntrada[index]}
+                                </IonLabel>
+                                <IonTextarea id={`job${itemPilha.job.id}-carga`}
+                                    className="form-control m-0 p-0 text-start"
+                                    aria-label="With textarea"
+                                    autoGrow={true}
+                                    placeholder="insira aqui o conteúdo da carga"
+                                    onIonChange={(e) => preencherCargas(e, index)}
+                                    value={cargas[index]}
+                                />
+                            </div>
                         );
                     })
                 }
@@ -86,30 +234,51 @@ const JobCard = (item: JobCardProps) => {
         );
     }
 
-    if (!agenda) return null;
+    if (!itemPilha) return null;
     return (
         <IonCard target="_self" className="border border-1 p-0">
             <IonCardHeader className="banner p-2" >
                 <IonCardTitle  >
-                    <span className="badge bg-white me-1 text-primary">{agenda.id}</span>
-                    <span className="font-monospace text-white fw-bold">{agenda.job}</span>
+                    <span className="badge bg-white me-1 text-primary">{itemPilha.job.id}</span>
+                    <span className="font-monospace text-white fw-bold">{itemPilha.job.job}</span>
                 </IonCardTitle>
             </IonCardHeader>
             <IonCardContent className="rounded rounded-2 bg-light m-3">
-                <p className="lh-1 py-2">
-                    <span className="badge bg-info my-1">Stack Nº{numeroPilha}</span>
-                    {/* TODO: converter a data uma única vez e transitar ela entre componentes <---(!) */}
-                    <span className="badge bg-info my-1">Versão: {validarExibirData(agenda.dataAtualizacao)}</span>
-                    <span className="badge bg-info my-1">Executar após IDs: {agenda.executarAposJob.join(", ")}</span>
-                    <span className="badge bg-info my-1">Programas: {agenda.programa.join(", ")}</span>
-                    <span className="badge bg-info my-1">Tabelas: {agenda.programa.join(", ")}</span>
-                    <span className="badge bg-info my-1">Grupo: UDA{agenda.grupoUda}</span>
-                    <div className="my-2"></div>
-                    <span className="text-dark">{agenda.descricao}</span>
+                <p className="lh-1 py-2 text-dark">Jobs: {itemPilha.job.job}</p>
+                <p className="lh-1 py-2 text-dark">Parametros:{parametros.join(", ")}</p>
+                <p className="lh-1 py-2 text-dark">Queries: <br/>{queries.map((querySql, index) => {
+                    return (<> {`[${index}] ${querySql.query}`} <br /></>);
+                }
+                )}</p>
+                <p className="lh-1 py-2 text-dark">Cargas: {cargas.join(", ")}</p>
+                <p className="lh-1 py-2 text-dark">Pronto: {pronto ? "sim" : "não"}</p>
+                <p className="lh-1 py-2 text-dark">
+                    Executar após IDs: {
+                        itemPilha.job.executarAposJob.map((idPosJob) => <span className="badge bg-info m-0">{idPosJob}</span>)
+                    }
+                    <div className="my-1" />
+
+                    Programas: {
+                        itemPilha.job.programa.map((recursos) => <span className="badge bg-info m-0">{recursos}</span>)
+                    }
+                    <div className="my-1" />
+
+                    Grupo: <span className="badge bg-info m-0">UDA{itemPilha.job.grupoUda}</span>
+                    <div className="my-1" />
+
+                    {itemPilha.job.descricao}
+                    <div className="my-1" />
+
+                    <div className="ion-text-center">
+                        <IonButton id="session-login-button" fill="solid" onClick={() => modalParamOn()} >
+                            <IonIcon icon={codeWorking} size='large' />
+                            <IonText className="session-buttons">
+                                Configurar Job
+                            </IonText>
+                        </IonButton>
+                    </div>
+
                 </p>
-                {configParametros()}
-                {configQuerys()}
-                {configCarga()}
             </IonCardContent>
         </IonCard>
     );

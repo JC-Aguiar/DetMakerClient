@@ -1,4 +1,4 @@
-import { IonButton, IonContent, IonIcon, IonPage, IonText } from '@ionic/react';
+import { IonButton, IonContent, IonIcon, IonPage, IonText, IonToast, useIonToast } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useState } from 'react';
 import { folderOpen } from 'ionicons/icons';
@@ -6,6 +6,7 @@ import { alertController } from "@ionic/core";
 import * as axiosRequest from "../components/AxiosRequest";
 import { AgendaDTO } from '../components/AgendaDTO';
 import dayjs from 'dayjs';
+import { AxiosError } from 'axios';
 
 export function validarExibirData(dataAtualizacao: string): string {
     const date = dayjs(dataAtualizacao);
@@ -14,10 +15,17 @@ export function validarExibirData(dataAtualizacao: string): string {
 }
 
 const AbrirSchedule = (props: any) => {
-    const [mensagemErro, SetMensagemErro] = useState("");
     const [enviar, setEnviar] = useState<boolean | undefined>(false);
     const [anexo, setAnexo] = useState<File | null>(null);
     const history = useHistory();
+    const [toast, toastOff] = useIonToast();
+    const acionarToast = (mensagem: unknown) => {
+        toast({
+            message: `${mensagem}`,
+            duration: 9900,
+            position: 'bottom',
+        });
+    };
     const callBack = props.callBack;
 
     async function scheduleCallBack(arquivoXlsx: AgendaDTO[]) {
@@ -62,8 +70,22 @@ const AbrirSchedule = (props: any) => {
             history.push('/det-maker/select/');
         }
         catch (error) {
-            // TODO: criar um Popup/Toast aqui para exibir o erro ao usuário 
-            console.error(`[ABRIR-SCHEDULE] ${error}`);
+            const axiosError = error as AxiosError;
+            let mensagemErro = "";
+            //O servidor respondeu com um status diferente de 2xx
+            if (axiosError.response) {
+                mensagemErro = `O servidor respondeu com status diferente de sucesso.
+                    Status ${axiosError.response.status}: ${axiosError.response.data}.`;
+            }
+            else if (axiosError.request) {
+                mensagemErro = "Falha de conexão. Sem resposta do servidor.";
+            }
+            else {
+                mensagemErro = `Erro ao fazer a requisição: ${axiosError.message}.`;
+            }
+            console.error(`[ABRIR-SCHEDULE] ${mensagemErro}`);
+            await toastOff();
+            acionarToast(mensagemErro);
         }
         finally {
             await alert.dismiss();
@@ -91,7 +113,6 @@ const AbrirSchedule = (props: any) => {
                         <IonIcon icon={folderOpen} className='me-2'></IonIcon>
                         Abrir
                     </IonButton>
-                    <IonText id="erro-texto">{mensagemErro}</IonText>
                     <div className='mb-5'></div>
                 </div>
             </IonContent>

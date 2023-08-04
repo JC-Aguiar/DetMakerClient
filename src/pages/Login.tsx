@@ -1,20 +1,13 @@
 import {
-    IonLabel,
-    IonGrid,
-    IonRow,
-    IonCol,
     IonPage,
     IonCard,
     IonCardHeader,
-    IonCardSubtitle,
     IonCardTitle,
     IonCardContent,
     IonFab,
     IonFabButton,
     IonIcon,
 } from "@ionic/react";
-import Avatar from "../components/Avatar";
-import LoginModal from "../components/LoginModal";
 import { UsuarioInterface } from "../components/UsuarioModel";
 import { logoGoogle } from "ionicons/icons";
 

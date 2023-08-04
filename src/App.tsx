@@ -1,4 +1,4 @@
-import { IonApp, IonBadge, IonHeader, IonIcon, IonItem, IonLabel, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs, setupIonicReact } from '@ionic/react';
+import { IonApp, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Redirect, Route } from 'react-router-dom';
 import Intro from './pages/Intro';
@@ -23,7 +23,7 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import { useState } from 'react';
-import { document, checkbox, cog, flash } from 'ionicons/icons';
+import { document, checkbox, flash, settings } from 'ionicons/icons';
 import Login from './pages/Login';
 import AbrirSchedule from './pages/AbrirSchedule';
 import EscolherJobs from './pages/EscolherJobs';
@@ -34,7 +34,7 @@ import { ItemPilha } from './components/ItemPilha';
 
 setupIonicReact();
 
-export interface AgendaPilha {
+export interface AgendaParaPilha {
     add: boolean,
     agenda: AgendaDTO
 }
@@ -78,6 +78,7 @@ const App = () => {
         agenda = (arquivoXlsx);
         console.log(`[APP] agenda: ${agenda}`);
         console.log(`[APP] habilitando a tab 'Escolher Jobs'`);
+        limparPilha();
         setEscolherJobsOpt(true);
     }
 
@@ -86,9 +87,10 @@ const App = () => {
         pilha = [];
     }
 
-    function setPilha(agendaPilha: AgendaPilha) {
+    function 
+    setPilha(agendaPilha: AgendaParaPilha) {
         const mensagem = agendaPilha.add ? "adicionando" : "removendo";
-        console.log(`[APP] recebendo callback da agenda para pilha de execução`);
+        console.log(`[APP] alterando pilha de execução.`);
         console.log(`[APP] ${mensagem} job: ${agendaPilha.agenda.job}`);
 
         //Adicionando elemento na pilha
@@ -149,11 +151,20 @@ const App = () => {
 
                 <IonTabs>
                     <IonRouterOutlet>
-                        <Route path="/det-maker/open" exact> <AbrirSchedule callBack={setAgenda} /></Route>
-                        <Route path="/det-maker/select" exact> <EscolherJobs callBack={setPilha} callBackErase={limparPilha} /></Route>
-                        <Route path="/det-maker/config" exact> <ConfigurarJobs /></Route>
-                        <Route path="/det-maker/run" exact> <ExecutarJobs /></Route>
-                        <Route><Redirect to="/det-maker/open" /></Route>
+                        <Route path="/det-maker/open" exact>
+                            <AbrirSchedule callBack={setAgenda} />
+                        </Route>
+                        <Route path="/det-maker/select" exact>
+                            <EscolherJobs callBack={setPilha} callBackErase={limparPilha} />
+                        </Route>
+                        <Route path="/det-maker/config" exact>
+                            <ConfigurarJobs pilhaExec={pilha} /></Route>
+                        <Route path="/det-maker/run" exact> 
+                            <ExecutarJobs />
+                        </Route>
+                        <Route>
+                            <Redirect to="/det-maker/open" />
+                        </Route>
                     </IonRouterOutlet>
 
                     <IonTabBar slot="top"
@@ -173,7 +184,7 @@ const App = () => {
                         */}
 
                         {/* ABRIR SCHEDULE */}
-                        <IonTabButton tab="open" href="/det-maker/open" 
+                        <IonTabButton tab="open" href="/det-maker/open"
                             className='pt-1 bg-transparent fw-bold'
                         >
                             <IonIcon icon={document} />
@@ -181,8 +192,8 @@ const App = () => {
                         </IonTabButton>
 
                         {/* SELECIONAR JOBS */}
-                        <IonTabButton tab="select" href="/det-maker/select" 
-                            className='pt-2 bg-transparent fw-bold' 
+                        <IonTabButton tab="select" href="/det-maker/select"
+                            className='pt-2 bg-transparent fw-bold'
                             disabled={!escolherJobsOpt}
                         >
                             <IonIcon icon={checkbox} />
@@ -190,17 +201,17 @@ const App = () => {
                         </IonTabButton>
 
                         {/* CONFIGURAR JOBS */}
-                        <IonTabButton tab="config" href="/det-maker/config" 
-                            className='pt-2 bg-transparent fw-bold' 
+                        <IonTabButton tab="config" href="/det-maker/config"
+                            className='pt-2 bg-transparent fw-bold'
                             disabled={!configurarJobsOpt}
                         >
-                            <IonIcon icon={cog}/>
+                            <IonIcon icon={settings} />
                             <IonLabel>Configurar Jobs {contadorConfigJobs()} </IonLabel>
                         </IonTabButton>
 
                         {/* EXECUTAR PILHA */}
-                        <IonTabButton tab="run" href="/det-maker/run" 
-                            className='pt-2 bg-transparent fw-bold' 
+                        <IonTabButton tab="run" href="/det-maker/run"
+                            className='pt-2 bg-transparent fw-bold'
                             disabled={!executarJobsOpt}
                         >
                             <IonIcon icon={flash} />

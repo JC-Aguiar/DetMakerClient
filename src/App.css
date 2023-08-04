@@ -169,6 +169,28 @@ ion-content#intro-bg {
   animation: gradient 20s ease-in infinite;
 }
 
+#thunder-gif-1 {
+  position: absolute;
+  width: 128px;
+  height: 48px;
+  transform: translate(32px, -25%);
+}
+
+#thunder-gif-2 {
+  position: absolute;
+  width: 96px;
+  height: 32px;
+  transform: scale(-1, -1) translate(16px, 25%);
+}
+
+.banner-gold:hover {
+  background: linear-gradient(135deg, #e7cb2f, #f1ff58, #f0fa87, #eef1db, #f1ff58, #e7cb2f, #eef1db);
+  background-size: 300% 500%;
+  animation: gradient 12s ease-in-out infinite;
+  color: var(--ion-color-light);
+  border-color: white;
+}
+
 @keyframes gradient {
   0% {
     background-position: 0% 50%;
@@ -187,13 +209,20 @@ ion-content#intro-bg {
   }
 }
 
+#executar-pilha {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  width: 128px;
+  transform: translate(0%, 100%);
+}
+
 /* MENU -> LOGIN  */
 .session-buttons {
   padding-top: 0;
   margin-top: 0;
-  width: 100%;
   /* font-size: calc(4px + 30%); */
-  text-shadow: 0px 0px 0.55em #c0c0c09c, 0px 0px 0.55em #c0c0c09c;
+  text-shadow: 0px 0px 0.55em silver, 0px 0px 0.55em silver;
 }
 
 .session-buttons:hover {
@@ -370,6 +399,15 @@ ion-content#intro-bg {
   font-family: 'Play', sans-serif;
   font-size: 8vw;
   text-shadow: 0.4vw 0.4vw #ffff00;
+}
+
+.destaque-low {
+  color: #0051c2;
+  -webkit-text-stroke: 0.2vw white;
+  text-stroke: 0.2vw white;
+  font-family: 'Play', sans-serif;
+  font-size: 4vw;
+  text-shadow: 0.2vw 0.2vw #ffff00;
 }
 
 .login-btn {
