@@ -40,13 +40,6 @@ export interface AgendaParaPilha {
 }
 
 export const dataFormato: Intl.DateTimeFormatOptions = {
-    //year: 'numeric',    //Exibe o ano com 4 dígitos
-    //month: '2-digit',   //Exibe o mês com 2 dígitos
-    //day: '2-digit',     //Exibe o dia com 2 dígitos
-    //hour: '2-digit',    //Exibe a hora com 2 dígitos
-    //minute: '2-digit',  //Exibe o minuto com 2 dígitos
-    //second: '2-digit',  //Exibe o segundo com 2 dígitos
-    //hour12: false,      //Utiliza o formato de 24 horas
     dateStyle: 'short', //Utiliza o formato de data curta com separador "/"
 };
 
@@ -61,6 +54,7 @@ const App = () => {
     const [escolherJobsOpt, setEscolherJobsOpt] = useState(false);
     const [configurarJobsOpt, setConfigurarJobsOpt] = useState(false);
     const [executarJobsOpt, setExecutarJobsOpt] = useState(false);
+    const [pilhaExec, setPilhaExec] = useState<ItemPilha[]>([]);
 
     function handleUserButton(e: any) {
         if (e.detail.tab === 'user') {
@@ -73,31 +67,29 @@ const App = () => {
     }
 
     function setAgenda(arquivoXlsx: AgendaDTO[]) {
-        console.log(`[APP] recebendo callback das agendas`);
-        console.log(`[APP] arquivoXlsx: ${arquivoXlsx}`);
+        console.log(`[APP] Recebendo callback das agendas.`);
+        console.log(`[APP] Variável arquivoXlsx = ${arquivoXlsx}.`);
         agenda = (arquivoXlsx);
-        console.log(`[APP] agenda: ${agenda}`);
-        console.log(`[APP] habilitando a tab 'Escolher Jobs'`);
+        console.log(`[APP] Variável agenda = ${agenda}.`);
+        console.log(`[APP] Habilitando a tab 'Escolher Jobs'.`);
         limparPilha();
         setEscolherJobsOpt(true);
     }
 
     function limparPilha() {
-        console.log(`[APP] recebendo callback para limpar pilha de execução`);
+        console.log(`[APP] Recebendo callback para limpar pilha de execução.`);
         pilha = [];
     }
 
-    function 
-    setPilha(agendaPilha: AgendaParaPilha) {
-        const mensagem = agendaPilha.add ? "adicionando" : "removendo";
-        console.log(`[APP] alterando pilha de execução.`);
-        console.log(`[APP] ${mensagem} job: ${agendaPilha.agenda.job}`);
+    function setPilha(agendaPilha: AgendaParaPilha) {
+        const mensagem = agendaPilha.add ? "adicionar" : "remover";
+        console.log(`[APP] Recebendo callback para ${mensagem} o job: ${agendaPilha.agenda.job}.`);
 
         //Adicionando elemento na pilha
         if (agendaPilha.add) {
             pilha.push({
                 argumentos: [],
-                job: agendaPilha.agenda,
+                agenda: agendaPilha.agenda,
                 queries: [],
                 cargas: [],
                 pronto: false
@@ -105,17 +97,17 @@ const App = () => {
         }
         //Removendo elemento na pilha
         else {
-            pilha = pilha.filter((element) => element.job !== agendaPilha.agenda);
+            pilha = pilha.filter((element) => element.agenda !== agendaPilha.agenda);
         }
         //Verificando se a tab 'Configurar Jobs' estará acessível
         setJobsCount(pilha.length);
-        console.log(`[APP] pilha atual: [${pilha.length}] ${pilha}`);
+        console.log(`[APP] Pilha atual: [${pilha.length}] ${pilha}.`);
         if (pilha.length > 0) {
-            console.log(`[APP] habilitando a tab 'Configurar Jobs'`);
+            console.log(`[APP] Habilitando a tab 'Configurar Jobs'.`);
             setConfigurarJobsOpt(true);
         }
         else {
-            console.log(`[APP] dessabilitada a tab 'Configurar Jobs'`);
+            console.log(`[APP] Dessabilitada a tab 'Configurar Jobs'.`);
             setConfigurarJobsOpt(false);
         }
     }
@@ -125,6 +117,20 @@ const App = () => {
         return (
             <span className='badge bg-primary config-job-count'>{jobsCount}</span>
         );
+    }
+
+    function ajustarPilha(numeroPilha: number, novoItemPilha: ItemPilha) {
+        console.log(`[APP] Recebendo callback para atualizar o job ${novoItemPilha.agenda.job} na pilha.`);
+        
+        pilha.splice(numeroPilha, 1, novoItemPilha);
+        pilha.map((itemPilha, index) => {
+            console.log(`[APP] Atual valor do job [${index}] ${itemPilha.agenda.job} na pilha:` + '\n'
+                + ` - Parametros (${itemPilha.argumentos.join(", ")})` + '\n'
+                + ` - Queries (${itemPilha.queries.map((comandoSql) => comandoSql.query).join(", ")})` + '\n'
+                + ` - Cargas (${itemPilha.cargas.join(", ")})` + '\n'
+                + ` - Pronto = ${itemPilha.pronto}`
+            );
+        });
     }
 
     function intro() {
@@ -158,8 +164,8 @@ const App = () => {
                             <EscolherJobs callBack={setPilha} callBackErase={limparPilha} />
                         </Route>
                         <Route path="/det-maker/config" exact>
-                            <ConfigurarJobs pilhaExec={pilha} /></Route>
-                        <Route path="/det-maker/run" exact> 
+                            <ConfigurarJobs callBack={ajustarPilha} /></Route>
+                        <Route path="/det-maker/run" exact>
                             <ExecutarJobs />
                         </Route>
                         <Route>

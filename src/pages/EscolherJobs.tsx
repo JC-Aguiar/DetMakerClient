@@ -5,6 +5,7 @@ import { useHistory } from 'react-router';
 import { AgendaParaPilha, agenda } from '../App';
 import { checkmarkCircle, closeCircle } from 'ionicons/icons';
 import { validarExibirData } from './AbrirSchedule';
+import { controlePilhaPronta } from './ConfigurarJobs';
 
 const EscolherJobs = (props: any) => {
     const [checks, setChecks] = useState<boolean>(true);
@@ -13,7 +14,7 @@ const EscolherJobs = (props: any) => {
     const callBackErase = props.callBackErase;
 
     async function jobsCallBack(agenda: AgendaDTO) {
-        console.log(`[CONFIGURAR-JOBS] Realizando callback do job ${agenda.job}`);
+        console.log(`[ESCOLHER-JOBS] Realizando callback do job ${agenda.job}`);
         const config: AgendaParaPilha = { 
             add: agenda.checked, 
             agenda: agenda 
@@ -22,7 +23,7 @@ const EscolherJobs = (props: any) => {
     }
 
     async function jobsCallBackErase() {
-        console.log(`[CONFIGURAR-JOBS] Realizando callback para limpar todos os jobs`);
+        console.log(`[ESCOLHER-JOBS] Realizando callback para limpar todos os jobs`);
         callBackErase();
     }
 
@@ -95,12 +96,15 @@ const EscolherJobs = (props: any) => {
         });
     }
 
-    async function checkJob(elemento: AgendaDTO, index: number) {
-        elemento.checked = elemento.checked ? false : true;
+    async function checkJob(dto: AgendaDTO, index: number) {
+        dto.checked = dto.checked ? false : true;
         //const mensagem = elemento.checked ? "selecionado" : "desselecionado";
         //console.log(`[ESCOLHER-JOBS] ${mensagem} Job ${elemento.id}: ${elemento.job}`);
-        document.getElementById(`job-index-${index}`)!.style.backgroundColor = elemento.checked ? 'yellow' : 'transparent';
-        await jobsCallBack(elemento);
+        document.getElementById(`job-index-${index}`)!.style.backgroundColor = dto.checked ? 'yellow' : 'transparent';
+        if (!dto.checked) {
+            controlePilhaPronta(-1, dto, [], [], [], false);
+        }
+        await jobsCallBack(dto);
     }
 
     return (
@@ -152,40 +156,40 @@ const EscolherJobs = (props: any) => {
                                 </thead>
                                 <tbody>
                                     {
-                                        agenda.map((elemento, index) => {
+                                        agenda.map((dto, index) => {
                                             const indexId: string = `job-index-${index}`;
                                             return (
                                                 <tr className="font-monospace" id={indexId}>
                                                     <td>
                                                         <IonCheckbox
                                                             className="check-box"
-                                                            checked={elemento.checked}
-                                                            onClick={() => checkJob(elemento, index)}
+                                                            checked={dto.checked}
+                                                            onClick={() => checkJob(dto, index)}
                                                         />
                                                     </td>
-                                                    <td className='bg-transparent'> {elemento.id} </td>
-                                                    <td className='bg-transparent'> {elemento.executarAposJob.join(", ")} </td>
-                                                    <td className='bg-transparent'> {elemento.grupoConcorrencia} </td>
-                                                    <td className='bg-transparent'> {elemento.fase} </td>
-                                                    <td className='bg-transparent'> {elemento.job} </td>
-                                                    <td className='bg-transparent'> {elemento.descricao} </td>
-                                                    <td className='bg-transparent'> {elemento.grupoUda} </td>
-                                                    <td className='bg-transparent'> {elemento.programa.join(", ")} </td>
-                                                    <td className='bg-transparent'> {elemento.tabelas.join(", ")} </td>
-                                                    <td className='bg-transparent'> {elemento.servidor} </td>
-                                                    <td className='bg-transparent'> {elemento.caminhoExec} </td>
-                                                    <td className='bg-transparent'> {elemento.parametros.join(", ")} </td>
-                                                    <td className='bg-transparent'> {elemento.descricaoParametros.join(", ")} </td>
-                                                    <td className='bg-transparent'> {elemento.diretorioEntrada} </td>
-                                                    <td className='bg-transparent'> {elemento.mascaraEntrada.join(", ")} </td>
-                                                    <td className='bg-transparent'> {elemento.diretorioSaida} </td>
-                                                    <td className='bg-transparent'> {elemento.mascaraSaida.join(", ")} </td>
-                                                    <td className='bg-transparent'> {elemento.diretorioLog} </td>
-                                                    <td className='bg-transparent'> {elemento.mascaraLog.join(", ")} </td>
-                                                    <td className='bg-transparent'> {elemento.tratamento} </td>
-                                                    <td className='bg-transparent'> {elemento.escalation} </td>
-                                                    <td className='bg-transparent'> {validarExibirData(elemento.dataAtualizacao)} </td>
-                                                    <td className='bg-transparent'> {elemento.atualizadoPor} </td>
+                                                    <td className='bg-transparent'> {dto.id} </td>
+                                                    <td className='bg-transparent'> {dto.executarAposJob.join(", ")} </td>
+                                                    <td className='bg-transparent'> {dto.grupoConcorrencia} </td>
+                                                    <td className='bg-transparent'> {dto.fase} </td>
+                                                    <td className='bg-transparent'> {dto.job} </td>
+                                                    <td className='bg-transparent'> {dto.descricao} </td>
+                                                    <td className='bg-transparent'> {dto.grupoUda} </td>
+                                                    <td className='bg-transparent'> {dto.programa.join(", ")} </td>
+                                                    <td className='bg-transparent'> {dto.tabelas.join(", ")} </td>
+                                                    <td className='bg-transparent'> {dto.servidor} </td>
+                                                    <td className='bg-transparent'> {dto.caminhoExec} </td>
+                                                    <td className='bg-transparent'> {dto.parametros.join(", ")} </td>
+                                                    <td className='bg-transparent'> {dto.descricaoParametros.join(", ")} </td>
+                                                    <td className='bg-transparent'> {dto.diretorioEntrada} </td>
+                                                    <td className='bg-transparent'> {dto.mascaraEntrada.join(", ")} </td>
+                                                    <td className='bg-transparent'> {dto.diretorioSaida} </td>
+                                                    <td className='bg-transparent'> {dto.mascaraSaida.join(", ")} </td>
+                                                    <td className='bg-transparent'> {dto.diretorioLog} </td>
+                                                    <td className='bg-transparent'> {dto.mascaraLog.join(", ")} </td>
+                                                    <td className='bg-transparent'> {dto.tratamento} </td>
+                                                    <td className='bg-transparent'> {dto.escalation} </td>
+                                                    <td className='bg-transparent'> {validarExibirData(dto.dataAtualizacao)} </td>
+                                                    <td className='bg-transparent'> {dto.atualizadoPor} </td>
                                                 </tr>
                                             );
                                         })

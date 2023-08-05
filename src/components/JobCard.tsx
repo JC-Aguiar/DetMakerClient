@@ -1,14 +1,23 @@
 import { InputChangeEventDetail, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonText, IonTextarea, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from "@ionic/react";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { ItemPilha } from "./ItemPilha";
 import { ComandoSQL } from "./ComandoSQL";
 import { codeWorking } from "ionicons/icons";
 import ConfigurarJobs from '../pages/ConfigurarJobs';
+import { AgendaDTO } from "./AgendaDTO";
 
 export interface JobCardProps {
     dto: ItemPilha,
     indexPilha: number,
-    onCallBack?: (dto: ItemPilha, indexPilha: number) => void,
+    onCallBack?: (
+        numeroPilha: number,
+        agenda: AgendaDTO,
+        parametros: string[],
+        queries: ComandoSQL[],
+        cargas: string[],
+        pronto: boolean
+    ) => void,
+    ref?: never
 }
 
 interface JobCardModalProps {
@@ -21,14 +30,14 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
     const callBack = onCallBack;
     const itemPilha: ItemPilha = dto;
     const numeroPilha: number = indexPilha;
-    itemPilha.argumentos = dto.job.parametros.map(() => "");
-    itemPilha.queries = dto.job.tabelas.map((tabelaNome) => {
+    itemPilha.argumentos = dto.agenda.parametros.map(() => "");
+    itemPilha.queries = dto.agenda.tabelas.map((tabelaNome) => {
         return {
             tabela: tabelaNome,
             query: ""
         }
     });
-    itemPilha.cargas = dto.job.mascaraEntrada.map(() => "");
+    itemPilha.cargas = dto.agenda.mascaraEntrada.map(() => "");
     itemPilha.pronto = false;
 
     //Variáveis para manipular o ItemPilha do componente
@@ -36,6 +45,14 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
     const [queries, setQueries] = useState<ComandoSQL[]>(itemPilha.queries);
     const [cargas, setCargas] = useState<string[]>(itemPilha.cargas);
     const [pronto, setPronto] = useState<boolean>(itemPilha.pronto);
+
+    /**
+     * Método chamado quando este componente fica visível
+     */
+    useIonViewDidEnter(() => {
+        if (!itemPilha) return;
+        console.log(`[CARD-JOB] renderizando card do job ${itemPilha.agenda}.`);
+    }, []);
 
     /**
      * Método para callback á página {@link ConfigurarJobs}, enviando o {@link ItemPilha} do card e suas respectivas
@@ -46,19 +63,18 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
         const statusQueries = queries.length === 0 || queries.every((comandoSql) => comandoSql.query.trim().length > 0);
         const statusCargas = cargas.length === 0 || cargas.every((carga) => carga.trim().length > 0);
         console.log(
-            `[CARD-JOB] Status do card job [${numeroPilha}] ${itemPilha.job.job}: ` + 
+            `[CARD-JOB] Status do card job [${numeroPilha}] ${itemPilha.agenda.job}: ` +
             `Parametros ${statusParametros}, Queries ${statusQueries}, Cargas ${statusCargas}.`
         );
 
-        if (statusParametros && statusQueries && statusCargas) 
-            itemPilha.pronto = true;
-        else 
-            itemPilha.pronto = false;
-        setPronto(itemPilha.pronto);
-        console.log(`[CARD-JOB] Card job [${numeroPilha}] ${itemPilha.job.job}: status ${itemPilha.pronto}.`);
+        const pronto = (statusParametros && statusQueries && statusCargas);
+        itemPilha.pronto = false;
+        setPronto(pronto);
+        console.log(`[CARD-JOB] Card job parametros: ${parametros[0]}.`);
+        console.log(`[CARD-JOB] Card job [${numeroPilha}] ${itemPilha.agenda.job}: status ${itemPilha.pronto}.`);
 
-        console.log(`[CARD-JOB] Realizando callback do card job [${numeroPilha}] ${itemPilha.job.job}.`);
-        await callBack!(itemPilha, numeroPilha);
+        console.log(`[CARD-JOB] Realizando callback do card job [${numeroPilha}] ${itemPilha.agenda.job}.`);
+        callBack!(numeroPilha, itemPilha.agenda, parametros, queries, cargas, pronto);
     }
 
     //Funções para preencher as variáveis de manipulação
@@ -66,7 +82,7 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
         const value = (event.target as HTMLInputElement).value;
         parametros[index] = value.trim();
         setParametros(parametros);
-        console.log(`[CARD-JOB] ${itemPilha.job.job} parâmetro [${index}] = ${parametros[index]}.`);
+        console.log(`[CARD-JOB] ${itemPilha.agenda.job} parâmetro [${index}] = ${parametros[index]}.`);
     }
     const preencherQueries = (event: CustomEvent<TextareaChangeEventDetail>, tabela: string, index: number) => {
         const value = (event.target as HTMLInputElement).value;
@@ -76,14 +92,14 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
         };
         setQueries(queries);
         console.log(
-            `[CARD-JOB] ${itemPilha.job.job} query [${index}] ${queries[index].tabela} = ${queries[index].query}.`
+            `[CARD-JOB] ${itemPilha.agenda.job} query [${index}] ${queries[index].tabela} = ${queries[index].query}.`
         );
     }
     const preencherCargas = (event: CustomEvent<TextareaChangeEventDetail>, index: number) => {
         const value = (event.target as HTMLInputElement).value;
         cargas[index] = value.trim();
         setCargas(cargas);
-        console.log(`[CARD-JOB] ${itemPilha.job.job} carga [${index}] = ${cargas[index]}.`);
+        console.log(`[CARD-JOB] ${itemPilha.agenda.job} carga [${index}] = ${cargas[index]}.`);
     }
 
     //Modelo da modal usada nos cards
@@ -91,8 +107,8 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
         return (
             <IonContent className="">
                 <IonHeader className="banner p-2 m-0">
-                    <span className="badge bg-white me-1 text-primary">{itemPilha.job.id}</span>
-                    <span className="font-monospace text-white fw-bold">{itemPilha.job.job}</span>
+                    <span className="badge bg-white me-1 text-primary">{itemPilha.agenda.id}</span>
+                    <span className="font-monospace text-white fw-bold">{itemPilha.agenda.job}</span>
                 </IonHeader>
                 <IonFab edge={true} vertical="top" horizontal="end">
                     <IonFabButton className="close-icon" color="#" onClick={onDismiss} >
@@ -116,16 +132,11 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
         }
     });
 
-    useIonViewDidEnter(() => {
-        if (!itemPilha) return;
-        console.log(`[CARD-JOB] renderizando card do job ${itemPilha.job}.`);
-    }, []);
-
     function configParametros() {
         if (itemPilha.argumentos.length === 0) return;
         return (
             <div className="px-1 mb-2">
-                <label className="form-label fw-bold text-primary" htmlFor={`job${itemPilha.job.id}-param`}>
+                <label className="form-label fw-bold text-primary" htmlFor={`job${itemPilha.agenda.id}-param`}>
                     PARÂMETROS DE EXECUÇÃO
                 </label>
                 {
@@ -140,14 +151,14 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
                                         transform: 'translate(0%, -50%)',
                                     }}
                                 >
-                                    {itemPilha.job.parametros[index]}
+                                    {itemPilha.agenda.parametros[index]}
                                 </IonLabel>
-                                <IonInput id={`job${itemPilha.job.id}-param`}
+                                <IonInput id={`job${itemPilha.agenda.id}-param`}
                                     type="text"
                                     className="form-control"
                                     aria-label="Sizing example input"
                                     aria-describedby="inputGroup-sizing-default"
-                                    placeholder={itemPilha.job.descricaoParametros[index]}
+                                    placeholder={itemPilha.agenda.descricaoParametros[index]}
                                     onIonChange={(e) => preencherParametro(e, index)}
                                     value={parametros[index]}
                                 />
@@ -164,7 +175,7 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
         if (itemPilha.queries.length === 0) return;
         return (
             <div className="px-1 mb-2">
-                <label className="form-label fw-bold text-primary" htmlFor={`job${itemPilha.job.id}-sql`}>
+                <label className="form-label fw-bold text-primary" htmlFor={`job${itemPilha.agenda.id}-sql`}>
                     QUERIES DE CONSULTA
                 </label>
                 {
@@ -181,7 +192,7 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
                                 >
                                     {comandoSql.tabela}
                                 </IonLabel>
-                                <IonTextarea id={`job${itemPilha.job.id}-sql`}
+                                <IonTextarea id={`job${itemPilha.agenda.id}-sql`}
                                     className="form-control text-start m-0 p-0"
                                     aria-label="With textarea"
                                     autoGrow={true}
@@ -201,7 +212,7 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
         if (itemPilha.cargas.length === 0) return;
         return (
             <div className="px-1 mb-2">
-                <label className="form-label fw-bold text-primary" htmlFor={`job${itemPilha.job.id}-carga`}>
+                <label className="form-label fw-bold text-primary" htmlFor={`job${itemPilha.agenda.id}-carga`}>
                     CARGAS DE ENTRADA
                 </label>
                 {
@@ -216,9 +227,9 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
                                         transform: `translate(0%, -50%)`,
                                     }}
                                 >
-                                    {itemPilha.job.mascaraEntrada[index]}
+                                    {itemPilha.agenda.mascaraEntrada[index]}
                                 </IonLabel>
-                                <IonTextarea id={`job${itemPilha.job.id}-carga`}
+                                <IonTextarea id={`job${itemPilha.agenda.id}-carga`}
                                     className="form-control m-0 p-0 text-start"
                                     aria-label="With textarea"
                                     autoGrow={true}
@@ -239,14 +250,14 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
         <IonCard target="_self" className="border border-1 p-0">
             <IonCardHeader className="banner p-2" >
                 <IonCardTitle  >
-                    <span className="badge bg-white me-1 text-primary">{itemPilha.job.id}</span>
-                    <span className="font-monospace text-white fw-bold">{itemPilha.job.job}</span>
+                    <span className="badge bg-white me-1 text-primary">{itemPilha.agenda.id}</span>
+                    <span className="font-monospace text-white fw-bold">{itemPilha.agenda.job}</span>
                 </IonCardTitle>
             </IonCardHeader>
             <IonCardContent className="rounded rounded-2 bg-light m-3">
-                <p className="lh-1 py-2 text-dark">Jobs: {itemPilha.job.job}</p>
+                <p className="lh-1 py-2 text-dark">Jobs: {itemPilha.agenda.job}</p>
                 <p className="lh-1 py-2 text-dark">Parametros:{parametros.join(", ")}</p>
-                <p className="lh-1 py-2 text-dark">Queries: <br/>{queries.map((querySql, index) => {
+                <p className="lh-1 py-2 text-dark">Queries: <br />{queries.map((querySql, index) => {
                     return (<> {`[${index}] ${querySql.query}`} <br /></>);
                 }
                 )}</p>
@@ -254,19 +265,19 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
                 <p className="lh-1 py-2 text-dark">Pronto: {pronto ? "sim" : "não"}</p>
                 <p className="lh-1 py-2 text-dark">
                     Executar após IDs: {
-                        itemPilha.job.executarAposJob.map((idPosJob) => <span className="badge bg-info m-0">{idPosJob}</span>)
+                        itemPilha.agenda.executarAposJob.map((idPosJob) => <span className="badge bg-info m-0">{idPosJob}</span>)
                     }
                     <div className="my-1" />
 
                     Programas: {
-                        itemPilha.job.programa.map((recursos) => <span className="badge bg-info m-0">{recursos}</span>)
+                        itemPilha.agenda.programa.map((recursos) => <span className="badge bg-info m-0">{recursos}</span>)
                     }
                     <div className="my-1" />
 
-                    Grupo: <span className="badge bg-info m-0">UDA{itemPilha.job.grupoUda}</span>
+                    Grupo: <span className="badge bg-info m-0">UDA{itemPilha.agenda.grupoUda}</span>
                     <div className="my-1" />
 
-                    {itemPilha.job.descricao}
+                    {itemPilha.agenda.descricao}
                     <div className="my-1" />
 
                     <div className="ion-text-center">

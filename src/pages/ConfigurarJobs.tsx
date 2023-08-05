@@ -7,19 +7,82 @@ import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { Pagination, Navigation } from 'swiper/modules';
 import { ItemPilha } from '../components/ItemPilha';
-import { flash, sync } from 'ionicons/icons';
+import { card, flash, sync } from 'ionicons/icons';
 import blueThunder from '../resources/thunder spark gif blue.gif';
 import darkThunder from '../resources/thunder spark gif dark.gif';
-import { useState } from 'react';
+import { createRef, useEffect, useRef, useState } from 'react';
 import { pilha } from '../App';
+import { AgendaDTO } from '../components/AgendaDTO';
+import { ComandoSQL } from '../components/ComandoSQL';
+
+/**
+ * Array de {@link ItemPilha} que representa todos os jobs que se encontram prontos para serem executados.
+ * Ou seja, todos os seus respectivos requisitos foram preenchidos.
+ * A funcional {@link controlePilhaPronta} é responsável por adiministrar esse array e pode ser chamado por qualquer componente.
+ */
+const pilhaPronta: ItemPilha[] = [];
+export const controlePilhaPronta = (
+    numeroPilha: number,
+    agenda: AgendaDTO,
+    parametros: string[],
+    queries: ComandoSQL[],
+    cargas: string[],
+    pronto: boolean
+) => {
+    //Log
+    if (numeroPilha === -1) {
+        console.log(`[CONFIGURAR-JOBS] Recebendo callback da planilha schedule referente job ${agenda.job}.`);
+    }
+    else {
+        console.log(`[CONFIGURAR-JOBS] Recebendo callback do card job [${numeroPilha}] ${agenda.job}:` + '\n'
+            + ` - Parametros (${parametros.join(", ")})` + '\n'
+            + ` - Queries (${queries.map((comandoSql) => comandoSql.query).join(", ")})` + '\n'
+            + ` - Cargas (${cargas.join(", ")})` + '\n'
+            + ` - Pronto = ${pronto}`
+        );
+    }
+    //Se o Job do callback está pronto para ser executado
+    if (pronto) {
+        let itemPresente = false;
+        const novoItemPronto: ItemPilha = {
+            agenda: agenda,
+            argumentos: parametros,
+            queries: queries,
+            cargas: cargas,
+            pronto: pronto
+        };
+        pilhaPronta.map((itemPronto, index) => {
+            if (itemPronto.agenda.id === agenda.id) {
+                console.log(`[CONFIGURAR-JOBS] Atualizando índice Nº${index} (ID ${agenda.id}) na pilha de jobs prontos.`);
+                itemPresente = true;
+                return novoItemPronto;
+            }
+            return itemPronto;
+        });
+        if (!itemPresente) {
+            console.log(`[CONFIGURAR-JOBS] Adicionando índice Nº${pilhaPronta.length} (ID ${agenda.id}) na pilha de jobs prontos.`);
+            pilhaPronta.push(novoItemPronto);
+        }
+    }
+    //Se o Job do callback NÃO está pronto para ser executado
+    else {
+        let removerIndex = -1;
+        pilhaPronta.map((itemPronto, index) => {
+            if (itemPronto.agenda.id === agenda.id) removerIndex = index;
+        });
+        if (removerIndex !== -1) {
+            console.log(`[CONFIGURAR-JOBS] Removendo índice Nº${removerIndex} (ID ${agenda.id}) na pilha de jobs prontos.`);
+            pilhaPronta.splice(removerIndex, 1);
+        }
+        else {
+            console.log(`[CONFIGURAR-JOBS] Nenhum índice precisa ser alterado na pilha de jobs prontos.`);
+        }
+    }
+}
 
 const ConfigurarJobs = (props: any) => {
     const history = useHistory();
-    const [cards, setCards] = useState<JobCardProps[]>(
-        pilha.map((itemPilha, index) => {
-            return { dto: itemPilha, indexPilha: index }
-        })
-    )
+    const callBack = props.callBack;
     const [thunderGif, setThunderGif] = useState(blueThunder);
     const [executarStatus, setExecutarStatus] = useState<string>("disabled");
     const [gif, setGif] = useState<boolean>(false);
@@ -41,71 +104,32 @@ const ConfigurarJobs = (props: any) => {
         else {
             console.log(`[CONFIGURAR-JOBS] Carregando cards da pilha dos jobs selecionados.`);
         }
+        itensParaExecutar();
     }, []);
 
-    const handleUpdateChild = (dto: ItemPilha, indexPilha: number) => {
-        console.log(`[CONFIGURAR-JOBS] Recebendo callback do card job [${indexPilha}] ${dto.job.job}.`);
-        setCards(() => {
-            return cards.map((cardAntigo) => {
-                if (cardAntigo.dto.job.id === dto.job.id) return {...cardAntigo, dto, indexPilha};
-                return cardAntigo;
-            });
-        });
-        const cardsProntos = cards.filter((cardItem) => cardItem.dto.pronto);
-        setExecutarStatus(cardsProntos.length < 1 ? "disabled" : "session-buttons");
-        setGif(cardsProntos.length > 0);
-
-        const detalhes = cards.map((cardItem) => {
-            return cardItem.dto.job.job + ": \n"
-                + "Parametros (" + cardItem.dto.job.parametros.join(", ") + "), "
-                + "Queries (" + cardItem.dto.queries.map((comandoSql) => comandoSql.query).join(", ") + "), "
-                + "Cargas (" + cardItem.dto.cargas.join(", ") + "), "
-                + "Pronto = " + cardItem.dto.pronto;
-        }).join(".   \n");
-
-        const mensagem = `Temos ${cardsProntos.length} de ${cards.length} jobs prontos para executar:
-        ${detalhes}`;
-        console.log(`[CONFIGURAR-JOBS] ${mensagem}`);
-
-        //await toastOff();
-        acionarToast(mensagem);
+    const callBackJobCard = (
+        numeroPilha: number,
+        agenda: AgendaDTO,
+        parametros: string[],
+        queries: ComandoSQL[],
+        cargas: string[],
+        pronto: boolean
+    ) => {
+        controlePilhaPronta(numeroPilha, agenda, parametros, queries, cargas, pronto);
+        itensParaExecutar();
     }
 
-/*
-    const setItemPilha = async (config: ConfigItemPilha) => {
-        console.log(`[CONFIGURAR-JOBS] Recebendo callback do card job [${config.index}] ${config.item.job.job}.`);
-        //pilha[config.index] = config.item;
-
-        const detalhes1 = pilha.map((item) => {
-            return "detalhes1 -> " + item.job.job + ": \n"
-                + "Parametros (" + item.job.parametros.join(", ") + "), "
-                + "Queries (" + item.queries.map((comandoSql) => comandoSql.query).join(", ") + "), "
-                + "Cargas (" + item.cargas.join(", ") + "), "
-                + "Pronto = " + item.pronto;
-        }).join(".   \n");
-        console.log(`[CONFIGURAR-JOBS] ${detalhes1}`);
-
-        const pilhaPronta = pilha.filter((itemPilha) => itemPilha.pronto);
+    const itensParaExecutar = async () => {
         setExecutarStatus(pilhaPronta.length < 1 ? "disabled" : "session-buttons");
         setGif(pilhaPronta.length > 0);
 
-        const detalhes = pilhaPronta.map((item) => {
-            return item.job.job + ": \n"
-                + "Parametros (" + item.job.parametros.join(", ") + "), "
-                + "Queries (" + item.queries.map((comandoSql) => comandoSql.query).join(", ") + "), "
-                + "Cargas (" + item.cargas.join(", ") + "), "
-                + "Pronto = " + item.pronto;
-        }).join(".   \n");
-
-        const mensagem = `Temos ${pilhaPronta.length} ce ${pilha.length} jobs prontos para executar:
-        ${detalhes}`;
+        const mensagem = `Temos ${pilhaPronta.length} de ${pilha.length} jobs prontos para executar.`;
         console.log(`[CONFIGURAR-JOBS] ${mensagem}`);
-
         await toastOff();
         acionarToast(mensagem);
     }
 
-*/
+
     const breakpoints = {
         640: { slidesPerView: 1, centeredSlides: centralizarSlides(1), loop: !centralizarSlides(1) },
         768: { slidesPerView: 2, centeredSlides: centralizarSlides(2), loop: !centralizarSlides(2) },
@@ -142,9 +166,7 @@ const ConfigurarJobs = (props: any) => {
                     <Swiper
                         spaceBetween={24}
                         breakpoints={breakpoints}
-                        //centeredSlides={true}
                         keyboard={true}
-                        //loop={true}
                         pagination={{ clickable: true }}
                         navigation={true}
                         modules={[Pagination, Navigation]}
@@ -152,14 +174,24 @@ const ConfigurarJobs = (props: any) => {
                     >
                         <div className='d-flex justify-items-center'>
                             {
-                                pilha.map((item, index) => {
+                                pilha.map((itemPilha, index) => {
+                                    let novoItemPilha = pilhaPronta.find(
+                                        (itemPilhaPronta) => itemPilha.agenda.id === itemPilhaPronta.agenda.id
+                                    );
+                                    if (typeof novoItemPilha === 'undefined') {
+                                        novoItemPilha = itemPilha;
+                                        console.log(`[CONFIGURAR-JOBS] Tipo indefinido detectado. Resetando valor.`)
+                                    }
+                                    else {
+                                        console.log(`[CONFIGURAR-JOBS] Atualizando o job na pilha geral com o job da pilha de prontos.`)
+                                    }
                                     return (
                                         <SwiperSlide key={index}>
                                             <JobCard
-                                                dto={item}
+                                                dto={novoItemPilha}
                                                 indexPilha={index}
                                                 key={index}
-                                                onCallBack={handleUpdateChild}
+                                                onCallBack={callBackJobCard}
                                             />
                                         </SwiperSlide>
                                     );

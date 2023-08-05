@@ -3,7 +3,7 @@ import { ComandoSQL } from "./ComandoSQL";
 
 export interface ItemPilha {
     argumentos: string[];
-    job: AgendaDTO;
+    agenda: AgendaDTO;
     queries: ComandoSQL[];
     cargas: string[];
     pronto: boolean;
