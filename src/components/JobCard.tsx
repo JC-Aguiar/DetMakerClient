@@ -125,10 +125,10 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
     }
 
     //Função para desfazer a modal
-    const [modalParamOn, modelParamOff] = useIonModal(JobCardModal, {
+    const [modalParamOn, modalParamOff] = useIonModal(JobCardModal, {
         onDismiss: () => {
             salvandoItem();
-            modelParamOff()
+            modalParamOff()
         }
     });
 
@@ -255,14 +255,6 @@ const JobCard: React.FC<JobCardProps> = ({ dto, indexPilha, onCallBack }) => {
                 </IonCardTitle>
             </IonCardHeader>
             <IonCardContent className="rounded rounded-2 bg-light m-3">
-                <p className="lh-1 py-2 text-dark">Jobs: {itemPilha.agenda.job}</p>
-                <p className="lh-1 py-2 text-dark">Parametros:{parametros.join(", ")}</p>
-                <p className="lh-1 py-2 text-dark">Queries: <br />{queries.map((querySql, index) => {
-                    return (<> {`[${index}] ${querySql.query}`} <br /></>);
-                }
-                )}</p>
-                <p className="lh-1 py-2 text-dark">Cargas: {cargas.join(", ")}</p>
-                <p className="lh-1 py-2 text-dark">Pronto: {pronto ? "sim" : "não"}</p>
                 <p className="lh-1 py-2 text-dark">
                     Executar após IDs: {
                         itemPilha.agenda.executarAposJob.map((idPosJob) => <span className="badge bg-info m-0">{idPosJob}</span>)

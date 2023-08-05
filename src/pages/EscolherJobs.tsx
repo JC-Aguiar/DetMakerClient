@@ -112,12 +112,12 @@ const EscolherJobs = (props: any) => {
             <IonContent fullscreen={true} scrollEvents={true}>
                 <div className='pt-3 pt-md-4'></div>
                 <div className="card border bg-white border-2 mx-0 mx-md-4" id="capa-schedule">
-                    <h1 className="card-title destaque lh-1 m-0 text-center">
+                    <h1 className="card-title destaque-low lh-1 m-0 text-center">
                         Schedule
                     </h1>
-                    <h3 className="card-text h3 text-primary ms-2 text-center">
+                    <h5 className="card-text h5 text-primary ms-2 text-center">
                         Documentação detalhada dos jobs disponíveis.
-                    </h3>
+                    </h5>
                     <div className="schedule-tabela px-1">
                         <div className="my-3"></div>
                         <section className="schedule-tabela scroll text-center">

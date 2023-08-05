@@ -1,16 +1,16 @@
-import { IonContent, IonIcon, IonPage, useIonToast, useIonViewDidEnter } from '@ionic/react';
+import { IonContent, IonIcon, IonModal, IonPage, useIonModal, useIonToast, useIonViewDidEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
-import JobCard, { JobCardProps } from '../components/JobCard';
+import JobCard from '../components/JobCard';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { Pagination, Navigation } from 'swiper/modules';
 import { ItemPilha } from '../components/ItemPilha';
-import { card, flash, sync } from 'ionicons/icons';
+import { flash } from 'ionicons/icons';
 import blueThunder from '../resources/thunder spark gif blue.gif';
 import darkThunder from '../resources/thunder spark gif dark.gif';
-import { createRef, useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { pilha } from '../App';
 import { AgendaDTO } from '../components/AgendaDTO';
 import { ComandoSQL } from '../components/ComandoSQL';
@@ -83,6 +83,7 @@ export const controlePilhaPronta = (
 const ConfigurarJobs = (props: any) => {
     const history = useHistory();
     const callBack = props.callBack;
+    const [modalOn, setModalOn] = useState<boolean>(false);
     const [thunderGif, setThunderGif] = useState(blueThunder);
     const [executarStatus, setExecutarStatus] = useState<string>("disabled");
     const [gif, setGif] = useState<boolean>(false);
@@ -129,6 +130,20 @@ const ConfigurarJobs = (props: any) => {
         acionarToast(mensagem);
     }
 
+    function textoBotao(texto: string) {
+        return (
+            <span className={`btn btn-outline-primary border border-0 banner-gold ps-2 pe-1 py-0 mx-1 ${executarStatus}`}
+                onMouseOver={() => setThunderGif(darkThunder)}
+                onMouseLeave={() => setThunderGif(blueThunder)}
+                onClick={() => setModalOn(true)}
+            >
+                <img src={thunderGif} alt="GIF Animado" id="thunder-gif-1" hidden={!gif} />
+                <img src={thunderGif} alt="GIF Animado" id="thunder-gif-2" hidden={!gif} />
+                {texto}
+                <IonIcon icon={flash} />
+            </span>
+        );
+    }
 
     const breakpoints = {
         640: { slidesPerView: 1, centeredSlides: centralizarSlides(1), loop: !centralizarSlides(1) },
@@ -138,20 +153,6 @@ const ConfigurarJobs = (props: any) => {
 
     function centralizarSlides(numero: number): boolean {
         return pilha.length < numero;
-    }
-
-    function textoBotao(texto: string) {
-        return (
-            <span className={`btn btn-outline-primary border border-0 banner-gold ps-2 pe-1 py-0 mx-1 ${executarStatus}`}
-                onMouseOver={() => setThunderGif(darkThunder)}
-                onMouseLeave={() => setThunderGif(blueThunder)}
-            >
-                <img src={thunderGif} alt="GIF Animado" id="thunder-gif-1" hidden={!gif} />
-                <img src={thunderGif} alt="GIF Animado" id="thunder-gif-2" hidden={!gif} />
-                {texto}
-                <IonIcon icon={flash} />
-            </span>
-        );
     }
 
     return (
@@ -202,9 +203,32 @@ const ConfigurarJobs = (props: any) => {
                     <div className='mb-5'></div>
                 </div>
                 <div className='pt-3 pt-md-5'></div>
+                <IonModal isOpen={modalOn} backdropDismiss={false}>
+                    <IonContent fullscreen={true} scrollEvents={true} >
+                        <div className='pt-3 pt-md-5'></div>
+                        <div className="card border border-2 p-3 mx-0 mx-md-4" id="capa-abrir">
+                            <div className="progress" role="progressbar" aria-label="carregando..." >
+                                <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: "100%" }}></div>
+                            </div>
+                            <h1 className="card-title destaque-low lh-1 m-0 text-center">
+                                Executando
+                            </h1>
+                            <h5 className="card-text h5 text-primary ms-2 mt-2 text-center">
+                                Aguarde a aplicação executar toda a pilha de Jobs para termos o log completo.
+                            </h5>
+                            <div className='d-flex justify-content-center'>
+                                <img src={blueThunder} alt="GIF Animado" id="thunder-gif-3" hidden={!gif} sizes='large' />
+                                <img src={blueThunder} alt="GIF Animado" id="thunder-gif-4" hidden={!gif}  sizes='large' />
+                                <IonIcon id="flash" className="text-primary" icon={flash} ></IonIcon>
+                            </div>
+                            <div className='mb-5'></div>
+                        </div>
+                    </IonContent>
+                </IonModal>
             </IonContent>
         </IonPage>
     );
 };
 
 export default ConfigurarJobs;
+

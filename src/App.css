@@ -183,6 +183,22 @@ ion-content#intro-bg {
   transform: scale(-1, -1) translate(16px, 25%);
 }
 
+#thunder-gif-3 {
+  position: absolute;
+  width: 256px;
+  height: 192px;
+  transform: rotateZ(-25deg) translate(-20px, 15%);
+  z-index: 50;
+}
+
+#thunder-gif-4 {
+  position: absolute;
+  width: 192px;
+  height: 128px;
+  transform: rotateZ(50deg) translate(16px, 0%);
+  z-index: 50;
+}
+
 .banner-gold:hover {
   background: linear-gradient(135deg, #e7cb2f, #f1ff58, #f0fa87, #eef1db, #f1ff58, #e7cb2f, #eef1db);
   background-size: 300% 500%;
@@ -394,20 +410,20 @@ ion-content#intro-bg {
 
 .destaque {
   color: #0051c2;
-  -webkit-text-stroke: 0.3vw white;
-  text-stroke: 0.2vw white;
+  -webkit-text-stroke: calc(0.3vw + 0.2vh) white;
+  text-stroke: calc(0.3vw + 0.2vh) white;
   font-family: 'Play', sans-serif;
-  font-size: 8vw;
-  text-shadow: 0.4vw 0.4vw #ffff00;
+  font-size: calc(8vw + 6vh);
+  text-shadow: calc(0.3vw + 0.2vh) calc(0.3vw + 0.2vh) #ffff00;
 }
 
 .destaque-low {
   color: #0051c2;
-  -webkit-text-stroke: 0.2vw white;
-  text-stroke: 0.2vw white;
+  -webkit-text-stroke: calc(0.24vw + 0.16vh) white;
+  text-stroke: calc(0.24vw + 0.16vh) white;
   font-family: 'Play', sans-serif;
-  font-size: 4vw;
-  text-shadow: 0.2vw 0.2vw #ffff00;
+  font-size: calc(4.5vw + 3vh);
+  text-shadow: calc(0.24vw + 0.16vh) calc(0.24vw + 0.16vh) #ffff00;
 }
 
 .login-btn {
@@ -460,6 +476,10 @@ th,td {
   overflow: auto;
 }
 
+table {
+  font-size: calc(1.2vw + 0.4vh);
+}
+
 .scroll {
   flex-wrap: nowrap;
   overflow-x: scroll !important;
@@ -491,13 +511,6 @@ th,td {
 
 
 @media (max-width: 767px) {
-
-  .destaque {
-    -webkit-text-stroke: 0.8vw white;
-    text-stroke: 0.8vw white;
-    font-size: 20vw;
-    text-shadow: 1vw 1vw rgba(255, 255, 0, 1);
-  }
 
   th,td {
     min-width: 3vw;
