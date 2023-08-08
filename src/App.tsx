@@ -92,7 +92,8 @@ const App = () => {
                 agenda: agendaPilha.agenda,
                 queries: [],
                 cargas: [],
-                pronto: false
+                pronto: false,
+                ordem: null
             });
         }
         //Removendo elemento na pilha

@@ -20,9 +20,9 @@ import { ComandoSQL } from '../components/ComandoSQL';
  * Ou seja, todos os seus respectivos requisitos foram preenchidos.
  * A funcional {@link controlePilhaPronta} é responsável por adiministrar esse array e pode ser chamado por qualquer componente.
  */
-const pilhaPronta: ItemPilha[] = [];
+export const pilhaPronta: ItemPilha[] = [];
 export const controlePilhaPronta = (
-    numeroPilha: number,
+    ordem: number,
     agenda: AgendaDTO,
     parametros: string[],
     queries: ComandoSQL[],
@@ -30,11 +30,12 @@ export const controlePilhaPronta = (
     pronto: boolean
 ) => {
     //Log
-    if (numeroPilha === -1) {
+    if (ordem === -1) {
         console.log(`[CONFIGURAR-JOBS] Recebendo callback da planilha schedule referente job ${agenda.job}.`);
     }
     else {
-        console.log(`[CONFIGURAR-JOBS] Recebendo callback do card job [${numeroPilha}] ${agenda.job}:` + '\n'
+        console.log(`[CONFIGURAR-JOBS] Recebendo callback do card job ${agenda.job}:` + '\n'
+            + ` - Stack Nº${ordem}` + '\n'
             + ` - Parametros (${parametros.join(", ")})` + '\n'
             + ` - Queries (${queries.map((comandoSql) => comandoSql.query).join(", ")})` + '\n'
             + ` - Cargas (${cargas.join(", ")})` + '\n'
@@ -49,7 +50,9 @@ export const controlePilhaPronta = (
             argumentos: parametros,
             queries: queries,
             cargas: cargas,
-            pronto: pronto
+            pronto: pronto,
+            ordem: ordem,
+            
         };
         pilhaPronta.map((itemPronto, index) => {
             if (itemPronto.agenda.id === agenda.id) {
@@ -214,7 +217,7 @@ const ConfigurarJobs = (props: any) => {
                                 Executando
                             </h1>
                             <h5 className="card-text h5 text-primary ms-2 mt-2 text-center">
-                                Aguarde a aplicação executar toda a pilha de Jobs para termos o log completo.
+                                Aguarde a aplicação retonar o resultado da pilha de Jobs.
                             </h5>
                             <div className='d-flex justify-content-center'>
                                 <img src={blueThunder} alt="GIF Animado" id="thunder-gif-3" hidden={!gif} sizes='large' />

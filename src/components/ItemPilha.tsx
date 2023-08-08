@@ -7,4 +7,5 @@ export interface ItemPilha {
     queries: ComandoSQL[];
     cargas: string[];
     pronto: boolean;
+    ordem: number | null;
 }
