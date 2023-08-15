@@ -1,8 +1,10 @@
 import { IonApp, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Redirect, Route } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import Intro from './pages/Intro';
 import "./App.css";
+
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -28,9 +30,11 @@ import Login from './pages/Login';
 import AbrirSchedule from './pages/AbrirSchedule';
 import EscolherJobs from './pages/EscolherJobs';
 import ConfigurarJobs from './pages/ConfigurarJobs';
-import ExecutarJobs from './pages/ExecutarJobs';
 import { AgendaDTO } from './components/AgendaDTO';
-import { ItemPilha } from './components/ItemPilha';
+import { ItemPilhaDTO } from './components/ItemPilha';
+import { RootState } from './Store/ReduxStore';
+
+/* Corpo da Aplicação */
 
 setupIonicReact();
 
@@ -43,74 +47,22 @@ export const dataFormato: Intl.DateTimeFormatOptions = {
     dateStyle: 'short', //Utiliza o formato de data curta com separador "/"
 };
 
-export let agenda: AgendaDTO[] = [];
 
-export let pilha: ItemPilha[] = [];
 
 const App = () => {
     const [boasVindas, setBoasVindas] = useState(false);
-    const [popoverOpen, setPopoverOpen] = useState(false);
-    const [jobsCount, setJobsCount] = useState(0);
-    const [escolherJobsOpt, setEscolherJobsOpt] = useState(false);
-    const [configurarJobsOpt, setConfigurarJobsOpt] = useState(false);
-    const [executarJobsOpt, setExecutarJobsOpt] = useState(false);
-    const [pilhaExec, setPilhaExec] = useState<ItemPilha[]>([]);
-
-    function handleUserButton(e: any) {
-        if (e.detail.tab === 'user') {
-            setPopoverOpen(true);
-        }
-    }
+    //const [jobsCount, setJobsCount] = useState(0);
+    //const [escolherJobsOpt, setEscolherJobsOpt] = useState(false);
+    //const [configurarJobsOpt, setConfigurarJobsOpt] = useState(false);
+    //const [executarJobsOpt, setExecutarJobsOpt] = useState(false);
+    const pilha: ItemPilhaDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
+    const escolherJobsOpt: boolean = pilha.length > 0;
+    const jobsCount: number = pilha.filter((itemPilha) => itemPilha.agenda.checked).length;
+    const configurarJobsOpt: boolean = jobsCount > 0;
+    const executarJobsOpt: boolean = false;
 
     function animationEnd() {
         setBoasVindas(true);
-    }
-
-    function setAgenda(arquivoXlsx: AgendaDTO[]) {
-        console.log(`[APP] Recebendo callback das agendas.`);
-        console.log(`[APP] Variável arquivoXlsx = ${arquivoXlsx}.`);
-        agenda = (arquivoXlsx);
-        console.log(`[APP] Variável agenda = ${agenda}.`);
-        console.log(`[APP] Habilitando a tab 'Escolher Jobs'.`);
-        limparPilha();
-        setEscolherJobsOpt(true);
-    }
-
-    function limparPilha() {
-        console.log(`[APP] Recebendo callback para limpar pilha de execução.`);
-        pilha = [];
-    }
-
-    function setPilha(agendaPilha: AgendaParaPilha) {
-        const mensagem = agendaPilha.add ? "adicionar" : "remover";
-        console.log(`[APP] Recebendo callback para ${mensagem} o job: ${agendaPilha.agenda.job}.`);
-
-        //Adicionando elemento na pilha
-        if (agendaPilha.add) {
-            pilha.push({
-                argumentos: [],
-                agenda: agendaPilha.agenda,
-                queries: [],
-                cargas: [],
-                pronto: false,
-                ordem: null
-            });
-        }
-        //Removendo elemento na pilha
-        else {
-            pilha = pilha.filter((element) => element.agenda !== agendaPilha.agenda);
-        }
-        //Verificando se a tab 'Configurar Jobs' estará acessível
-        setJobsCount(pilha.length);
-        console.log(`[APP] Pilha atual: [${pilha.length}] ${pilha}.`);
-        if (pilha.length > 0) {
-            console.log(`[APP] Habilitando a tab 'Configurar Jobs'.`);
-            setConfigurarJobsOpt(true);
-        }
-        else {
-            console.log(`[APP] Dessabilitada a tab 'Configurar Jobs'.`);
-            setConfigurarJobsOpt(false);
-        }
     }
 
     function contadorConfigJobs() {
@@ -118,20 +70,6 @@ const App = () => {
         return (
             <span className='badge bg-primary config-job-count'>{jobsCount}</span>
         );
-    }
-
-    function ajustarPilha(numeroPilha: number, novoItemPilha: ItemPilha) {
-        console.log(`[APP] Recebendo callback para atualizar o job ${novoItemPilha.agenda.job} na pilha.`);
-        
-        pilha.splice(numeroPilha, 1, novoItemPilha);
-        pilha.map((itemPilha, index) => {
-            console.log(`[APP] Atual valor do job [${index}] ${itemPilha.agenda.job} na pilha:` + '\n'
-                + ` - Parametros (${itemPilha.argumentos.join(", ")})` + '\n'
-                + ` - Queries (${itemPilha.queries.map((comandoSql) => comandoSql.query).join(", ")})` + '\n'
-                + ` - Cargas (${itemPilha.cargas.join(", ")})` + '\n'
-                + ` - Pronto = ${itemPilha.pronto}`
-            );
-        });
     }
 
     function intro() {
@@ -159,37 +97,20 @@ const App = () => {
                 <IonTabs>
                     <IonRouterOutlet>
                         <Route path="/det-maker/open" exact>
-                            <AbrirSchedule callBack={setAgenda} />
+                            <AbrirSchedule />
                         </Route>
                         <Route path="/det-maker/select" exact>
-                            <EscolherJobs callBack={setPilha} callBackErase={limparPilha} />
+                            <EscolherJobs />
                         </Route>
                         <Route path="/det-maker/config" exact>
-                            <ConfigurarJobs callBack={ajustarPilha} /></Route>
-                        <Route path="/det-maker/run" exact>
-                            <ExecutarJobs />
+                            <ConfigurarJobs />
                         </Route>
                         <Route>
                             <Redirect to="/det-maker/open" />
                         </Route>
                     </IonRouterOutlet>
 
-                    <IonTabBar slot="top"
-                        className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold'
-                        onIonTabsWillChange={handleUserButton}
-                    >
-                        {/* USUÁRIO INFO 
-                        <IonTabButton tab="user" className='pt-1 bg-transparent fw-bold'>
-                            
-                            <IonPopover ref={null} isOpen={popoverOpen} onDidDismiss={() => setPopoverOpen(false)}>
-                                <div className="ion-padding px-5">joao.aguiar@gmail.com</div>
-                            </IonPopover>
-
-                            <IonIcon icon={personCircle} />
-                            <IonLabel>Usuário</IonLabel>
-                        </IonTabButton>
-                        */}
-
+                    <IonTabBar slot="top" className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' >
                         {/* ABRIR SCHEDULE */}
                         <IonTabButton tab="open" href="/det-maker/open"
                             className='pt-1 bg-transparent fw-bold'
@@ -215,16 +136,6 @@ const App = () => {
                             <IonIcon icon={settings} />
                             <IonLabel>Configurar Jobs {contadorConfigJobs()} </IonLabel>
                         </IonTabButton>
-
-                        {/* EXECUTAR PILHA */}
-                        <IonTabButton tab="run" href="/det-maker/run"
-                            className='pt-2 bg-transparent fw-bold'
-                            disabled={!executarJobsOpt}
-                        >
-                            <IonIcon icon={flash} />
-                            <IonLabel>Executar!</IonLabel>
-                        </IonTabButton>
-
                     </IonTabBar>
                 </IonTabs>
             </div>

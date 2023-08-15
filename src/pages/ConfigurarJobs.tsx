@@ -6,21 +6,23 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { Pagination, Navigation } from 'swiper/modules';
-import { ItemPilha } from '../components/ItemPilha';
+import { ItemPilhaDTO } from '../components/ItemPilha';
 import { flash } from 'ionicons/icons';
 import blueThunder from '../resources/thunder spark gif blue.gif';
 import darkThunder from '../resources/thunder spark gif dark.gif';
 import { useState } from 'react';
-import { pilha } from '../App';
 import { AgendaDTO } from '../components/AgendaDTO';
 import { ComandoSQL } from '../components/ComandoSQL';
+import { useSelector } from 'react-redux';
+import { RootState } from '../Store/ReduxStore';
 
 /**
- * Array de {@link ItemPilha} que representa todos os jobs que se encontram prontos para serem executados.
+ * Array de {@link ItemPilhaDTO} que representa todos os jobs que se encontram prontos para serem executados.
  * Ou seja, todos os seus respectivos requisitos foram preenchidos.
  * A funcional {@link controlePilhaPronta} é responsável por adiministrar esse array e pode ser chamado por qualquer componente.
  */
-export const pilhaPronta: ItemPilha[] = [];
+/*
+export const pilhaPronta: ItemPilhaDTO[] = [];
 export const controlePilhaPronta = (
     ordem: number,
     agenda: AgendaDTO,
@@ -45,14 +47,14 @@ export const controlePilhaPronta = (
     //Se o Job do callback está pronto para ser executado
     if (pronto) {
         let itemPresente = false;
-        const novoItemPronto: ItemPilha = {
+        const novoItemPronto: ItemPilhaDTO = {
             agenda: agenda,
             argumentos: parametros,
             queries: queries,
             cargas: cargas,
             pronto: pronto,
             ordem: ordem,
-            
+
         };
         pilhaPronta.map((itemPronto, index) => {
             if (itemPronto.agenda.id === agenda.id) {
@@ -82,10 +84,11 @@ export const controlePilhaPronta = (
         }
     }
 }
+*/
 
 const ConfigurarJobs = (props: any) => {
+    const pilha = useSelector((state: RootState) => state.store.pilhaJobs.value);
     const history = useHistory();
-    const callBack = props.callBack;
     const [modalOn, setModalOn] = useState<boolean>(false);
     const [thunderGif, setThunderGif] = useState(blueThunder);
     const [executarStatus, setExecutarStatus] = useState<string>("disabled");
@@ -103,7 +106,7 @@ const ConfigurarJobs = (props: any) => {
     useIonViewDidEnter(() => {
         if (pilha.length === 0) {
             console.log(`[CONFIGURAR-JOBS] A pilha está vazia. Retornando página.`);
-            history.goBack();
+            history.push('/det-maker/open/');
         }
         else {
             console.log(`[CONFIGURAR-JOBS] Carregando cards da pilha dos jobs selecionados.`);
@@ -111,23 +114,12 @@ const ConfigurarJobs = (props: any) => {
         itensParaExecutar();
     }, []);
 
-    const callBackJobCard = (
-        numeroPilha: number,
-        agenda: AgendaDTO,
-        parametros: string[],
-        queries: ComandoSQL[],
-        cargas: string[],
-        pronto: boolean
-    ) => {
-        controlePilhaPronta(numeroPilha, agenda, parametros, queries, cargas, pronto);
-        itensParaExecutar();
-    }
-
     const itensParaExecutar = async () => {
-        setExecutarStatus(pilhaPronta.length < 1 ? "disabled" : "session-buttons");
-        setGif(pilhaPronta.length > 0);
-
-        const mensagem = `Temos ${pilhaPronta.length} de ${pilha.length} jobs prontos para executar.`;
+        const pilhaConfig = pilha.filter((itemPilha) => itemPilha.agenda.checked).length;
+        const pilhaPronta = pilha.filter((itemPilha) => itemPilha.pronto).length;
+        setExecutarStatus(pilhaPronta > 0 ? "session-buttons" : "disabled");
+        setGif(pilhaPronta > 0);
+        const mensagem = `Temos ${pilhaPronta} de ${pilhaConfig} jobs prontos para executar.`;
         console.log(`[CONFIGURAR-JOBS] ${mensagem}`);
         await toastOff();
         acionarToast(mensagem);
@@ -178,28 +170,14 @@ const ConfigurarJobs = (props: any) => {
                     >
                         <div className='d-flex justify-items-center'>
                             {
-                                pilha.map((itemPilha, index) => {
-                                    let novoItemPilha = pilhaPronta.find(
-                                        (itemPilhaPronta) => itemPilha.agenda.id === itemPilhaPronta.agenda.id
-                                    );
-                                    if (typeof novoItemPilha === 'undefined') {
-                                        novoItemPilha = itemPilha;
-                                        console.log(`[CONFIGURAR-JOBS] Tipo indefinido detectado. Resetando valor.`)
-                                    }
-                                    else {
-                                        console.log(`[CONFIGURAR-JOBS] Atualizando o job na pilha geral com o job da pilha de prontos.`)
-                                    }
-                                    return (
-                                        <SwiperSlide key={index}>
-                                            <JobCard
-                                                dto={novoItemPilha}
-                                                indexPilha={index}
-                                                key={index}
-                                                onCallBack={callBackJobCard}
-                                            />
-                                        </SwiperSlide>
-                                    );
-                                })
+                                pilha.filter((itemPilha) => itemPilha.agenda.checked)
+                                    .map((itemPilha, index) => {
+                                        return (
+                                            <SwiperSlide key={index}>
+                                                <JobCard itemPilha={itemPilha} key={index} />
+                                            </SwiperSlide>
+                                        );
+                                    })
                             }
                         </div>
                     </Swiper>
@@ -221,7 +199,7 @@ const ConfigurarJobs = (props: any) => {
                             </h5>
                             <div className='d-flex justify-content-center'>
                                 <img src={blueThunder} alt="GIF Animado" id="thunder-gif-3" hidden={!gif} sizes='large' />
-                                <img src={blueThunder} alt="GIF Animado" id="thunder-gif-4" hidden={!gif}  sizes='large' />
+                                <img src={blueThunder} alt="GIF Animado" id="thunder-gif-4" hidden={!gif} sizes='large' />
                                 <IonIcon id="flash" className="text-primary" icon={flash} ></IonIcon>
                             </div>
                             <div className='mb-5'></div>

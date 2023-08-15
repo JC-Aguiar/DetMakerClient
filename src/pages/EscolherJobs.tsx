@@ -2,16 +2,19 @@ import { IonCheckbox, IonContent, IonIcon, IonPage, useIonViewDidEnter } from '@
 import { AgendaDTO } from '../components/AgendaDTO';
 import { useState } from 'react';
 import { useHistory } from 'react-router';
-import { AgendaParaPilha, agenda } from '../App';
+import { AgendaParaPilha } from '../App';
 import { checkmarkCircle, closeCircle } from 'ionicons/icons';
 import { validarExibirData } from './AbrirSchedule';
-import { controlePilhaPronta } from './ConfigurarJobs';
+import { useDispatch, useSelector } from 'react-redux';
+import { ItemPilhaDTO } from '../components/ItemPilha';
+import { RootState } from '../Store/ReduxStore';
+import { checkItemPilha } from '../Store/Reducer/ReducerPilhaJobs';
 
 const EscolherJobs = (props: any) => {
+    const dispatch = useDispatch();
+    const pilha: ItemPilhaDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
     const [checks, setChecks] = useState<boolean>(true);
     const history = useHistory();
-    const callBack = props.callBack;
-    const callBackErase = props.callBackErase;
 
     async function jobsCallBack(agenda: AgendaDTO) {
         console.log(`[ESCOLHER-JOBS] Realizando callback do job ${agenda.job}`);
@@ -19,92 +22,42 @@ const EscolherJobs = (props: any) => {
             add: agenda.checked, 
             agenda: agenda 
         }
-        callBack(config);
+        //callBack(config);
     }
 
     async function jobsCallBackErase() {
         console.log(`[ESCOLHER-JOBS] Realizando callback para limpar todos os jobs`);
-        callBackErase();
+        //callBackErase();
     }
 
-    /*
-    CÓDIGO ÚTIL (BACK-UP):
-        useEffect(() => {
-            try {
-                if (!match) {
-                    return;
-                }
-    
-                if (location.state && location.state.data) {
-                    const planilhasDTO: AgendaDTO[] = JSON.parse(location.state.data);
-                    setData(planilhasDTO);
-                    console.log(`location.state: ${location.state}`);
-                    console.log(`data: ${data}`);
-                    data.map((elemento, index) => {
-                        console.log(elemento.job);
-                    });
-                }
-                else {
-                    throw "Nenhum job informado. Retornando página.";
-                }
-            }
-            catch (error) {
-                console.error(error);
-                //history.goBack();
-            }
-        }, [location.state, match]);
-
-        useIonViewDidEnter(() => {
-            try {
-                if (location.state && location.state.data) {
-                    const planilhasDTO: AgendaDTO[] = JSON.parse(location.state.data);
-                    setData(planilhasDTO);
-                    console.log(`location.state: ${location.state}`);
-                    console.log(`data: ${data}`);
-                    data.map((elemento, index) => {
-                        console.log(elemento.job);
-                    });
-                }
-                else {
-                    throw "Nenhum job informado. Retornando página.";
-                }
-            }
-            catch (error) {
-                console.error(error);
-                history.goBack();
-            }
-        }, [location.state]);
-    */
-
     useIonViewDidEnter(() => {
-        if (agenda.length === 0) {
+        console.log(`[ESCOLHER-JOBS] Agenda Jobs: ${pilha.map((itemPilha) => itemPilha.agenda.job).join(", ")}`);
+        if (pilha.length === 0) {
             console.log(`[ESCOLHER-JOBS] A agenda está vazia. Retornando página.`);
-            history.goBack();
+            history.push('/det-maker/open/');
         }
         else {
             console.log(`[ESCOLHER-JOBS] Carregando tabela com base na agenda disponível.`);
         }
     }, []);
 
-    async function checkAll() {
+    async function handlerCheckAll() {
         //setChecks(checks ? false : true);
-        console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para ${checks}`);
-        jobsCallBackErase();
-        agenda.map((elemento, index) => {
-            elemento.checked = checks;
-            checkJob(elemento, index);
-        });
+        console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para 'false'`);
+        pilha.filter((itemPilha) => itemPilha.agenda.checked)
+            .forEach((itemPilha) => {
+                checkJob(itemPilha.agenda.id, false)
+            });
     }
 
-    async function checkJob(dto: AgendaDTO, index: number) {
-        dto.checked = dto.checked ? false : true;
-        //const mensagem = elemento.checked ? "selecionado" : "desselecionado";
-        //console.log(`[ESCOLHER-JOBS] ${mensagem} Job ${elemento.id}: ${elemento.job}`);
-        document.getElementById(`job-index-${index}`)!.style.backgroundColor = dto.checked ? 'yellow' : 'transparent';
-        if (!dto.checked) {
-            controlePilhaPronta(-1, dto, [], [], [], false);
-        }
-        await jobsCallBack(dto);
+    function handlerCheckJob(itemAgenda: AgendaDTO) {
+        const checked = itemAgenda.checked ? false : true;
+        checkJob(itemAgenda.id, checked);
+    }
+
+    function checkJob(id: number, checked: boolean) {
+        dispatch(checkItemPilha({id: id, checked: checked}));
+        document.getElementById(`job-index-${id}`)!.style.backgroundColor = checked ? 'yellow' : 'transparent';
     }
 
     return (
@@ -125,7 +78,7 @@ const EscolherJobs = (props: any) => {
                                 <thead className='sticky-top align-items-center align-middle '>
                                     <tr className='text-white '>
                                         <th className='bg-primary'>
-                                            <button className='btn btn-outline-light p-1 m-0 d-flex' onClick={checkAll}>
+                                            <button className='btn btn-outline-light p-1 m-0 d-flex' onClick={handlerCheckAll}>
                                                 <IonIcon icon={checks ? closeCircle : checkmarkCircle} size='large' />
                                             </button>
                                         </th>
@@ -156,15 +109,16 @@ const EscolherJobs = (props: any) => {
                                 </thead>
                                 <tbody>
                                     {
-                                        agenda.map((dto, index) => {
-                                            const indexId: string = `job-index-${index}`;
+                                        pilha.map((itemPilha, index) => {
+                                            const dto = itemPilha.agenda;
+                                            const indexId: string = `job-index-${dto.id}`;
                                             return (
                                                 <tr className="font-monospace" id={indexId}>
                                                     <td>
                                                         <IonCheckbox
                                                             className="check-box"
                                                             checked={dto.checked}
-                                                            onClick={() => checkJob(dto, index)}
+                                                            onClick={() => handlerCheckJob(dto)}
                                                         />
                                                     </td>
                                                     <td className='bg-transparent'> {dto.id} </td>
@@ -207,3 +161,7 @@ const EscolherJobs = (props: any) => {
 };
 
 export default EscolherJobs;
+function removeItemPilha(itemPilha: any): any {
+    throw new Error('Function not implemented.');
+}
+

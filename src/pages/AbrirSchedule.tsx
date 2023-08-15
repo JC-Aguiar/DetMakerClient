@@ -1,4 +1,4 @@
-import { IonButton, IonContent, IonIcon, IonPage, IonText, IonToast, useIonToast } from '@ionic/react';
+import { IonButton, IonContent, IonIcon, IonPage, useIonToast } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useState } from 'react';
 import { folderOpen } from 'ionicons/icons';
@@ -7,6 +7,10 @@ import * as axiosRequest from "../components/AxiosRequest";
 import { AgendaDTO } from '../components/AgendaDTO';
 import dayjs from 'dayjs';
 import { AxiosError } from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { on } from '../Store/Reducer/ReducerEscolherJobs';
+import { setAgenda } from '../Store/Reducer/ReducerAgendas';
+import { setPilha } from '../Store/Reducer/ReducerPilhaJobs';
 
 export function validarExibirData(dataAtualizacao: string): string {
     const date = dayjs(dataAtualizacao);
@@ -15,6 +19,7 @@ export function validarExibirData(dataAtualizacao: string): string {
 }
 
 const AbrirSchedule = (props: any) => {
+    const dispatch = useDispatch();
     const [enviar, setEnviar] = useState<boolean | undefined>(false);
     const [anexo, setAnexo] = useState<File | null>(null);
     const history = useHistory();
@@ -26,12 +31,6 @@ const AbrirSchedule = (props: any) => {
             position: 'bottom',
         });
     };
-    const callBack = props.callBack;
-
-    async function scheduleCallBack(arquivoXlsx: AgendaDTO[]) {
-        console.log(`[ABRIR-SCHEDULE] Realizando callback das agendas`);
-        callBack(arquivoXlsx);
-    }
 
     function getFile(event: React.ChangeEvent<HTMLInputElement>) {
         const selectedFile = event.target.files?.[0];
@@ -64,9 +63,9 @@ const AbrirSchedule = (props: any) => {
             const formData = new FormData();
             formData.append('file', anexo);
             const planilhas: AgendaDTO[] = await axiosRequest.openSchedule(anexo);
-            //const json: string = JSON.stringify(planilhas);
-            await scheduleCallBack(planilhas);
-            console.log(`[ABRIR-SCHEDULE] avançando para etapa 'Escolher Jobs'`);
+            dispatch(setPilha(planilhas));
+            //console.log(`[ABRIR-SCHEDULE] Avançando para etapa 'Escolher Jobs'`);
+            //dispatch(on());
             history.push('/det-maker/select/');
         }
         catch (error) {
