@@ -4,12 +4,10 @@ import { useState } from 'react';
 import { folderOpen } from 'ionicons/icons';
 import { alertController } from "@ionic/core";
 import * as axiosRequest from "../components/AxiosRequest";
-import { AgendaDTO } from '../components/AgendaDTO';
+import { JobDTO } from '../components/JobDTO';
 import dayjs from 'dayjs';
 import { AxiosError } from 'axios';
-import { useDispatch, useSelector } from 'react-redux';
-import { on } from '../Store/Reducer/ReducerEscolherJobs';
-import { setAgenda } from '../Store/Reducer/ReducerAgendas';
+import { useDispatch } from 'react-redux';
 import { setPilha } from '../Store/Reducer/ReducerPilhaJobs';
 
 export function validarExibirData(dataAtualizacao: string): string {
@@ -62,7 +60,7 @@ const AbrirSchedule = (props: any) => {
             };
             const formData = new FormData();
             formData.append('file', anexo);
-            const planilhas: AgendaDTO[] = await axiosRequest.openSchedule(anexo);
+            const planilhas: JobDTO[] = await axiosRequest.openSchedule(anexo);
             dispatch(setPilha(planilhas));
             //console.log(`[ABRIR-SCHEDULE] Avançando para etapa 'Escolher Jobs'`);
             //dispatch(on());
@@ -73,8 +71,8 @@ const AbrirSchedule = (props: any) => {
             let mensagemErro = "";
             //O servidor respondeu com um status diferente de 2xx
             if (axiosError.response) {
-                mensagemErro = `O servidor respondeu com status diferente de sucesso.
-                    Status ${axiosError.response.status}: ${axiosError.response.data}.`;
+                mensagemErro = `O servidor respondeu com status diferente de sucesso.` + '\n'
+                    + `Status ${axiosError.response.status}: ${axiosError.response.data}.`;
             }
             else if (axiosError.request) {
                 mensagemErro = "Falha de conexão. Sem resposta do servidor.";
@@ -83,8 +81,7 @@ const AbrirSchedule = (props: any) => {
                 mensagemErro = `Erro ao fazer a requisição: ${axiosError.message}.`;
             }
             console.error(`[ABRIR-SCHEDULE] ${mensagemErro}`);
-            await toastOff();
-            acionarToast(mensagemErro);
+            toastOff().then(() => acionarToast(mensagemErro));
         }
         finally {
             await alert.dismiss();

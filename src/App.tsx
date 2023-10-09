@@ -30,36 +30,32 @@ import Login from './pages/Login';
 import AbrirSchedule from './pages/AbrirSchedule';
 import EscolherJobs from './pages/EscolherJobs';
 import ConfigurarJobs from './pages/ConfigurarJobs';
-import { AgendaDTO } from './components/AgendaDTO';
-import { ItemPilhaDTO } from './components/ItemPilha';
+import { JobDTO } from './components/JobDTO';
+import { ItemPilha } from './components/ItemPilha';
 import { RootState } from './Store/ReduxStore';
 
-/* Corpo da Aplicação */
+/* Recursos de uso comum */
 
 setupIonicReact();
 
 export interface AgendaParaPilha {
     add: boolean,
-    agenda: AgendaDTO
+    job: JobDTO
 }
 
 export const dataFormato: Intl.DateTimeFormatOptions = {
     dateStyle: 'short', //Utiliza o formato de data curta com separador "/"
 };
 
-
-
+/* Componente <App> */
 const App = () => {
     const [boasVindas, setBoasVindas] = useState(false);
-    //const [jobsCount, setJobsCount] = useState(0);
-    //const [escolherJobsOpt, setEscolherJobsOpt] = useState(false);
-    //const [configurarJobsOpt, setConfigurarJobsOpt] = useState(false);
-    //const [executarJobsOpt, setExecutarJobsOpt] = useState(false);
-    const pilha: ItemPilhaDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
+    const pilha: ItemPilha[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
     const escolherJobsOpt: boolean = pilha.length > 0;
-    const jobsCount: number = pilha.filter((itemPilha) => itemPilha.agenda.checked).length;
+    const jobsCount: number = pilha.filter((itemPilha) => itemPilha.job.checked).length;
     const configurarJobsOpt: boolean = jobsCount > 0;
     const executarJobsOpt: boolean = false;
+    const evidenciaPag: boolean = useSelector((state: RootState) => state.store.evidenciaJobs);
 
     function animationEnd() {
         setBoasVindas(true);
@@ -96,18 +92,11 @@ const App = () => {
 
                 <IonTabs>
                     <IonRouterOutlet>
-                        <Route path="/det-maker/open" exact>
-                            <AbrirSchedule />
-                        </Route>
-                        <Route path="/det-maker/select" exact>
-                            <EscolherJobs />
-                        </Route>
-                        <Route path="/det-maker/config" exact>
-                            <ConfigurarJobs />
-                        </Route>
-                        <Route>
-                            <Redirect to="/det-maker/open" />
-                        </Route>
+                        <Route path="/det-maker/open" exact> <AbrirSchedule /> </Route>
+                        <Route path="/det-maker/select" exact> <EscolherJobs /> </Route>
+                        <Route path="/det-maker/config" exact> <ConfigurarJobs /> </Route>
+                        <Route path="/det-maker/result" exact> <ConfigurarJobs /> </Route>
+                        <Route> <Redirect to="/det-maker/open" /> </Route>
                     </IonRouterOutlet>
 
                     <IonTabBar slot="top" className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' >
@@ -135,6 +124,15 @@ const App = () => {
                         >
                             <IonIcon icon={settings} />
                             <IonLabel>Configurar Jobs {contadorConfigJobs()} </IonLabel>
+                        </IonTabButton>
+
+                        {/* EVIDÊNCIAS DOS JOBS */}
+                        <IonTabButton tab="select" href="/det-maker/result"
+                            className='pt-2 bg-transparent fw-bold'
+                            disabled={!evidenciaPag}
+                        >
+                            <IonIcon icon={checkbox} />
+                            <IonLabel>Evidências</IonLabel>
                         </IonTabButton>
                     </IonTabBar>
                 </IonTabs>

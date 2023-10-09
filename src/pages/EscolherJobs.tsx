@@ -1,37 +1,23 @@
 import { IonCheckbox, IonContent, IonIcon, IonPage, useIonViewDidEnter } from '@ionic/react';
-import { AgendaDTO } from '../components/AgendaDTO';
+import { JobDTO } from '../components/JobDTO';
 import { useState } from 'react';
 import { useHistory } from 'react-router';
 import { AgendaParaPilha } from '../App';
 import { checkmarkCircle, closeCircle } from 'ionicons/icons';
 import { validarExibirData } from './AbrirSchedule';
 import { useDispatch, useSelector } from 'react-redux';
-import { ItemPilhaDTO } from '../components/ItemPilha';
+import { ItemPilha } from '../components/ItemPilha';
 import { RootState } from '../Store/ReduxStore';
 import { checkItemPilha } from '../Store/Reducer/ReducerPilhaJobs';
 
 const EscolherJobs = (props: any) => {
     const dispatch = useDispatch();
-    const pilha: ItemPilhaDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
+    const pilha: ItemPilha[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
     const [checks, setChecks] = useState<boolean>(true);
     const history = useHistory();
 
-    async function jobsCallBack(agenda: AgendaDTO) {
-        console.log(`[ESCOLHER-JOBS] Realizando callback do job ${agenda.job}`);
-        const config: AgendaParaPilha = { 
-            add: agenda.checked, 
-            agenda: agenda 
-        }
-        //callBack(config);
-    }
-
-    async function jobsCallBackErase() {
-        console.log(`[ESCOLHER-JOBS] Realizando callback para limpar todos os jobs`);
-        //callBackErase();
-    }
-
     useIonViewDidEnter(() => {
-        console.log(`[ESCOLHER-JOBS] Agenda Jobs: ${pilha.map((itemPilha) => itemPilha.agenda.job).join(", ")}`);
+        console.log(`[ESCOLHER-JOBS] Agenda Jobs: ${pilha.map((itemPilha) => itemPilha.job.nome).join(", ")}`);
         if (pilha.length === 0) {
             console.log(`[ESCOLHER-JOBS] A agenda está vazia. Retornando página.`);
             history.push('/det-maker/open/');
@@ -44,13 +30,13 @@ const EscolherJobs = (props: any) => {
     async function handlerCheckAll() {
         //setChecks(checks ? false : true);
         console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para 'false'`);
-        pilha.filter((itemPilha) => itemPilha.agenda.checked)
+        pilha.filter((itemPilha) => itemPilha.job.checked)
             .forEach((itemPilha) => {
-                checkJob(itemPilha.agenda.id, false)
+                checkJob(itemPilha.job.id, false)
             });
     }
 
-    function handlerCheckJob(itemAgenda: AgendaDTO) {
+    function handlerCheckJob(itemAgenda: JobDTO) {
         const checked = itemAgenda.checked ? false : true;
         checkJob(itemAgenda.id, checked);
     }
@@ -110,7 +96,7 @@ const EscolherJobs = (props: any) => {
                                 <tbody>
                                     {
                                         pilha.map((itemPilha, index) => {
-                                            const dto = itemPilha.agenda;
+                                            const dto = itemPilha.job;
                                             const indexId: string = `job-index-${dto.id}`;
                                             return (
                                                 <tr className="font-monospace" id={indexId}>
@@ -125,7 +111,7 @@ const EscolherJobs = (props: any) => {
                                                     <td className='bg-transparent'> {dto.executarAposJob.join(", ")} </td>
                                                     <td className='bg-transparent'> {dto.grupoConcorrencia} </td>
                                                     <td className='bg-transparent'> {dto.fase} </td>
-                                                    <td className='bg-transparent'> {dto.job} </td>
+                                                    <td className='bg-transparent'> {dto.nome} </td>
                                                     <td className='bg-transparent'> {dto.descricao} </td>
                                                     <td className='bg-transparent'> {dto.grupoUda} </td>
                                                     <td className='bg-transparent'> {dto.programa.join(", ")} </td>

@@ -1,15 +1,11 @@
-export interface AgendaDTO {
-    checked: boolean;
-    dataRegistro: Date;
-    autorRegistro: string;
-    origemRegistro: string;
-    nomeArquivo: string;
-    nomePlanilha: string;
+export interface JobDTO {
+    //Atributos de uso frontend/backend
     id: number;
+    nome: string;
+    plano: string;
     executarAposJob: string[];
     grupoConcorrencia: string;
     fase: string;
-    job: string;
     descricao: string;
     grupoUda: string;
     programa: string[];
@@ -28,4 +24,7 @@ export interface AgendaDTO {
     escalation: string;
     dataAtualizacao: string;
     atualizadoPor: string;
+
+    //Atributos de uso do front:
+    checked: boolean;
 }

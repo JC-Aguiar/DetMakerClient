@@ -1,4 +1,4 @@
-import { IonContent, IonIcon, IonModal, IonPage, useIonModal, useIonToast, useIonViewDidEnter } from '@ionic/react';
+import { IonContent, IonIcon, IonModal, IonPage, useIonToast } from '@ionic/react';
 import { useHistory } from 'react-router';
 import JobCard from '../components/JobCard';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -6,104 +6,48 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { Pagination, Navigation } from 'swiper/modules';
-import { ItemPilhaDTO } from '../components/ItemPilha';
 import { flash } from 'ionicons/icons';
 import blueThunder from '../resources/thunder spark gif blue.gif';
 import darkThunder from '../resources/thunder spark gif dark.gif';
-import { useState } from 'react';
-import { AgendaDTO } from '../components/AgendaDTO';
-import { ComandoSQL } from '../components/ComandoSQL';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
+import { EvidenciaDTO } from '../components/EvidenciaDTO';
+import * as axiosRequest from "../components/AxiosRequest";
+import { AxiosError } from 'axios';
+import { converterEmDto } from '../components/ItemPilha';
 
-/**
- * Array de {@link ItemPilhaDTO} que representa todos os jobs que se encontram prontos para serem executados.
- * Ou seja, todos os seus respectivos requisitos foram preenchidos.
- * A funcional {@link controlePilhaPronta} é responsável por adiministrar esse array e pode ser chamado por qualquer componente.
- */
-/*
-export const pilhaPronta: ItemPilhaDTO[] = [];
-export const controlePilhaPronta = (
-    ordem: number,
-    agenda: AgendaDTO,
-    parametros: string[],
-    queries: ComandoSQL[],
-    cargas: string[],
-    pronto: boolean
-) => {
-    //Log
-    if (ordem === -1) {
-        console.log(`[CONFIGURAR-JOBS] Recebendo callback da planilha schedule referente job ${agenda.job}.`);
-    }
-    else {
-        console.log(`[CONFIGURAR-JOBS] Recebendo callback do card job ${agenda.job}:` + '\n'
-            + ` - Stack Nº${ordem}` + '\n'
-            + ` - Parametros (${parametros.join(", ")})` + '\n'
-            + ` - Queries (${queries.map((comandoSql) => comandoSql.query).join(", ")})` + '\n'
-            + ` - Cargas (${cargas.join(", ")})` + '\n'
-            + ` - Pronto = ${pronto}`
-        );
-    }
-    //Se o Job do callback está pronto para ser executado
-    if (pronto) {
-        let itemPresente = false;
-        const novoItemPronto: ItemPilhaDTO = {
-            agenda: agenda,
-            argumentos: parametros,
-            queries: queries,
-            cargas: cargas,
-            pronto: pronto,
-            ordem: ordem,
-
-        };
-        pilhaPronta.map((itemPronto, index) => {
-            if (itemPronto.agenda.id === agenda.id) {
-                console.log(`[CONFIGURAR-JOBS] Atualizando índice Nº${index} (ID ${agenda.id}) na pilha de jobs prontos.`);
-                itemPresente = true;
-                return novoItemPronto;
-            }
-            return itemPronto;
-        });
-        if (!itemPresente) {
-            console.log(`[CONFIGURAR-JOBS] Adicionando índice Nº${pilhaPronta.length} (ID ${agenda.id}) na pilha de jobs prontos.`);
-            pilhaPronta.push(novoItemPronto);
-        }
-    }
-    //Se o Job do callback NÃO está pronto para ser executado
-    else {
-        let removerIndex = -1;
-        pilhaPronta.map((itemPronto, index) => {
-            if (itemPronto.agenda.id === agenda.id) removerIndex = index;
-        });
-        if (removerIndex !== -1) {
-            console.log(`[CONFIGURAR-JOBS] Removendo índice Nº${removerIndex} (ID ${agenda.id}) na pilha de jobs prontos.`);
-            pilhaPronta.splice(removerIndex, 1);
-        }
-        else {
-            console.log(`[CONFIGURAR-JOBS] Nenhum índice precisa ser alterado na pilha de jobs prontos.`);
-        }
-    }
-}
-*/
 
 const ConfigurarJobs = (props: any) => {
     const pilha = useSelector((state: RootState) => state.store.pilhaJobs.value);
+    const pilhaConfig = pilha.filter((itemPilha) => itemPilha.job.checked).length;
+    const pilhaPronta = pilha.filter((itemPilha) => itemPilha.pronto && itemPilha.job.checked).length;
     const history = useHistory();
-    const [modalOn, setModalOn] = useState<boolean>(false);
+    const [execModal, setExecModal] = useState<boolean>(false);
     const [thunderGif, setThunderGif] = useState(blueThunder);
-    const [executarStatus, setExecutarStatus] = useState<string>("disabled");
-    const [gif, setGif] = useState<boolean>(false);
+    const executarStatus = (pilhaPronta > 0 ? "session-buttons" : "disabled");
+    const gif = (pilhaPronta > 0);
     const [toast, toastOff] = useIonToast();
-    const acionarToast = (mensagem: unknown) => {
+    const acionarToastOK = (mensagem: unknown) => {
         toast({
             message: `${mensagem}`,
-            duration: 9900,
+            duration: 5000,
             position: 'bottom',
             color: 'primary',
         });
     };
+    const acionarToastErro = (mensagem: unknown) => {
+        toast({
+            message: `${mensagem}`,
+            duration: 9900,
+            position: 'bottom',
+            color: 'warning',
+        });
+    };
+    
 
-    useIonViewDidEnter(() => {
+    useEffect(() => {  
+        console.log(`[CONFIGURAR-JOBS] Agenda Jobs: ${pilha.map((itemPilha) => itemPilha.job.nome).join(", ")}`);
         if (pilha.length === 0) {
             console.log(`[CONFIGURAR-JOBS] A pilha está vazia. Retornando página.`);
             history.push('/det-maker/open/');
@@ -112,17 +56,12 @@ const ConfigurarJobs = (props: any) => {
             console.log(`[CONFIGURAR-JOBS] Carregando cards da pilha dos jobs selecionados.`);
         }
         itensParaExecutar();
-    }, []);
+    }, [pilha]);
 
-    const itensParaExecutar = async () => {
-        const pilhaConfig = pilha.filter((itemPilha) => itemPilha.agenda.checked).length;
-        const pilhaPronta = pilha.filter((itemPilha) => itemPilha.pronto).length;
-        setExecutarStatus(pilhaPronta > 0 ? "session-buttons" : "disabled");
-        setGif(pilhaPronta > 0);
+    const itensParaExecutar = () => {
         const mensagem = `Temos ${pilhaPronta} de ${pilhaConfig} jobs prontos para executar.`;
         console.log(`[CONFIGURAR-JOBS] ${mensagem}`);
-        await toastOff();
-        acionarToast(mensagem);
+        toastOff().then(() => acionarToastOK(mensagem));
     }
 
     function textoBotao(texto: string) {
@@ -130,7 +69,7 @@ const ConfigurarJobs = (props: any) => {
             <span className={`btn btn-outline-primary border border-0 banner-gold ps-2 pe-1 py-0 mx-1 ${executarStatus}`}
                 onMouseOver={() => setThunderGif(darkThunder)}
                 onMouseLeave={() => setThunderGif(blueThunder)}
-                onClick={() => setModalOn(true)}
+                onClick={() => executarJobs()}
             >
                 <img src={thunderGif} alt="GIF Animado" id="thunder-gif-1" hidden={!gif} />
                 <img src={thunderGif} alt="GIF Animado" id="thunder-gif-2" hidden={!gif} />
@@ -138,6 +77,40 @@ const ConfigurarJobs = (props: any) => {
                 <IonIcon icon={flash} />
             </span>
         );
+    }
+
+    async function executarJobs() {
+        setExecModal(true);
+        console.log("[CONFIGURAR-JOBS] Realizando request da pilha de jobs.");
+        try {
+            const pilhaJobs = pilha
+                .filter((itemPilha) => itemPilha.pronto)
+                .map((itemPilha) => converterEmDto(itemPilha));
+            const evidencias: EvidenciaDTO[] = await axiosRequest.executarPilha(pilhaJobs);
+            const sucessos = evidencias.filter((evidencia) => evidencia.sucesso).length;
+            console.log(`[CONFIGURAR-JOBS] Total de jobs executados com sucesso: ${sucessos}.`);
+        }
+        catch (error) {
+            const axiosError = error as AxiosError;
+            let mensagemErro = "";
+            //O servidor respondeu com um status diferente de 2xx
+            if (axiosError.response) {
+                mensagemErro = `O servidor respondeu com status diferente de sucesso.` + '\n'
+                    + `Status ${axiosError.response.status}: ${axiosError.response.data}.`;
+            }
+            else if (axiosError.request) {
+                mensagemErro = "Falha de conexão. Sem resposta do servidor.";
+            }
+            else {
+                mensagemErro = `Erro ao fazer a requisição: ${axiosError.message}.`;
+            }
+            console.error(`[CONFIGURAR-JOBS] ${mensagemErro}`);
+            toastOff().then(() => acionarToastErro(mensagemErro));
+        }
+        finally {
+            setExecModal(false);
+        }
+
     }
 
     const breakpoints = {
@@ -154,10 +127,12 @@ const ConfigurarJobs = (props: any) => {
         <IonPage>
             <IonContent fullscreen={true} scrollEvents={true} >
                 <div className='pt-3 pt-md-5'></div>
-                <div id="capa-jobs" className="row justify-content-center border border-2 rounded rounded-2 bg-white p-3 p-md-0 mx-0 mx-md-4">
+                <div id="capa-jobs" 
+                    className="row justify-content-center border border-2 rounded rounded-2 bg-white p-3 p-md-0 mx-0 mx-md-4"
+                >
                     <h1 className="card-title destaque-low lh-1 m-0 text-center">Pilha de Jobs</h1>
                     <h5 className="card-text text-primary ms-2 text-center">
-                        Preencha todos os campos de cada job para poder {textoBotao('EXECUTAR A PILHA')}
+                        Preencha todos os campos dos cards para {textoBotao('EXECUTAR OS JOBS')}
                     </h5>
                     <Swiper
                         spaceBetween={24}
@@ -170,11 +145,11 @@ const ConfigurarJobs = (props: any) => {
                     >
                         <div className='d-flex justify-items-center'>
                             {
-                                pilha.filter((itemPilha) => itemPilha.agenda.checked)
+                                pilha.filter((itemPilha) => itemPilha.job.checked)
                                     .map((itemPilha, index) => {
                                         return (
                                             <SwiperSlide key={index}>
-                                                <JobCard itemPilha={itemPilha} key={index} />
+                                                <JobCard itemPilha={itemPilha} key={index} callback={itensParaExecutar} />
                                             </SwiperSlide>
                                         );
                                     })
@@ -184,7 +159,7 @@ const ConfigurarJobs = (props: any) => {
                     <div className='mb-5'></div>
                 </div>
                 <div className='pt-3 pt-md-5'></div>
-                <IonModal isOpen={modalOn} backdropDismiss={false}>
+                <IonModal isOpen={execModal} backdropDismiss={false}>
                     <IonContent fullscreen={true} scrollEvents={true} >
                         <div className='pt-3 pt-md-5'></div>
                         <div className="card border border-2 p-3 mx-0 mx-md-4" id="capa-abrir">
@@ -212,4 +187,3 @@ const ConfigurarJobs = (props: any) => {
 };
 
 export default ConfigurarJobs;
-
