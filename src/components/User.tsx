@@ -1,7 +1,7 @@
 import { IonCol, IonGrid, IonLabel, IonListHeader, IonNote, IonRow } from "@ionic/react";
 import React from "react";
 import Avatar from "./Avatar";
-import { UsuarioInterface } from "./UsuarioModel";
+import { UsuarioInterface } from "../data/UsuarioModel";
 
 function User(props: any) {
     const user: UsuarioInterface = props.userLogin;

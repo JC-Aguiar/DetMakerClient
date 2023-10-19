@@ -444,11 +444,11 @@ ion-content#intro-bg {
 
 .destaque-low {
   color: #0051c2;
-  -webkit-text-stroke: calc(0.24vw + 0.16vh) white;
-  text-stroke: calc(0.24vw + 0.16vh) white;
+  -webkit-text-stroke: calc(0.15vw + 0.10vh) white;
+  text-stroke: calc(0.15vw + 0.10vh) white;
   font-family: 'Play', sans-serif;
-  font-size: calc(4.5vw + 3vh);
-  text-shadow: calc(0.24vw + 0.16vh) calc(0.24vw + 0.16vh) #ffff00;
+  font-size: calc(3vw + 2vh);
+  text-shadow: calc(0.15vw + 0.10vh) calc(0.18vw + 0.12vh) #ffff00;
 }
 
 .login-btn {
@@ -490,8 +490,8 @@ ion-content#intro-bg {
   height: 50vh; /*300px  55vh*/
 }
 
-th,td {
-  min-width: 3vw;
+th, td {
+  min-width: 12vw;
   max-width: 28vw;
   overflow: auto;
 }
@@ -502,7 +502,7 @@ th,td {
 }
 
 table {
-  font-size: calc(1.2vw + 0.4vh);
+  font-size: max(calc(0.75vw + 0.25vh), 14px);
 }
 
 .scroll {

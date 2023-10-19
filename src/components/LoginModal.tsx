@@ -1,10 +1,10 @@
 import { IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCol, IonFab, IonFabButton, IonGrid, IonIcon, IonInput, IonItem, IonLabel, IonModal, IonRow, IonText } from "@ionic/react";
 import React, { useState } from "react";
-import { TokenInterface, TokenModel } from "./TokenModel";
-import UsuarioModel, { UsuarioInterface } from "./UsuarioModel";
-import * as axiosRequest from "./AxiosRequest";
+import { TokenInterface, TokenModel } from "../data/TokenModel";
+import UsuarioModel, { UsuarioInterface } from "../data/UsuarioModel";
+import * as axiosRequest from "../data/AxiosRequest";
 import { alertController } from "@ionic/core";
-import { ErroModel } from "./ErroModel";
+import { ErroModel } from "../data/ErroModel";
 
 const LoginModal = (props: any) => {
     const [showModal, setShowModal] = useState(false);

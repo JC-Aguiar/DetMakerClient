@@ -8,7 +8,7 @@ import {
     IonFabButton,
     IonIcon,
 } from "@ionic/react";
-import { UsuarioInterface } from "../components/UsuarioModel";
+import { UsuarioInterface } from "../data/UsuarioModel";
 import { logoGoogle } from "ionicons/icons";
 
 const Login = (props: any) => {

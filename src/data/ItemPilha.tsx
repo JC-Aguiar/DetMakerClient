@@ -1,7 +1,7 @@
-import { JobDTO } from "./JobDTO";
 import { ComandoSQL } from "./ComandoSQL";
+import { JobDTO } from "./JobDTO";
 
-export interface ItemPilha {
+export interface JobExecute {
     ordem: number;
     job: JobDTO;
     argumentos: string[];
@@ -10,7 +10,7 @@ export interface ItemPilha {
     pronto: boolean;
 }
 
-export interface ItemPilhaDTO {
+export interface JobExecuteDTO {
     ordem: number;
     id: number;
     argumentos: string[];
@@ -18,8 +18,8 @@ export interface ItemPilhaDTO {
     cargas: string[];
 }
 
-export function converterEmDto(itemPilha: ItemPilha): ItemPilhaDTO {
-    const dto: ItemPilhaDTO = {
+export function converterEmDto(itemPilha: JobExecute): JobExecuteDTO {
+    const dto: JobExecuteDTO = {
         ordem: itemPilha.ordem,
         id: itemPilha.job.id,
         argumentos: itemPilha.argumentos,

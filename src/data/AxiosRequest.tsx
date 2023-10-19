@@ -1,9 +1,9 @@
-import axios, { AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from 'axios';
 import { TokenModel } from './TokenModel';
 import { ErroModel } from './ErroModel';
 import { JobDTO } from './JobDTO';
 import { EvidenciaDTO } from './EvidenciaDTO';
-import { ItemPilha, ItemPilhaDTO } from './ItemPilha';
+import { JobExecute, JobExecuteDTO as JobExecuteDTO } from './ItemPilha';
 
 const headers: AxiosRequestHeaders = {
     "Content-Type": "application/json",
@@ -24,6 +24,23 @@ export function statusCheck(status: number) {
         throw new Error(`Status ${status}`);
     }
 }
+
+export function requestErro(axiosError: AxiosError) {
+    let mensagemErro = "";
+    //O servidor respondeu com um status diferente de 2xx
+    if (axiosError.response) {
+        mensagemErro = `O servidor respondeu com status diferente de sucesso.` + '\n'
+            + `Status ${axiosError.response.status}: ${axiosError.response.data}.`;
+    }
+    else if (axiosError.request) {
+        mensagemErro = "Falha de conexão. Sem resposta do servidor.";
+    }
+    else {
+        mensagemErro = `Erro ao fazer a requisição: ${axiosError.message}.`;
+    }
+    
+}
+
 /**
  * Usuário clica em login
  * recebe ou um TokenInterface ou um ErroInterface
@@ -91,7 +108,37 @@ export async function openSchedule(arquivoXlsx: File): Promise<JobDTO[]> {
         });
 }
 
-export async function executarPilha(pilha: ItemPilhaDTO[]): Promise<EvidenciaDTO[]> {
+export async function getAllJobs(): Promise<JobDTO[]> {
+    //Configurando endereço da requisição
+    const headersXlsx: AxiosRequestHeaders = {
+        "Access-Control-Allow-Origin": "http://localhost:1990/*",
+        "Access-Control-Allow-Methods": "POST, GET",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Max-Age": "60000",
+    }
+    //Instanciando Axios
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: 'http://localhost:1990/job?itens=200',
+        headers: headersXlsx,
+        timeout: 30000,
+    };
+    //Executando requisiçãao
+    return await axios
+        .request(config)
+        .then((response) => {
+            const json: JobDTO[] = response.data.content;
+            console.log(json);
+            return json;
+        })
+        .catch((error: string) => {
+            console.error(error);
+            throw error;
+        });
+}
+
+export async function executarPilha(pilha: JobExecuteDTO[]): Promise<EvidenciaDTO[]> {
     //Instanciando Axios
     let config: AxiosRequestConfig = {
         method: 'post',

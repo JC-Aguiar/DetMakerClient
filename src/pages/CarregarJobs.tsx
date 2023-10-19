@@ -1,14 +1,15 @@
 import { IonButton, IonContent, IonIcon, IonPage, useIonToast } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useState } from 'react';
-import { folderOpen } from 'ionicons/icons';
+import { folderOpen, server } from 'ionicons/icons';
 import { alertController } from "@ionic/core";
-import * as axiosRequest from "../components/AxiosRequest";
-import { JobDTO } from '../components/JobDTO';
+import * as axiosRequest from "../data/AxiosRequest";
+import { JobDTO } from '../data/JobDTO';
 import dayjs from 'dayjs';
 import { AxiosError } from 'axios';
 import { useDispatch } from 'react-redux';
 import { setPilha } from '../Store/Reducer/ReducerPilhaJobs';
+import { requestErro } from '../data/AxiosRequest';
 
 export function validarExibirData(dataAtualizacao: string): string {
     const date = dayjs(dataAtualizacao);
@@ -16,7 +17,7 @@ export function validarExibirData(dataAtualizacao: string): string {
     return new Intl.DateTimeFormat('pt-BR').format(date.toDate());
 }
 
-const AbrirSchedule = (props: any) => {
+const CarregarJobs = (props: any) => {
     const dispatch = useDispatch();
     const [enviar, setEnviar] = useState<boolean | undefined>(false);
     const [anexo, setAnexo] = useState<File | null>(null);
@@ -42,7 +43,7 @@ const AbrirSchedule = (props: any) => {
         }
     }
 
-    async function carregarArquivo() {
+    async function abrirPlanilha() {
         const alert = await alertController.create({
             id: "opening-schedule",
             message: "Lendo conteúdo",
@@ -55,32 +56,45 @@ const AbrirSchedule = (props: any) => {
         try {
             await alert.present();
             if (!anexo) {
-                console.log("[ABRIR-SCHEDULE] Nenhum arquivo para envio.");
+                console.log("[CARREGAR-JOBS] Nenhum arquivo para envio.");
                 return
             };
             const formData = new FormData();
             formData.append('file', anexo);
             const planilhas: JobDTO[] = await axiosRequest.openSchedule(anexo);
             dispatch(setPilha(planilhas));
-            //console.log(`[ABRIR-SCHEDULE] Avançando para etapa 'Escolher Jobs'`);
+            //console.log(`[CARREGAR-JOBS] Avançando para etapa 'Escolher Jobs'`);
             //dispatch(on());
             history.push('/det-maker/select/');
         }
         catch (error) {
-            const axiosError = error as AxiosError;
-            let mensagemErro = "";
-            //O servidor respondeu com um status diferente de 2xx
-            if (axiosError.response) {
-                mensagemErro = `O servidor respondeu com status diferente de sucesso.` + '\n'
-                    + `Status ${axiosError.response.status}: ${axiosError.response.data}.`;
-            }
-            else if (axiosError.request) {
-                mensagemErro = "Falha de conexão. Sem resposta do servidor.";
-            }
-            else {
-                mensagemErro = `Erro ao fazer a requisição: ${axiosError.message}.`;
-            }
-            console.error(`[ABRIR-SCHEDULE] ${mensagemErro}`);
+            const mensagemErro = requestErro(error as AxiosError);
+            console.error(`[CARREGAR-JOBS] ${mensagemErro}`);
+            toastOff().then(() => acionarToast(mensagemErro));
+        }
+        finally {
+            await alert.dismiss();
+        }
+    }
+
+    async function carregar() {
+        const alert = await alertController.create({
+            id: "opening-schedule",
+            message: "Lendo conteúdo",
+            buttons: [],
+            backdropDismiss: false,
+            translucent: true,
+            keyboardClose: false,
+            // TODO: adicionar estilo e talvez uma animação
+        });
+        try {
+            const planilhas: JobDTO[] = await axiosRequest.getAllJobs();
+            dispatch(setPilha(planilhas));
+            history.push('/det-maker/select/');
+        }
+        catch (error) {
+            const mensagemErro = requestErro(error as AxiosError);
+            console.error(`[CARREGAR-JOBS] ${mensagemErro}`);
             toastOff().then(() => acionarToast(mensagemErro));
         }
         finally {
@@ -92,23 +106,31 @@ const AbrirSchedule = (props: any) => {
         <IonPage>
             <IonContent fullscreen={true} scrollEvents={true} >
                 <div className='pt-3 pt-md-4'></div>
-                <div className="card border border-2 p-3 mx-0 mx-md-4" id="capa-abrir">
+                <div className="card border border-2 p-5 mx-0 mx-md-5" id="capa-abrir">
                     <h1 className="card-title destaque lh-1 m-0 text-center">
-                        Abrir Arquivo
+                        Carregar Jobs
                     </h1>
                     <h3 className="card-text h3 text-primary ms-2 mt-2 text-center">
-                        Selecione o caminho da planilha Schedule para dar início ao Det-Maker.
+                        Escolha uma das opções abaixo para dar início ao Det-Maker.
                     </h3>
+                    {/* CARREGAR VIA PLANILHA SCHEDULE */}
                     <div className="mb-3 mx-5">
                         <form action="/upload" method="post" encType="multipart/form-data">
                             <label htmlFor="formFile" className="form-label" ></label>
                             <input className="form-control" type="file" id="formFile" onChange={getFile} />
                         </form>
                     </div>
-                    <IonButton className='mx-5' onClick={carregarArquivo} disabled={!enviar}>
-                        <IonIcon icon={folderOpen} className='me-2'></IonIcon>
-                        Abrir
-                    </IonButton>
+                    <div className='d-flex justify-content-center'>
+                        <IonButton className='ms-5 w-100' onClick={abrirPlanilha} disabled={!enviar}>
+                            <IonIcon icon={folderOpen} className='me-2'></IonIcon>
+                            Abrir
+                        </IonButton>
+                        {/* CARREGAR DO BANCO */}
+                        <IonButton className='me-5 w-100' onClick={carregar}>
+                            <IonIcon icon={server} className='me-2'></IonIcon>
+                            Carregar
+                        </IonButton>
+                    </div>
                     <div className='mb-5'></div>
                 </div>
             </IonContent>
@@ -116,4 +138,4 @@ const AbrirSchedule = (props: any) => {
     );
 };
 
-export default AbrirSchedule;
+export default CarregarJobs;

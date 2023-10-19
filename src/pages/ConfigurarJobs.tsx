@@ -12,16 +12,16 @@ import darkThunder from '../resources/thunder spark gif dark.gif';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
-import { EvidenciaDTO } from '../components/EvidenciaDTO';
-import * as axiosRequest from "../components/AxiosRequest";
+import { EvidenciaDTO } from '../data/EvidenciaDTO';
+import * as axiosRequest from "../data/AxiosRequest";
 import { AxiosError } from 'axios';
-import { converterEmDto } from '../components/ItemPilha';
+import { converterEmDto } from '../data/ItemPilha';
 
 
 const ConfigurarJobs = (props: any) => {
-    const pilha = useSelector((state: RootState) => state.store.pilhaJobs.value);
-    const pilhaConfig = pilha.filter((itemPilha) => itemPilha.job.checked).length;
-    const pilhaPronta = pilha.filter((itemPilha) => itemPilha.pronto && itemPilha.job.checked).length;
+    const pilhaExec = useSelector((state: RootState) => state.store.pilhaJobs.value);
+    const pilhaConfig = pilhaExec.filter((itemPilha) => itemPilha.job.checked).length;
+    const pilhaPronta = pilhaExec.filter((itemPilha) => itemPilha.pronto && itemPilha.job.checked).length;
     const history = useHistory();
     const [execModal, setExecModal] = useState<boolean>(false);
     const [thunderGif, setThunderGif] = useState(blueThunder);
@@ -47,16 +47,16 @@ const ConfigurarJobs = (props: any) => {
     
 
     useEffect(() => {  
-        console.log(`[CONFIGURAR-JOBS] Agenda Jobs: ${pilha.map((itemPilha) => itemPilha.job.nome).join(", ")}`);
-        if (pilha.length === 0) {
-            console.log(`[CONFIGURAR-JOBS] A pilha está vazia. Retornando página.`);
+        console.log(`[CONFIGURAR-JOBS] Jobs: ${pilhaExec.map((itemPilha) => itemPilha.job.nome).join(", ")}`);
+        if (pilhaExec.length === 0) {
+            console.log(`[CONFIGURAR-JOBS] A pilha de jobs está vazia. Retornando página.`);
             history.push('/det-maker/open/');
         }
         else {
             console.log(`[CONFIGURAR-JOBS] Carregando cards da pilha dos jobs selecionados.`);
         }
         itensParaExecutar();
-    }, [pilha]);
+    }, [pilhaExec]);
 
     const itensParaExecutar = () => {
         const mensagem = `Temos ${pilhaPronta} de ${pilhaConfig} jobs prontos para executar.`;
@@ -83,7 +83,7 @@ const ConfigurarJobs = (props: any) => {
         setExecModal(true);
         console.log("[CONFIGURAR-JOBS] Realizando request da pilha de jobs.");
         try {
-            const pilhaJobs = pilha
+            const pilhaJobs = pilhaExec
                 .filter((itemPilha) => itemPilha.pronto)
                 .map((itemPilha) => converterEmDto(itemPilha));
             const evidencias: EvidenciaDTO[] = await axiosRequest.executarPilha(pilhaJobs);
@@ -114,13 +114,13 @@ const ConfigurarJobs = (props: any) => {
     }
 
     const breakpoints = {
-        640: { slidesPerView: 1, centeredSlides: centralizarSlides(1), loop: !centralizarSlides(1) },
-        768: { slidesPerView: 2, centeredSlides: centralizarSlides(2), loop: !centralizarSlides(2) },
-        1024: { slidesPerView: 4, centeredSlides: centralizarSlides(4), loop: !centralizarSlides(4) },
+        640:  { slidesPerView: 1, centeredSlides: true, loop: false },
+        768:  { slidesPerView: 2, centeredSlides: true, loop: false },
+        1024: { slidesPerView: 4, centeredSlides: true, loop: false },
     };
 
     function centralizarSlides(numero: number): boolean {
-        return pilha.length < numero;
+        return pilhaExec.length < numero;
     }
 
     return (
@@ -145,7 +145,7 @@ const ConfigurarJobs = (props: any) => {
                     >
                         <div className='d-flex justify-items-center'>
                             {
-                                pilha.filter((itemPilha) => itemPilha.job.checked)
+                                pilhaExec.filter((itemPilha) => itemPilha.job.checked)
                                     .map((itemPilha, index) => {
                                         return (
                                             <SwiperSlide key={index}>

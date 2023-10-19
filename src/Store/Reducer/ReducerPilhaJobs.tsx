@@ -1,19 +1,22 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { ItemPilha } from '../../components/ItemPilha';
-import { JobDTO } from '../../components/JobDTO';
-import { ComandoSQL } from '../../components/ComandoSQL';
+import { JobExecute } from '../../data/ItemPilha';
+import { JobDTO } from '../../data/JobDTO';
+import { ComandoSQL } from '../../data/ComandoSQL';
 
 const initialState = { value: [] } as PilhaTYPE;
 
+var pilahExec = 0;
+
 //Interface para definir o tipo de objeto do reducer
 interface PilhaTYPE {
-    value: ItemPilha[]
+    value: JobExecute[]
 }
 
 //Interface para validar o item-pilha
 export interface checkItemPilhaTYPE {
     id: number,
-    checked: boolean;
+    checked: boolean,
+    ordem: number;
 }
 
 //Interface para definir status do item-pilha
@@ -24,6 +27,7 @@ export interface setItemPilhaStatusTYPE {
     cargas: string[];
     pronto: boolean;
     ordem: number;
+    //antigaOrdem: number;
 }
 
 //Interface para definir argumentos do item-pilha
@@ -51,16 +55,18 @@ const pilhaJobs = createSlice({
                 console.log('[ReducerPilhaJobs] Erro: payload inválido.');
                 return { ...state };
             }
+            pilahExec = 0;
             state.value = action.payload.map(
                 (item, index) => ({
-                    ordem: index,
+                    ordem: -1,
                     job: item,
                     argumentos: item.parametros.map(e => ""),
                     queries: item.tabelas.map(e =>
                         ({
                             tabela: e,
-                            query: ""
-                        }) as ComandoSQL),
+                            filtros: ""
+                        }) as ComandoSQL
+                        ),
                     cargas: item.mascaraEntrada.map(e => ""),
                     pronto: false,
                 })
@@ -72,10 +78,31 @@ const pilhaJobs = createSlice({
         },
         //VALIDANDO O ITEM DA PILHA DE JOBS----------------------------------------------------------------------------
         checkItemPilha: (state, action: PayloadAction<checkItemPilhaTYPE>) => {
-            console.log('[ReducerPilhaJobs] Acionado controlador pilhaJobs.checkItemPilha: \n' + `${action.payload}.`);
-            let { id, checked } = action.payload;
+            let { id, checked, ordem } = action.payload;
+            console.log(
+                '[ReducerPilhaJobs] Acionado controlador pilhaJobs.checkItemPilha: \n' + 
+                `id: ${id}, checked: ${checked}, ordem: ${ordem}.`
+            );
             state.value = state.value.map((item) => {
-                if (item.job.id === id) item.job.checked = checked;
+                //Identificando o job alvo para validar
+                if (item.job.id === id) {
+                    item.job.checked = checked;
+                    if (item.job.checked) {
+                        pilahExec += 1;
+                        item.ordem = pilahExec;
+                    }
+                    else {
+                        pilahExec = state.value.filter((item2) => item2.job.checked).length;
+                        item.ordem = -1;
+                    }
+                    
+                }
+                //Para todos os demais jobs:
+                //Se o comando foi de remoção do job na pilha, atualiza os que são de ordem posterior
+                else if (!checked && item.ordem > ordem) {
+                    pilahExec = state.value.map((item2) => item2.job.checked).length;
+                    item.ordem -= 1;
+                }
                 return item;
             });
             logItemPilha(`Atualizado check do`, state.value.filter((itemPilha) => itemPilha.job.id === id)[0]);
@@ -84,13 +111,20 @@ const pilhaJobs = createSlice({
         setItemPilhaStatus: (state, action: PayloadAction<setItemPilhaStatusTYPE>) => {
             console.log('[ReducerPilhaJobs] Acionado controlador pilhaJobs.setItemPilhaStatus: \n' + `${action.payload}.`);
             let itemPilhaStatus: setItemPilhaStatusTYPE = action.payload;
+            let ordemAntiga = state.value.filter((itemPilha) => itemPilha.job.id === itemPilhaStatus.id)[0].ordem;
+
             state.value = state.value.map((itemPilha) => {
+                //Identificando o job alvo para atualizar o redux
                 if (itemPilha.job.id === itemPilhaStatus.id) {
                     itemPilha.ordem = itemPilhaStatus.ordem;
                     itemPilha.argumentos = itemPilhaStatus.argumentos;
                     itemPilha.queries = itemPilhaStatus.queries;
                     itemPilha.cargas = itemPilhaStatus.cargas;
                     itemPilha.pronto = itemPilhaStatus.pronto;
+                }
+                //Validando se a ordem do job atualziado já consta em uso
+                else if (itemPilhaStatus.ordem === itemPilha.ordem) {
+                    itemPilha.ordem = ordemAntiga;
                 }
                 return itemPilha;
             });
@@ -121,14 +155,14 @@ const pilhaJobs = createSlice({
             logItemPilha(`Redefinindo item do`, state.value.filter((itemPilha) => itemPilha.job.id === itemPilhaQuery.id)[0]);
         },
         //ADICIONANDO NA PILHA DE JOBS---------------------------------------------------------------------------------
-        addItemPilha: (state, action: PayloadAction<ItemPilha>) => {
+        addItemPilha: (state, action: PayloadAction<JobExecute>) => {
             console.log('[ReducerPilhaJobs] Acionado controlador pilhaJobs.addItemPilha: \n' + `${action.payload}.`)
             logItemPilha("Adicionando", action.payload);
             state.value.push(action.payload);
             console.log(`[ReducerPilhaJobs] Pilha[${state.value.length - 1}] = ${state[state.value.length - 1]}.`)
         },
         //REMOVENDO NA PILHA DE JOBS-----------------------------------------------------------------------------------
-        removeItemPilha: (state, action: PayloadAction<ItemPilha>) => {
+        removeItemPilha: (state, action: PayloadAction<JobExecute>) => {
             console.log('[ReducerPilhaJobs] Acionado controlador pilhaJobs.setItemPilha: \n' + `${action.payload}.`)
             logItemPilha("Removendo", action.payload);
             const agenda = action.payload.job;
@@ -145,12 +179,12 @@ const pilhaJobs = createSlice({
 });
 
 //Exibe informações da item-pilah pelos controladores
-function logItemPilha(mensagem: string, item: ItemPilha) {
+function logItemPilha(mensagem: string, item: JobExecute) {
     console.log(`[ReducerPilhaJobs] ${mensagem} card job ${item.job.nome}:` + '\n'
-        + ` - Selecionado (${item.job.checked})` + '\n'
+        + ` - Selecionado = ${item.job.checked}` + '\n'
         + ` - Ordem Nº${item.ordem}` + '\n'
         + ` - Parametros (${item.argumentos.join(", ")})` + '\n'
-        + ` - Queries (${item.queries.map((comandoSql) => comandoSql.query).join(", ")})` + '\n'
+        + ` - Queries (${item.queries.map((comandoSql) => comandoSql.filtros).join(", ")})` + '\n'
         + ` - Cargas (${item.cargas.join(", ")})` + '\n'
         + ` - Pronto = ${item.pronto}`
     );

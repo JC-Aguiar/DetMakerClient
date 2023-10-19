@@ -1,49 +1,39 @@
-import { IonCheckbox, IonContent, IonIcon, IonPage, useIonViewDidEnter } from '@ionic/react';
-import { JobDTO } from '../components/JobDTO';
+import { IonContent, IonIcon, IonPage, useIonViewDidEnter } from '@ionic/react';
 import { useState } from 'react';
 import { useHistory } from 'react-router';
-import { AgendaParaPilha } from '../App';
 import { checkmarkCircle, closeCircle } from 'ionicons/icons';
-import { validarExibirData } from './AbrirSchedule';
 import { useDispatch, useSelector } from 'react-redux';
-import { ItemPilha } from '../components/ItemPilha';
+import { JobExecute } from '../data/ItemPilha';
 import { RootState } from '../Store/ReduxStore';
 import { checkItemPilha } from '../Store/Reducer/ReducerPilhaJobs';
+import JobSchedule from '../components/JobSchedule';
 
 const EscolherJobs = (props: any) => {
     const dispatch = useDispatch();
-    const pilha: ItemPilha[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
+    const pilha: JobExecute[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
     const [checks, setChecks] = useState<boolean>(true);
     const history = useHistory();
 
     useIonViewDidEnter(() => {
-        console.log(`[ESCOLHER-JOBS] Agenda Jobs: ${pilha.map((itemPilha) => itemPilha.job.nome).join(", ")}`);
+        console.log(`[ESCOLHER-JOBS] Jobs: ${pilha.map((itemPilha) => itemPilha.job.nome).join(", ")}`);
         if (pilha.length === 0) {
-            console.log(`[ESCOLHER-JOBS] A agenda está vazia. Retornando página.`);
+            console.log(`[ESCOLHER-JOBS] A pilha de jobs está vazia. Retornando página.`);
             history.push('/det-maker/open/');
         }
         else {
-            console.log(`[ESCOLHER-JOBS] Carregando tabela com base na agenda disponível.`);
+            console.log(`[ESCOLHER-JOBS] Carregando tabela com base na pilha de jobs disponíveis.`);
         }
     }, []);
 
     async function handlerCheckAll() {
-        //setChecks(checks ? false : true);
         console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para 'false'`);
-        pilha.filter((itemPilha) => itemPilha.job.checked)
-            .forEach((itemPilha) => {
-                checkJob(itemPilha.job.id, false)
-            });
-    }
-
-    function handlerCheckJob(itemAgenda: JobDTO) {
-        const checked = itemAgenda.checked ? false : true;
-        checkJob(itemAgenda.id, checked);
-    }
-
-    function checkJob(id: number, checked: boolean) {
-        dispatch(checkItemPilha({id: id, checked: checked}));
-        document.getElementById(`job-index-${id}`)!.style.backgroundColor = checked ? 'yellow' : 'transparent';
+        pilha.forEach((itemPilha) => dispatch( 
+            checkItemPilha({
+                id: itemPilha.job.id, 
+                checked: false,
+                ordem: itemPilha.ordem
+            })
+        ));
     }
 
     return (
@@ -62,9 +52,9 @@ const EscolherJobs = (props: any) => {
                         <section className="schedule-tabela scroll text-center">
                             <table className="table p-0 m-0"> {/* table-light table-striped */}
                                 <thead className='sticky-top align-items-center align-middle '>
-                                    <tr className='text-white '>
+                                    <tr className='text-white fs-6'>
                                         <th className='bg-primary'>
-                                            <button className='btn btn-outline-light p-1 m-0 d-flex' onClick={handlerCheckAll}>
+                                            <button className='btn btn-outline-light bg-transparent border-0 p-1 pb-0 m-0' onClick={handlerCheckAll}>
                                                 <IonIcon icon={checks ? closeCircle : checkmarkCircle} size='large' />
                                             </button>
                                         </th>
@@ -96,42 +86,9 @@ const EscolherJobs = (props: any) => {
                                 <tbody>
                                     {
                                         pilha.map((itemPilha, index) => {
-                                            const dto = itemPilha.job;
-                                            const indexId: string = `job-index-${dto.id}`;
-                                            return (
-                                                <tr className="font-monospace" id={indexId}>
-                                                    <td>
-                                                        <IonCheckbox
-                                                            className="check-box"
-                                                            checked={dto.checked}
-                                                            onClick={() => handlerCheckJob(dto)}
-                                                        />
-                                                    </td>
-                                                    <td className='bg-transparent'> {dto.id} </td>
-                                                    <td className='bg-transparent'> {dto.executarAposJob.join(", ")} </td>
-                                                    <td className='bg-transparent'> {dto.grupoConcorrencia} </td>
-                                                    <td className='bg-transparent'> {dto.fase} </td>
-                                                    <td className='bg-transparent'> {dto.nome} </td>
-                                                    <td className='bg-transparent'> {dto.descricao} </td>
-                                                    <td className='bg-transparent'> {dto.grupoUda} </td>
-                                                    <td className='bg-transparent'> {dto.programa.join(", ")} </td>
-                                                    <td className='bg-transparent'> {dto.tabelas.join(", ")} </td>
-                                                    <td className='bg-transparent'> {dto.servidor} </td>
-                                                    <td className='bg-transparent'> {dto.caminhoExec} </td>
-                                                    <td className='bg-transparent'> {dto.parametros.join(", ")} </td>
-                                                    <td className='bg-transparent'> {dto.descricaoParametros.join(", ")} </td>
-                                                    <td className='bg-transparent'> {dto.diretorioEntrada} </td>
-                                                    <td className='bg-transparent'> {dto.mascaraEntrada.join(", ")} </td>
-                                                    <td className='bg-transparent'> {dto.diretorioSaida} </td>
-                                                    <td className='bg-transparent'> {dto.mascaraSaida.join(", ")} </td>
-                                                    <td className='bg-transparent'> {dto.diretorioLog} </td>
-                                                    <td className='bg-transparent'> {dto.mascaraLog.join(", ")} </td>
-                                                    <td className='bg-transparent'> {dto.tratamento} </td>
-                                                    <td className='bg-transparent'> {dto.escalation} </td>
-                                                    <td className='bg-transparent'> {validarExibirData(dto.dataAtualizacao)} </td>
-                                                    <td className='bg-transparent'> {dto.atualizadoPor} </td>
-                                                </tr>
-                                            );
+                                            const job = itemPilha.job;
+                                            const indexId: string = `job-index-${job.id}`;
+                                            return <JobSchedule job={job} indexId={indexId} ordem={itemPilha.ordem} key={index} />
                                         })
                                     }
                                 </tbody>
@@ -147,7 +104,4 @@ const EscolherJobs = (props: any) => {
 };
 
 export default EscolherJobs;
-function removeItemPilha(itemPilha: any): any {
-    throw new Error('Function not implemented.');
-}
 

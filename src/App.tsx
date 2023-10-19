@@ -27,11 +27,11 @@ import './theme/variables.css';
 import { useState } from 'react';
 import { document, checkbox, flash, settings } from 'ionicons/icons';
 import Login from './pages/Login';
-import AbrirSchedule from './pages/AbrirSchedule';
+import CarregarJobs from './pages/CarregarJobs';
 import EscolherJobs from './pages/EscolherJobs';
 import ConfigurarJobs from './pages/ConfigurarJobs';
-import { JobDTO } from './components/JobDTO';
-import { ItemPilha } from './components/ItemPilha';
+import { JobDTO } from './data/JobDTO';
+import { JobExecute } from './data/ItemPilha';
 import { RootState } from './Store/ReduxStore';
 
 /* Recursos de uso comum */
@@ -50,7 +50,7 @@ export const dataFormato: Intl.DateTimeFormatOptions = {
 /* Componente <App> */
 const App = () => {
     const [boasVindas, setBoasVindas] = useState(false);
-    const pilha: ItemPilha[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
+    const pilha: JobExecute[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
     const escolherJobsOpt: boolean = pilha.length > 0;
     const jobsCount: number = pilha.filter((itemPilha) => itemPilha.job.checked).length;
     const configurarJobsOpt: boolean = jobsCount > 0;
@@ -92,24 +92,24 @@ const App = () => {
 
                 <IonTabs>
                     <IonRouterOutlet>
-                        <Route path="/det-maker/open" exact> <AbrirSchedule /> </Route>
+                        <Route path="/det-maker/open" exact> <CarregarJobs /> </Route>
                         <Route path="/det-maker/select" exact> <EscolherJobs /> </Route>
                         <Route path="/det-maker/config" exact> <ConfigurarJobs /> </Route>
-                        <Route path="/det-maker/result" exact> <ConfigurarJobs /> </Route>
+                        {/*<Route path="/det-maker/result" exact> <ConfigurarJobs /> </Route>*/}
                         <Route> <Redirect to="/det-maker/open" /> </Route>
                     </IonRouterOutlet>
 
                     <IonTabBar slot="top" className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' >
-                        {/* ABRIR SCHEDULE */}
+                        {/* CARREGAR JOBS */}
                         <IonTabButton tab="open" href="/det-maker/open"
                             className='pt-1 bg-transparent fw-bold'
                         >
                             <IonIcon icon={document} />
-                            <IonLabel>Abrir Schedule</IonLabel>
+                            <IonLabel>Carregar Jobs</IonLabel>
                         </IonTabButton>
 
                         {/* SELECIONAR JOBS */}
-                        <IonTabButton tab="select" href="/det-maker/select"
+                        <IonTabButton tab="select" href="/det-maker/select/"
                             className='pt-2 bg-transparent fw-bold'
                             disabled={!escolherJobsOpt}
                         >
@@ -126,14 +126,6 @@ const App = () => {
                             <IonLabel>Configurar Jobs {contadorConfigJobs()} </IonLabel>
                         </IonTabButton>
 
-                        {/* EVIDÊNCIAS DOS JOBS */}
-                        <IonTabButton tab="select" href="/det-maker/result"
-                            className='pt-2 bg-transparent fw-bold'
-                            disabled={!evidenciaPag}
-                        >
-                            <IonIcon icon={checkbox} />
-                            <IonLabel>Evidências</IonLabel>
-                        </IonTabButton>
                     </IonTabBar>
                 </IonTabs>
             </div>
