@@ -25,7 +25,7 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import { useState } from 'react';
-import { document, checkbox, flash, settings } from 'ionicons/icons';
+import { document, checkbox, flash, settings, documentText } from 'ionicons/icons';
 import Login from './pages/Login';
 import CarregarJobs from './pages/CarregarJobs';
 import EscolherJobs from './pages/EscolherJobs';
@@ -33,6 +33,7 @@ import ConfigurarJobs from './pages/ConfigurarJobs';
 import { JobDTO } from './data/JobDTO';
 import { JobExecute } from './data/ItemPilha';
 import { RootState } from './Store/ReduxStore';
+import Det from './pages/Det';
 
 /* Recursos de uso comum */
 
@@ -95,6 +96,7 @@ const App = () => {
                         <Route path="/det-maker/open" exact> <CarregarJobs /> </Route>
                         <Route path="/det-maker/select" exact> <EscolherJobs /> </Route>
                         <Route path="/det-maker/config" exact> <ConfigurarJobs /> </Route>
+                        <Route path="/det-maker/evidence" exact> <Det /> </Route>
                         {/*<Route path="/det-maker/result" exact> <ConfigurarJobs /> </Route>*/}
                         <Route> <Redirect to="/det-maker/open" /> </Route>
                     </IonRouterOutlet>
@@ -124,6 +126,15 @@ const App = () => {
                         >
                             <IonIcon icon={settings} />
                             <IonLabel>Configurar Jobs {contadorConfigJobs()} </IonLabel>
+                        </IonTabButton>
+
+                        {/* EVIDÊNCIA DET */}
+                        <IonTabButton tab="config" href="/det-maker/evidence"
+                            className='pt-2 bg-transparent fw-bold'
+                            //disabled={!configurarJobsOpt}
+                        >
+                            <IonIcon icon={documentText} />
+                            <IonLabel>Evidência</IonLabel>
                         </IonTabButton>
 
                     </IonTabBar>

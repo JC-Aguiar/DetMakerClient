@@ -149,7 +149,7 @@ const ConfigurarJobs = (props: any) => {
                                     .map((itemPilha, index) => {
                                         return (
                                             <SwiperSlide key={index}>
-                                                <JobCard itemPilha={itemPilha} key={index} callback={itensParaExecutar} />
+                                                <JobCard id={itemPilha.job.id} key={index} callback={itensParaExecutar} />
                                             </SwiperSlide>
                                         );
                                     })

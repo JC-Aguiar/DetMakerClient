@@ -5,16 +5,14 @@ export interface EvidenciaTabela {
 }
 
 export interface EvidenciaDTO {
-    ordem: number;
-    id: number;
     job: string;
-    argumentos: string[];
-    queries: ComandoSQL[];
-    cargas: string[];
-    tabelasPreJob: { [key: string]: EvidenciaTabela };
-    tabelasPosJob: { [key: string]: EvidenciaTabela };
-    logs: File[];
-    entradas: File[];
-    saidas: File[];
     sucesso: boolean;
+    ordem: number;
+    argumentos: string;
+    queries: string[];
+    tabelasPreJob: string[];
+    tabelasPosJob: string[];
+    logs: string[];
+    cargas: string[];
+    saidas: string[];
 }
