@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import Intro from './pages/Intro';
 import "./App.css";
 
-
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
 
@@ -25,7 +24,7 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import { useState } from 'react';
-import { document, checkbox, flash, settings, documentText } from 'ionicons/icons';
+import { document, checkbox, settings, documentText } from 'ionicons/icons';
 import Login from './pages/Login';
 import CarregarJobs from './pages/CarregarJobs';
 import EscolherJobs from './pages/EscolherJobs';
@@ -51,6 +50,10 @@ export const dataFormato: Intl.DateTimeFormatOptions = {
 /* Componente <App> */
 const App = () => {
     const [boasVindas, setBoasVindas] = useState(false);
+    //const location = useLocation();
+    //const hideTabBarRoutes = ['/det-maker/evidence', '/signup'];
+    //setMenuOn(hideTabBarRoutes.some(route => location.pathname.includes(route)));
+    const menuTabOn: boolean = useSelector((state: RootState) => state.store.tabMenu);
     const pilha: JobExecute[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
     const escolherJobsOpt: boolean = pilha.length > 0;
     const jobsCount: number = pilha.filter((itemPilha) => itemPilha.job.checked).length;
@@ -84,7 +87,7 @@ const App = () => {
         return (
             <div className='banner h-100'>
 
-                <IonHeader id='ppw-titulo' className='text-center' >
+                <IonHeader id='ppw-titulo' className='text-center' hidden={!menuTabOn}>
                     <div className="navbar-brand disabled text-white fs-1 m-0 lh-1" >
                         Peopleware
                         {/*<div className="fs-6">joao.aguiar@gmail.com</div>*/}
@@ -97,11 +100,10 @@ const App = () => {
                         <Route path="/det-maker/select" exact> <EscolherJobs /> </Route>
                         <Route path="/det-maker/config" exact> <ConfigurarJobs /> </Route>
                         <Route path="/det-maker/evidence" exact> <Det /> </Route>
-                        {/*<Route path="/det-maker/result" exact> <ConfigurarJobs /> </Route>*/}
                         <Route> <Redirect to="/det-maker/open" /> </Route>
                     </IonRouterOutlet>
 
-                    <IonTabBar slot="top" className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' >
+                    <IonTabBar slot="top" className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' hidden={!menuTabOn}>
                         {/* CARREGAR JOBS */}
                         <IonTabButton tab="open" href="/det-maker/open"
                             className='pt-1 bg-transparent fw-bold'

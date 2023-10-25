@@ -7,6 +7,7 @@ import { JobExecute } from '../data/ItemPilha';
 import { RootState } from '../Store/ReduxStore';
 import { checkItemPilha } from '../Store/Reducer/ReducerPilhaJobs';
 import JobSchedule from '../components/JobSchedule';
+import {show} from '../Store/Reducer/ReducerTabMenu';
 
 const EscolherJobs = (props: any) => {
     const dispatch = useDispatch();
@@ -15,6 +16,7 @@ const EscolherJobs = (props: any) => {
     const history = useHistory();
 
     useIonViewDidEnter(() => {
+        dispatch(show());
         console.log(`[ESCOLHER-JOBS] Jobs: ${pilha.map((itemPilha) => itemPilha.job.nome).join(", ")}`);
         if (pilha.length === 0) {
             console.log(`[ESCOLHER-JOBS] A pilha de jobs está vazia. Retornando página.`);

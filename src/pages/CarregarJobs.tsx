@@ -1,4 +1,4 @@
-import { IonButton, IonContent, IonIcon, IonPage, useIonToast } from '@ionic/react';
+import { IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonPage, useIonModal, useIonToast, useIonViewDidEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useState } from 'react';
 import { folderOpen, server } from 'ionicons/icons';
@@ -10,6 +10,8 @@ import { AxiosError } from 'axios';
 import { useDispatch } from 'react-redux';
 import { setPilha } from '../Store/Reducer/ReducerPilhaJobs';
 import { requestErro } from '../data/AxiosRequest';
+import { show } from '../Store/Reducer/ReducerTabMenu';
+import ModalGenerica from '../components/ModalGenerica';
 
 export function validarExibirData(dataAtualizacao: string): string {
     const date = dayjs(dataAtualizacao);
@@ -31,6 +33,60 @@ const CarregarJobs = (props: any) => {
         });
     };
 
+    //Conteúdo da modal 'Nova Pipeline'
+    const conteudoNovaPipeline = (
+        <>
+            <div className='h3 text-primary ms-2 mt-2 text-center'>Criar Nova Pipeline</div>
+            <div className='text-primary ms-2 mt-1 text-center'>
+                Existem 2 opções para se obter os Jobs que compõem uma pipeline:
+            </div>
+
+            {/* criar pipeline via jobs em schedule */}
+            <div className="my-3 mx-5 border border-2 p-3">
+                <span className='text-primary h4'>1. Usar os Jobs de um arquivo schedule</span>
+                <form action="/upload" method="post" encType="multipart/form-data" >
+                    <label htmlFor="formFile" className="form-label" ></label>
+                    <input className="form-control" type="file" id="formFile" onChange={getFile} />
+                </form>
+                <IonButton className='w-100' onClick={abrirPlanilha} disabled={!enviar}>
+                    <IonIcon icon={folderOpen} className='me-2'></IonIcon>
+                    Abrir Jobs da Schedule
+                </IonButton>
+            </div>
+            {/*criar pipeline via jobs em banco */}
+            <div className='mt-3 mx-5 border border-2 p-3'>
+                <span className='text-primary h4'>2. Usar os Jobs salvos no banco</span>
+                <IonButton className='w-100 mt-4' onClick={carregarBanco}>
+                    <IonIcon icon={server} className='me-2'></IonIcon>
+                    Carregar Jobs do Banco
+                </IonButton>
+            </div>
+        </>
+    );
+
+    //Conteúdo da modal 'Nova Pipeline'
+    const conteudoCarregarPipeline = (
+        <>
+
+        </>
+    );
+
+    //Configurações e propriedades da modal de pipeline
+    const [modalNovaPipelineOn, modalNovaPipelineOff] = useIonModal(
+        ModalGenerica,
+        {
+            titulo: "Criar Nova Pipeline",
+            elemento: conteudoNovaPipeline,
+            onDismiss: () => modalNovaPipelineOff(),
+        }
+    );
+
+    //Operações ao carregar esta página
+    useIonViewDidEnter(() => {
+        dispatch(show());
+    }, []);
+
+    //Coletando arquivo da máquina local
     function getFile(event: React.ChangeEvent<HTMLInputElement>) {
         const selectedFile = event.target.files?.[0];
         if (selectedFile != null) {
@@ -43,6 +99,7 @@ const CarregarJobs = (props: any) => {
         }
     }
 
+    //Requisição para abrir a planilha schedule para obter os jobs
     async function abrirPlanilha() {
         const alert = await alertController.create({
             id: "opening-schedule",
@@ -73,11 +130,13 @@ const CarregarJobs = (props: any) => {
             toastOff().then(() => acionarToast(mensagemErro));
         }
         finally {
+            modalNovaPipelineOff();
             await alert.dismiss();
         }
     }
 
-    async function carregar() {
+    //Requisição para obter os jobs diretamente do banco
+    async function carregarBanco() {
         const alert = await alertController.create({
             id: "opening-schedule",
             message: "Lendo conteúdo",
@@ -98,41 +157,57 @@ const CarregarJobs = (props: any) => {
             toastOff().then(() => acionarToast(mensagemErro));
         }
         finally {
+            modalNovaPipelineOff();
             await alert.dismiss();
         }
     }
 
+    //Conteúdo principal renderizado nesta página
     return (
         <IonPage>
             <IonContent fullscreen={true} scrollEvents={true} >
                 <div className='pt-3 pt-md-4'></div>
+
                 <div className="card border border-2 p-5 mx-0 mx-md-5" id="capa-abrir">
                     <h1 className="card-title destaque lh-1 m-0 text-center">
                         Carregar Jobs
                     </h1>
                     <h3 className="card-text h3 text-primary ms-2 mt-2 text-center">
-                        Escolha uma das opções abaixo para dar início ao Det-Maker.
+                        Escolha uma das opções abaixo para iniciar uma Pipeline.
                     </h3>
-                    {/* CARREGAR VIA PLANILHA SCHEDULE */}
-                    <div className="mb-3 mx-5">
-                        <form action="/upload" method="post" encType="multipart/form-data">
-                            <label htmlFor="formFile" className="form-label" ></label>
-                            <input className="form-control" type="file" id="formFile" onChange={getFile} />
-                        </form>
+
+                    <div className='row pt-5 px-5'>
+                        {/* OPÇÃO 1: NOVA PIPELINE */}
+                        <div className='col' >
+                            <div className="d-block h-100 mb-3 ms-5 border border-2">
+                                <IonButton expand="full"
+                                    fill='clear'
+                                    size="large"
+                                    className="centered-button h-100 m-0"
+                                    onClick={() => modalNovaPipelineOn()}
+                                >
+                                    Nova Pipeline
+                                </IonButton>
+                            </div>
+                        </div>
+
+                        {/* OPÇÃO 2: CARREGAR PIPELINE */}
+                        <div className='col'>
+                            <div className="d-block h-100 mb-3 me-5 border border-2">
+                                <IonButton expand="full"
+                                    fill='clear'
+                                    size="large"
+                                    className="centered-button h-100 m-0"
+                                >
+                                    Carregar Pipeline
+                                </IonButton>
+                            </div>
+                        </div>
                     </div>
-                    <div className='d-flex justify-content-center'>
-                        <IonButton className='ms-5 w-100' onClick={abrirPlanilha} disabled={!enviar}>
-                            <IonIcon icon={folderOpen} className='me-2'></IonIcon>
-                            Abrir
-                        </IonButton>
-                        {/* CARREGAR DO BANCO */}
-                        <IonButton className='me-5 w-100' onClick={carregar}>
-                            <IonIcon icon={server} className='me-2'></IonIcon>
-                            Carregar
-                        </IonButton>
-                    </div>
-                    <div className='mb-5'></div>
                 </div>
+
+                {/* Recuo */}
+                <div className='mb-5'></div>
             </IonContent>
         </IonPage>
     );
