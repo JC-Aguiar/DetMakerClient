@@ -53,10 +53,6 @@ const ConfigurarJobs = (props: any) => {
     //Acionamento assim que esta página for montada
     useIonViewDidEnter(() => {
         dispatch(show());
-    }, []);
-
-    //Acionamento sempre que esta página tiver algum dos seus componentes atualizados
-    useEffect(() => {
         console.log(`[CONFIGURAR-JOBS] Jobs: ${pilhaExec.map((itemPilha) => itemPilha.job.nome).join(", ")}`);
         if (pilhaExec.length === 0) {
             console.log(`[CONFIGURAR-JOBS] A pilha de jobs está vazia. Retornando página.`);
@@ -65,6 +61,10 @@ const ConfigurarJobs = (props: any) => {
         else {
             console.log(`[CONFIGURAR-JOBS] Carregando cards da pilha dos jobs selecionados.`);
         }
+    }, []);
+
+    //Acionamento sempre que esta página tiver algum dos seus componentes atualizados
+    useEffect(() => {
         itensParaExecutar();
     }, [pilhaExec]);
 

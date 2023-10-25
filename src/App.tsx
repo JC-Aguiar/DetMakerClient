@@ -115,7 +115,7 @@ const App = () => {
                         {/* SELECIONAR JOBS */}
                         <IonTabButton tab="select" href="/det-maker/select/"
                             className='pt-2 bg-transparent fw-bold'
-                            disabled={!escolherJobsOpt}
+                            //disabled={!escolherJobsOpt}
                         >
                             <IonIcon icon={checkbox} />
                             <IonLabel>Escolher Jobs</IonLabel>
@@ -124,20 +124,22 @@ const App = () => {
                         {/* CONFIGURAR JOBS */}
                         <IonTabButton tab="config" href="/det-maker/config"
                             className='pt-2 bg-transparent fw-bold'
-                            disabled={!configurarJobsOpt}
+                            //disabled={!configurarJobsOpt}
                         >
                             <IonIcon icon={settings} />
                             <IonLabel>Configurar Jobs {contadorConfigJobs()} </IonLabel>
                         </IonTabButton>
 
-                        {/* EVIDÊNCIA DET */}
-                        <IonTabButton tab="config" href="/det-maker/evidence"
+
+                        {/* CONFIGURAR JOBS */}
+                        <IonTabButton tab="evidence" href="/det-maker/evidence"
                             className='pt-2 bg-transparent fw-bold'
                             //disabled={!configurarJobsOpt}
                         >
                             <IonIcon icon={documentText} />
-                            <IonLabel>Evidência</IonLabel>
+                            <IonLabel>Evidencia </IonLabel>
                         </IonTabButton>
+
 
                     </IonTabBar>
                 </IonTabs>
