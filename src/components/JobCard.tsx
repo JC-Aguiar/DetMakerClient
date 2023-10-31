@@ -1,6 +1,6 @@
 import { InputChangeEventDetail, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonSelect, IonSelectOption, IonText, IonTextarea, SelectChangeEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from "@ionic/react";
 import React, { ChangeEvent, useState } from "react";
-import { JobExecute } from "../data/ItemPilha";
+import { JobExecute } from "../data/JobExecute";
 import { ComandoSQL } from "../data/ComandoSQL";
 import { codeWorking } from "ionicons/icons";
 import ConfigurarJobs from '../pages/ConfigurarJobs';
@@ -17,32 +17,18 @@ interface JobCardModalProps {
     onDismiss: () => void
 }
 
-//let parametros: string[] = [];
-//let queries: ComandoSQL[] = [];
-//let cargas: string[] = [];
-//let pronto: boolean = false;
-//let ordem: number = -1;
-
 const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
     //Propriedades do componente <JobCard>
     const dispatch = useDispatch();
     const pilhaExec = useSelector((state: RootState) => state.store.pilhaJobs.value)
         .filter((itemPilha) => itemPilha.job.checked);
     const jobExec: JobExecute = pilhaExec.filter((itemPilha) => itemPilha.job.id === id)[0];
-
-    //const [parametros, setParametros] = useState<string[]>(itemPilha.argumentos);
-    //const [queries, setQueries] = useState<ComandoSQL[]>(itemPilha.queries);
-    //const [cargas, setCargas] = useState<string[]>(itemPilha.cargas);
-    //const [pronto, setPronto] = useState<boolean>(itemPilha.pronto);
-    //const [ordem, setOrdem] = useState<number>(itemPilha.ordem);
     let parametros: string[] = jobExec.argumentos;
     let queries: ComandoSQL[] = jobExec.queries;
     let cargas: string[] = jobExec.cargas;
     let pronto: boolean = jobExec.pronto;
     let ordem: number = jobExec.ordem;
     const [ordemVO, setOrdemVO] = useState<number>(ordem);
-    //const [antigaOrdem, setAntigaOrdem] = useState<number>(-1);
-    //queries = itemPilha.queries;
 
     /**
      * Método chamado quando este componente fica visível
@@ -86,14 +72,12 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
                     cargas: cargas,
                     pronto: pronto,
                     ordem: ordemVO,
-                    //antigaOrdem: antigaOrdem,
                 }
             ));
         }
         finally {
             callback();
         }
-        //callBack!(numeroPilha, itemPilha.agenda, parametros, queries, cargas, pronto);
     }
 
     //Funções para preencher as variáveis de manipulação dos cards
@@ -104,8 +88,6 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
             //setAntigaOrdem(ordem);
             ordem = (numero);
             setOrdemVO(ordem);
-            //const select = (event.target as HTMLSelectElement);
-            //select.value = ordem.toString();
         }
         console.log(`[CARD-JOB] ${jobExec.job.nome} nova ordem = ${ordem}.`); //, antiga ordem = ${antigaOrdem}
     }
@@ -131,10 +113,12 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
         );
     }
     const preencherCargas = (event: CustomEvent<TextareaChangeEventDetail>, index: number) => {
-        const value = (event.target as HTMLInputElement).value;
-        const novasCargas = [...cargas]; 
-        novasCargas[index] = value.trim();
-        cargas = (cargas);
+        const value = event.detail.value;
+        const novasCargas = [...cargas];
+        if (value) {
+            novasCargas[index] = value != null && value != undefined ? value.trim() : "";
+            cargas = (novasCargas);
+        }
         console.log(`[CARD-JOB] ${jobExec.job.nome} carga [${index}] = ${cargas[index]}.`);
     }
 

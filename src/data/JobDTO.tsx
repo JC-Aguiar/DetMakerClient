@@ -2,7 +2,6 @@ export interface JobDTO {
     //Atributos de uso frontend/backend
     id: number;
     nome: string;
-    plano: string;
     executarAposJob: string[];
     grupoConcorrencia: string;
     fase: string;

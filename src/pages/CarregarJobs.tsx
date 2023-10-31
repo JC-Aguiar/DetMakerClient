@@ -1,17 +1,24 @@
-import { IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonPage, useIonModal, useIonToast, useIonViewDidEnter } from '@ionic/react';
+import { IonButton, IonContent, IonIcon, IonItem, IonLabel, IonList, IonPage, IonPopover, IonRadio, IonRadioGroup, RadioGroupChangeEventDetail, useIonModal, useIonToast, useIonViewDidEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useState } from 'react';
-import { cloudDownload, create, folderOpen, server } from 'ionicons/icons';
-import { alertController } from "@ionic/core";
+import { cloudDownload, create, flash, folderOpen, server } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
 import { JobDTO } from '../data/JobDTO';
 import dayjs from 'dayjs';
-import { AxiosError } from 'axios';
-import { useDispatch } from 'react-redux';
-import { setPilha } from '../Store/Reducer/ReducerPilhaJobs';
-import { requestErro } from '../data/AxiosRequest';
+import { RootState } from '../Store/ReduxStore';
+import { useDispatch, useSelector } from 'react-redux';
+import { checkItemPilha, checkItemPilhaTYPE, setPilha } from '../Store/Reducer/ReducerPilhaJobs';
 import { show } from '../Store/Reducer/ReducerTabMenu';
 import ModalGenerica from '../components/ModalGenerica';
+import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
+import { ConfigAtividadeTYPE, setAtividade } from '../Store/Reducer/ReducerPipelineExecute';
+import { setMainPipeline, setPipelines } from '../Store/Reducer/ReducerPipelines';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
+import { Pagination, Navigation } from 'swiper/modules';
+import { JobExecute } from '../data/JobExecute';
 
 export function validarExibirData(dataAtualizacao: string): string {
     const date = dayjs(dataAtualizacao);
@@ -20,16 +27,22 @@ export function validarExibirData(dataAtualizacao: string): string {
 }
 
 const CarregarJobs = (props: any) => {
+    //Propriedades do <CarregarJobs>
     const dispatch = useDispatch();
+    const pipelinesBanco: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.configPipelines.value);
+    const mainPipelineIndex: number = useSelector((state: RootState) => state.store.configPipelines.checkedIndex);
+    const mainPipelineNome: string = mainPipelineIndex != -1 ? pipelinesBanco[mainPipelineIndex].nome : '';
+    const allJobs: JobExecute[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
     const [enviar, setEnviar] = useState<boolean | undefined>(false);
     const [anexo, setAnexo] = useState<File | null>(null);
     const history = useHistory();
     const [toast, toastOff] = useIonToast();
-    const acionarToast = (mensagem: unknown) => {
+    const acionarToast = (mensagem: string, tempo: number, cor: string) => {
         toast({
             message: `${mensagem}`,
-            duration: 9900,
+            duration: tempo,
             position: 'bottom',
+            color: cor,
         });
     };
 
@@ -55,7 +68,7 @@ const CarregarJobs = (props: any) => {
             {/*criar pipeline via jobs em banco */}
             <div className='mt-3 mx-5 border border-2 rounded bg-white p-3 text-center'>
                 <span className='text-primary text-center h4'>Usar os Jobs salvos no banco</span>
-                <IonButton className='w-100 mt-4' onClick={carregarBanco}>
+                <IonButton className='w-100 mt-4' onClick={() => carregarBanco(false)}>
                     <IonIcon icon={server} className='me-2'></IonIcon>
                     Carregar Jobs do Banco
                 </IonButton>
@@ -63,20 +76,111 @@ const CarregarJobs = (props: any) => {
         </>
     );
 
-    //Conteúdo da modal 'Nova Pipeline'
-    const conteudoCarregarPipeline = (
+    //Conteúdo da modal 'Carregar Pipeline'
+    const conteudoPipelinesBanco = (
         <>
+            <div className='h5 text-primary mt-2 text-center'>
+                Escolha qual Pipeline deseja usar
+            </div>
 
+            {/* exibindo pipeline obtidas do banco */}
+            <div className="my-3 mx-5 border border-2 rounded bg-white p-3 text-center h-100">
+                
+                <IonRadioGroup value={mainPipelineNome} onIonChange={(e) => preencherPipelineBanco(e)}>
+                    <Swiper
+                        spaceBetween={4}
+                        //breakpoints={breakpoints}
+                        keyboard={true}
+                        pagination={{ clickable: true }}
+                        navigation={true}
+                        modules={[Pagination, Navigation]}
+                        direction={'vertical'}
+                        height={256}
+                    >
+                        <div className='d-flex justify-items-center'>
+                        {
+                            pipelinesBanco.map((item, index) => {
+                                return (
+                                    <SwiperSlide key={index}>
+                                        <IonItem key={index} lines='none' className='border border-2 p-0 m-0'>
+                                            {/* nome da pipeline */}
+                                            <IonLabel color='primary' className='p-0 m-0'>
+                                                <span className='font-weight-bold h4'>{item.nome}</span>
+                                            </IonLabel>
+                                            <IonRadio color='primary' 
+                                                slot="start" 
+                                                value={item.nome}
+                                            ></IonRadio>
+
+                                            {/* pop-up com a descrição */}
+                                            <IonButton id={`pipeline-${index}-descricao`}>Descricao</IonButton>
+                                            <IonPopover trigger={`pipeline-${index}-descricao`} 
+                                                triggerAction="hover"
+                                                className='basic-pop-up'
+                                            >
+                                                <IonContent color="dark" class="text-dark small font-monospace ion-padding">
+                                                    {item.descricao}
+                                                </IonContent>
+                                            </IonPopover>
+
+                                            {/* pop-up com os jobs */}
+                                            <IonButton id={`pipeline-${index}-jobs`}>Jobs</IonButton>
+                                            <IonPopover trigger={`pipeline-${index}-jobs`} 
+                                                triggerAction="hover"
+                                                className='basic-pop-up'
+                                            >
+                                                <IonContent color="dark" class="text-dark small font-monospace ion-padding">
+                                                <ol>
+                                                {
+                                                    item.jobs.map((jobNome, jobIndex) => 
+                                                        <li key={jobIndex}>{jobNome}</li>
+                                                    )
+                                                }
+                                                </ol>
+                                                </IonContent>
+                                            </IonPopover>
+                                        </IonItem>
+                                    </SwiperSlide>
+                                );
+                            })
+                        }
+                        </div>
+                    </Swiper>
+                </IonRadioGroup>
+            </div>
+            <IonButton expand="full"
+                fill='solid'
+                size="large"
+                className="centered-button h-100 my-0 mx-5 pt-2"
+                disabled={mainPipelineIndex === -1}
+                onClick={() => {
+                    carregarBanco(true);
+                    //aplicarPipeline();
+                }}
+            >
+                <IonIcon icon={flash} className='mx-1 pt-1 pb-0' />
+                Aplicar Pipeline
+            </IonButton>
         </>
     );
 
-    //Configurações e propriedades da modal de pipeline
+    //Configurações e propriedades da modal de nova pipeline
     const [modalNovaPipelineOn, modalNovaPipelineOff] = useIonModal(
         ModalGenerica,
         {
             titulo: "Criar nova Pipeline",
             elemento: conteudoNovaPipeline,
             onDismiss: () => modalNovaPipelineOff(),
+        }
+    );
+
+    //Configurações e propriedades da modal de pipelines no banco
+    const [modalGetPipelinesOn, modalGetPipelinesOff] = useIonModal(
+        ModalGenerica,
+        {
+            titulo: "Pipelines no Banco",
+            elemento: conteudoPipelinesBanco,
+            onDismiss: () => modalGetPipelinesOff(),
         }
     );
 
@@ -100,65 +204,128 @@ const CarregarJobs = (props: any) => {
 
     //Requisição para abrir a planilha schedule para obter os jobs
     async function abrirPlanilha() {
-        const alert = await alertController.create({
-            id: "opening-schedule",
-            message: "Lendo conteúdo",
-            buttons: [],
-            backdropDismiss: false,
-            translucent: true,
-            keyboardClose: false,
-            // TODO: adicionar estilo e talvez uma animação
-        });
         try {
-            await alert.present();
             if (!anexo) {
-                console.log("[CARREGAR-JOBS] Nenhum arquivo para envio.");
+                console.log("[CARREGAR-JOBS]: Nenhum arquivo para envio.");
                 return
             };
+            console.log(`[CARREGAR-JOBS]: Iniciando requisição 'Abrir Planilha'.`);
+            modalNovaPipelineOff();
+            toastOff().then(() => acionarToast("ABRIR PLANILHA: Em execução...", 5000, 'medium'));
+
             const formData = new FormData();
             formData.append('file', anexo);
             const planilhas: JobDTO[] = await axiosRequest.openSchedule(anexo);
-            dispatch(setPilha(planilhas));
-            //console.log(`[CARREGAR-JOBS] Avançando para etapa 'Escolher Jobs'`);
-            //dispatch(on());
+            dispatch(setPilha({ jobsBanco: planilhas, jobsPipeline:[] }));
+
+            toastOff().then(() => acionarToast("ABRIR PLANILHA: Realizado com sucesso.", 5000, 'primary'));
+            console.log(`[CARREGAR-JOBS]: Requisição 'Abrir Planilha' funcionou.`);
+
+            console.log(`[CARREGAR-JOBS]: Avançando para etapa 'Escolher Jobs'`);
             history.push('/det-maker/select/');
         }
         catch (error) {
-            const mensagemErro = requestErro(error as AxiosError);
-            console.error(`[CARREGAR-JOBS] ${mensagemErro}`);
-            toastOff().then(() => acionarToast(mensagemErro));
-        }
-        finally {
-            modalNovaPipelineOff();
-            await alert.dismiss();
+            toastOff().then(() => acionarToast(`ABRIR PLANILHA: ${error}`, 9900, 'warning'));
+            console.error(`[CARREGAR-JOBS]: Requisição 'Abrir Planilha' falhou.`);
         }
     }
 
+    //Acionamento ao selecionar uma opção de Pipeline carregada do banco
+    function preencherPipelineBanco(e: CustomEvent<RadioGroupChangeEventDetail<string>>): void {
+        const valor = e.detail.value;
+        if (valor === null || valor === undefined) return;
+        console.log(`[CARREGAR-JOBS]: Usuário selecionou opção de Pipeline '${valor}'.`);
+        
+        const pipelineReg = pipelinesBanco.filter((item) => item.nome === valor);
+        if (pipelineReg.length < 0) return;
+        console.log(`[CARREGAR-JOBS]: Pipeline '${pipelinesBanco[0].nome}' identificada.`);
+
+        console.log(`[CARREGAR-JOBS]: Pipeline '${valor}' selecionada.`);
+        const novaPipelineConfig: ConfigAtividadeTYPE = {
+            pipelineNome: pipelinesBanco[0].nome,
+            pipelineDescricao: pipelinesBanco[0].descricao,
+            atividadeNome: "",
+            projetoNome: "",
+            configuracao: "",
+        };
+        dispatch(setMainPipeline({ pipelineNome: pipelinesBanco[0].nome }));
+        dispatch(setAtividade(novaPipelineConfig));
+    }
+
     //Requisição para obter os jobs diretamente do banco
-    async function carregarBanco() {
-        const alert = await alertController.create({
-            id: "opening-schedule",
-            message: "Lendo conteúdo",
-            buttons: [],
-            backdropDismiss: false,
-            translucent: true,
-            keyboardClose: false,
-            // TODO: adicionar estilo e talvez uma animação
-        });
+    async function carregarBanco(aplicarJobsPipeline: boolean) {
+        console.log(`[CARREGAR-JOBS]: Iniciando requisição 'Download Jobs'.`);
+        modalGetPipelinesOff();
+        modalNovaPipelineOff();
+        toastOff().then(() => acionarToast("DOWNLOAD JOBS: Em execução...", 5000, 'medium'));
+
         try {
-            const planilhas: JobDTO[] = await axiosRequest.getAllJobs();
-            dispatch(setPilha(planilhas));
+            const planilhas: JobDTO[] = (await axiosRequest.getAllJobs());
+            const jobsPipeline = mainPipelineIndex > -1 ? pipelinesBanco[mainPipelineIndex].jobs : [];
+            //    .filter((item) => aplicarJobsPipeline)
+            //    .map((item) => aplicarPipeline(item));
+            dispatch(setPilha({ jobsBanco: planilhas, jobsPipeline: jobsPipeline }));
+
             history.push('/det-maker/select/');
+            toastOff().then(() => acionarToast("DOWNLOAD JOBS: Realizado com sucesso.", 5000, 'primary'));
+            console.log(`[CARREGAR-JOBS]: Requisição 'Download Jobs' funcionou.`);
         }
         catch (error) {
-            const mensagemErro = requestErro(error as AxiosError);
-            console.error(`[CARREGAR-JOBS] ${mensagemErro}`);
-            toastOff().then(() => acionarToast(mensagemErro));
+            toastOff().then(() => acionarToast(`DOWNLOAD JOBS: ${error}`, 9900, 'warning'));
+            console.error(`[CARREGAR-JOBS]: Requisição 'Download Jobs' falhou.`);
         }
-        finally {
-            modalNovaPipelineOff();
-            await alert.dismiss();
+    }
+
+    //Requisição para obter todas as pipelines do banco
+    async function obterPipelinesBanco() {
+        console.log(`[CARREGAR-JOBS]: Iniciando requisição 'Download Pipelines'.`);
+        toastOff().then(() => acionarToast("DOWNLOAD PIPELINES: Em execução...", 5000, 'medium'));
+
+        try {
+            const pipelines: PipelineInfoDTO[] = await axiosRequest.getAllPipelines();
+            dispatch(setPipelines(pipelines));
+
+            //history.push('/det-maker/select/');
+            modalGetPipelinesOn();
+            toastOff().then(() => acionarToast("DOWNLOAD PIPELINES: Realizado com sucesso.", 5000, 'primary'));
+            console.log(`[CARREGAR-JOBS]: Requisição 'Download Pipelines' funcionou.`);
         }
+        catch (error) {
+            toastOff().then(() => acionarToast(`DOWNLOAD PIPELINES: ${error}`, 9900, 'warning'));
+            console.error(`[CARREGAR-JOBS]: Requisição 'Download Pipelines' falhou.`);
+        }
+    }
+
+    //Seleciona todos os jobs da pipeline, deixando pronta para ser executada
+    function aplicarPipeline(jobDto: JobDTO): JobDTO {
+        const pipelineAlvo = pipelinesBanco.filter((item) => item.nome === mainPipelineNome);
+        if (pipelineAlvo.length < 1) return jobDto;
+
+        //console.log(`[CARREGAR-JOBS]: Aplicando Jobs selecionadas da Pipeline ${mainPipelineNome}:`)
+        //const mainPipelineJobs: checkItemPilhaTYPE[] = [];
+        pipelineAlvo[0].jobs.map((jobNome, index) => {
+            if (jobNome === jobDto.nome) {
+                console.log(`[CARREGAR-JOBS]: Job [${jobDto.id}] ${jobDto.nome} em uso pela atual Pipeline.`);
+                jobDto.checked = true;
+            }
+            //allJobs.filter((item) => item.job.nome === jobNome)
+            //    .map((item) => {
+            //        console.log(`Job [${item.job.id}] ${item.job.nome} identificado na pilha de jobs já carregados.`);
+            //        const registro: checkItemPilhaTYPE = {
+            //            id: item.job.id,
+            //            checked: true,
+            //            ordem: index,
+            //        };
+            //        mainPipelineJobs.push(registro);
+            //    })
+        });
+        return jobDto;
+
+        //console.log(`[CARREGAR-JOBS]: ID dos Jobs usados pela Pipeline:` + '\n'
+        //    + ` - ${mainPipelineJobs.join(", ")}`);
+        //mainPipelineJobs.map((item) => {
+        //    dispatch(checkItemPilha(item));
+        //});
     }
 
     //Conteúdo principal renderizado nesta página
@@ -175,9 +342,9 @@ const CarregarJobs = (props: any) => {
                         Escolha uma das opções abaixo para iniciar uma Pipeline.
                     </h3>
 
-                    <div className='row pt-5 px-5'>
+                    <div className='row pt-5 px-0 px-md-5'>
                         {/* OPÇÃO 1: NOVA PIPELINE */}
-                        <div className='col-6' >
+                        <div className='col-12 col-md-6' >
                             <div className="d-block h-100 mb-3 border border-2">
                                 <IonButton expand="full"
                                     fill='clear'
@@ -192,12 +359,13 @@ const CarregarJobs = (props: any) => {
                         </div>
 
                         {/* OPÇÃO 2: CARREGAR PIPELINE */}
-                        <div className='col-6'>
+                        <div className='col-12 col-md-6'>
                             <div className="d-block h-100 mb-3 border border-2">
                                 <IonButton expand="full"
                                     fill='clear'
                                     size="large"
                                     className="centered-button h-100 m-0"
+                                    onClick={() => obterPipelinesBanco()}
                                 >
                                     <IonIcon icon={cloudDownload} className='mx-1 pt-1 pb-0' />
                                     Carregar Pipelines

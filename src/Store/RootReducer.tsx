@@ -5,8 +5,8 @@ import carregarJobs from "./Reducer/ReducerCarregarJobs";
 import escolherJobs from "./Reducer/ReducerEscolherJobs";
 import configurarJobs from "./Reducer/ReducerConfigurarJobs";
 import evidenciaJobs from "./Reducer/ReducerEvidenciaJobs";
-import configPipeline  from './Reducer/ReducerPipeline';
-import configAtividade from './Reducer/ReducerAtividade';
+import configPipelines  from './Reducer/ReducerPipelines';
+import configAtividade from './Reducer/ReducerPipelineExecute';
 
 const rootReducer = combineReducers({
     pilhaJobs: pilhaJobs,
@@ -15,7 +15,7 @@ const rootReducer = combineReducers({
     escolherJobs: escolherJobs,
     configurarJobs: configurarJobs,
     evidenciaJobs: evidenciaJobs,
-    configPipeline: configPipeline,
+    configPipelines: configPipelines,
     configAtividade: configAtividade,
 });
   

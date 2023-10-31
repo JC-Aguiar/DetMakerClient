@@ -13,7 +13,8 @@ export interface JobExecute {
 export interface JobExecuteDTO {
     ordem: number;
     id: number;
-    argumentos: string[];
+    nome: string;
+    argumentos: string;
     queries: ComandoSQL[];
     cargas: string[];
 }
@@ -22,7 +23,8 @@ export function converterEmDto(itemPilha: JobExecute): JobExecuteDTO {
     const dto: JobExecuteDTO = {
         ordem: itemPilha.ordem,
         id: itemPilha.job.id,
-        argumentos: itemPilha.argumentos,
+        nome: itemPilha.job.nome,
+        argumentos: itemPilha.argumentos.join(" "),
         queries: itemPilha.queries,
         cargas: itemPilha.cargas,
     };

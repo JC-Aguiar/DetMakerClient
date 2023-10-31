@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useHistory } from 'react-router';
 import { checkmarkCircle, closeCircle } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { JobExecute } from '../data/ItemPilha';
+import { JobExecute } from '../data/JobExecute';
 import { RootState } from '../Store/ReduxStore';
 import { checkItemPilha } from '../Store/Reducer/ReducerPilhaJobs';
 import JobSchedule from '../components/JobSchedule';

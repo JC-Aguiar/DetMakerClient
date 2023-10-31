@@ -30,7 +30,7 @@ import CarregarJobs from './pages/CarregarJobs';
 import EscolherJobs from './pages/EscolherJobs';
 import ConfigurarJobs from './pages/ConfigurarJobs';
 import { JobDTO } from './data/JobDTO';
-import { JobExecute } from './data/ItemPilha';
+import { JobExecute } from './data/JobExecute';
 import { RootState } from './Store/ReduxStore';
 import Det from './pages/Det';
 
@@ -87,6 +87,7 @@ const App = () => {
         return (
             <div className='banner h-100'>
 
+                {/* Logo */}
                 <IonHeader id='ppw-titulo' className='text-center' hidden={!menuTabOn}>
                     <div className="navbar-brand disabled text-white fs-1 m-0 lh-1" >
                         Peopleware
@@ -94,6 +95,7 @@ const App = () => {
                     </div>
                 </IonHeader>
 
+                {/* Rotas Url */}
                 <IonTabs>
                     <IonRouterOutlet>
                         <Route path="/det-maker/open" exact> <CarregarJobs /> </Route>
@@ -103,8 +105,9 @@ const App = () => {
                         <Route> <Redirect to="/det-maker/open" /> </Route>
                     </IonRouterOutlet>
 
+                    {/* Links no menu */}
                     <IonTabBar slot="top" className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' hidden={!menuTabOn}>
-                        {/* CARREGAR JOBS */}
+                        {/* Carregar Jobs */}
                         <IonTabButton tab="open" href="/det-maker/open"
                             className='pt-1 bg-transparent fw-bold'
                         >
@@ -112,35 +115,33 @@ const App = () => {
                             <IonLabel>Carregar Jobs</IonLabel>
                         </IonTabButton>
 
-                        {/* SELECIONAR JOBS */}
+                        {/* Escolher Jobs */}
                         <IonTabButton tab="select" href="/det-maker/select/"
                             className='pt-2 bg-transparent fw-bold'
-                            //disabled={!escolherJobsOpt}
+                            disabled={!escolherJobsOpt}
                         >
                             <IonIcon icon={checkbox} />
                             <IonLabel>Escolher Jobs</IonLabel>
                         </IonTabButton>
 
-                        {/* CONFIGURAR JOBS */}
+                        {/* Configurar Jobs */}
                         <IonTabButton tab="config" href="/det-maker/config"
                             className='pt-2 bg-transparent fw-bold'
-                            //disabled={!configurarJobsOpt}
+                            disabled={!configurarJobsOpt}
                         >
                             <IonIcon icon={settings} />
                             <IonLabel>Configurar Jobs {contadorConfigJobs()} </IonLabel>
                         </IonTabButton>
 
 
-                        {/* CONFIGURAR JOBS */}
+                        {/* Evidencia */}
                         <IonTabButton tab="evidence" href="/det-maker/evidence"
                             className='pt-2 bg-transparent fw-bold'
-                            //disabled={!configurarJobsOpt}
+                            disabled={!configurarJobsOpt}
                         >
                             <IonIcon icon={documentText} />
-                            <IonLabel>Evidencia </IonLabel>
+                            <IonLabel>Evidencia</IonLabel>
                         </IonTabButton>
-
-
                     </IonTabBar>
                 </IonTabs>
             </div>

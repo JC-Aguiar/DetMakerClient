@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { JobExecute } from '../../data/ItemPilha';
+import { JobExecute } from '../../data/JobExecute';
 import { JobDTO } from '../../data/JobDTO';
 import { ComandoSQL } from '../../data/ComandoSQL';
 
@@ -12,7 +12,13 @@ interface PilhaTYPE {
     value: JobExecute[]
 }
 
-//Interface para validar o item-pilha
+//Interface para definir a pilha de Jobs
+export interface setPilhaTYPE {
+    jobsBanco: JobDTO[],
+    jobsPipeline: string[],
+}
+
+//Interface para validar o item-pilha de Jobs
 export interface checkItemPilhaTYPE {
     id: number,
     checked: boolean,
@@ -50,15 +56,19 @@ const pilhaJobs = createSlice({
     initialState,
     reducers: {
         //DEFININDO TODA A PILHA DE JOBS-------------------------------------------------------------------------------
-        setPilha: (state, action: PayloadAction<JobDTO[]>) => {
-            if (!Array.isArray(action.payload)) {
+        setPilha: (state, action: PayloadAction<setPilhaTYPE>) => {
+            const jobsBanco = action.payload.jobsBanco;
+            const jobsPipeline = action.payload.jobsPipeline;
+            if (!Array.isArray(jobsBanco)) {
                 console.log('[ReducerPilhaJobs] Erro: payload inválido.');
                 return { ...state };
             }
             pilahExec = 0;
-            state.value = action.payload.map(
-                (item, index) => ({
-                    ordem: -1,
+            state.value = jobsBanco.map((item) => {
+                const ordem = jobsPipeline.findIndex((jobNome) => jobNome === item.nome);
+                if (ordem !== -1)  item.checked = true;
+                return {
+                    ordem: ordem,
                     job: item,
                     argumentos: item.parametros.map(e => ""),
                     queries: item.tabelas.map(e =>
@@ -69,8 +79,8 @@ const pilhaJobs = createSlice({
                         ),
                     cargas: item.mascaraEntrada.map(e => ""),
                     pronto: false,
-                })
-            );
+                } as JobExecute;
+            });
             console.log('[ReducerPilhaJobs] Acionado controlador pilhaJobs.setPilha: \n'
                 + `${state.value.map((itemPilha) => itemPilha.job.nome).join(", ")}.` + '\n'
                 + `Lista atual com ${state.value.length} agendas registradas.`

@@ -536,6 +536,16 @@ table {
   bottom: 1%;
 }
 
+.basic-pop-up {
+  --width: 400px;
+}
+
+.basic-pop-up::part(content) {
+  word-break: break-all;
+  overflow-x: hidden;
+  background: var(--ion-color-light);
+}
+
 
 @media (max-width: 767px) {
 

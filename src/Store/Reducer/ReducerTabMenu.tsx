@@ -5,11 +5,11 @@ const tabMenu = createSlice({
     initialState: true,
     reducers: {
         show: (state) => {
-            console.log('[ReducerTabMenu] Acionado controlador createSlice.show! \n');
+            console.log('[ReducerTabMenu] Acionado controlador tabMenu.show! \n');
             return true;
         },
         hide: (state) => {
-            console.log('[ReducerTabMenu] Acionado controlador createSlice.hide! \n');
+            console.log('[ReducerTabMenu] Acionado controlador tabMenu.hide! \n');
             return false;
         },
     },
