@@ -1,13 +1,13 @@
-import { IonButton, IonContent, IonIcon, IonItem, IonLabel, IonList, IonPage, IonPopover, IonRadio, IonRadioGroup, RadioGroupChangeEventDetail, useIonModal, useIonToast, useIonViewDidEnter } from '@ionic/react';
+import { IonButton, IonContent, IonIcon, IonItem, IonLabel, IonPage, IonPopover, IonRadio, IonRadioGroup, RadioGroupChangeEventDetail, useIonModal, useIonToast, useIonViewDidEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useState } from 'react';
-import { cloudDownload, create, flash, folderOpen, server } from 'ionicons/icons';
+import { cloudDownload, create, createOutline, filter, flash, folderOpen, server } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
 import { JobDTO } from '../data/JobDTO';
 import dayjs from 'dayjs';
 import { RootState } from '../Store/ReduxStore';
 import { useDispatch, useSelector } from 'react-redux';
-import { checkItemPilha, checkItemPilhaTYPE, setPilha } from '../Store/Reducer/ReducerPilhaJobs';
+import { setPilha } from '../Store/Reducer/ReducerPilhaJobs';
 import { show } from '../Store/Reducer/ReducerTabMenu';
 import ModalGenerica from '../components/ModalGenerica';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
@@ -16,9 +16,10 @@ import { setMainPipeline, setPipelines } from '../Store/Reducer/ReducerPipelines
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/pagination';
-import 'swiper/css/navigation';
-import { Pagination, Navigation } from 'swiper/modules';
-import { JobExecute } from '../data/JobExecute';
+import { Pagination } from 'swiper/modules';
+import { JobExecuteDTO, converterEmDto } from '../data/JobExecute';
+import { PipelineNovaExecDTO } from '../data/PipelineNovaExecDTO';
+import { RelatorioInfoDTO } from '../data/RelatorioInfoDTO';
 
 export function validarExibirData(dataAtualizacao: string): string {
     const date = dayjs(dataAtualizacao);
@@ -31,8 +32,7 @@ const CarregarJobs = (props: any) => {
     const dispatch = useDispatch();
     const pipelinesBanco: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.configPipelines.value);
     const mainPipelineIndex: number = useSelector((state: RootState) => state.store.configPipelines.checkedIndex);
-    const mainPipelineNome: string = mainPipelineIndex != -1 ? pipelinesBanco[mainPipelineIndex].nome : '';
-    const allJobs: JobExecute[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
+    const mainPipelineNome: string = mainPipelineIndex !== -1 ? pipelinesBanco[mainPipelineIndex].nome : '';
     const [enviar, setEnviar] = useState<boolean | undefined>(false);
     const [anexo, setAnexo] = useState<File | null>(null);
     const history = useHistory();
@@ -84,18 +84,18 @@ const CarregarJobs = (props: any) => {
             </div>
 
             {/* exibindo pipeline obtidas do banco */}
-            <div className="my-3 mx-5 border border-2 rounded bg-white p-3 text-center h-100">
+            <div className="my-3 mx-5 border border-2 rounded bg-white p-3 text-center pipelines-repo">
                 
                 <IonRadioGroup value={mainPipelineNome} onIonChange={(e) => preencherPipelineBanco(e)}>
                     <Swiper
-                        spaceBetween={4}
-                        //breakpoints={breakpoints}
-                        keyboard={true}
-                        pagination={{ clickable: true }}
-                        navigation={true}
-                        modules={[Pagination, Navigation]}
+                        //keyboard={true}
+                        slidesPerView={5}
+                        spaceBetween={0}
                         direction={'vertical'}
-                        height={256}
+                        pagination={{ clickable: true }}
+                        modules={[Pagination]}
+                        height={300}
+                        //navigation={true}
                     >
                         <div className='d-flex justify-items-center'>
                         {
@@ -148,19 +148,34 @@ const CarregarJobs = (props: any) => {
                     </Swiper>
                 </IonRadioGroup>
             </div>
-            <IonButton expand="full"
-                fill='solid'
-                size="large"
-                className="centered-button h-100 my-0 mx-5 pt-2"
-                disabled={mainPipelineIndex === -1}
-                onClick={() => {
-                    carregarBanco(true);
-                    //aplicarPipeline();
-                }}
-            >
-                <IonIcon icon={flash} className='mx-1 pt-1 pb-0' />
-                Aplicar Pipeline
-            </IonButton>
+            <div className='row px-0 px-md-5'>
+                <div className='col-12 col-md-6' >
+                    <div className="d-block h-100">
+                    <IonButton 
+                        fill='solid'
+                        className="w-100 p-0 m-0"
+                        disabled={mainPipelineIndex === -1}
+                        onClick={reexecutarPipeline}
+                    >
+                    <IonIcon icon={flash} className='mx-1 pt-1 pb-0' />
+                        Executar Pipeline
+                    </IonButton>
+                    </div>
+                </div>
+                <div className='col-12 col-md-6'>
+                    <div className="d-block h-100">
+                        <IonButton 
+                            fill='solid'
+                            className="w-100 p-0 m-0"
+                            disabled={mainPipelineIndex === -1}
+                            onClick={() => carregarBanco(true)}
+                        >
+                        <IonIcon icon={createOutline} className='mx-1 pt-0 pb-0' />
+                            Editar Pipeline
+                        </IonButton>
+                    </div>
+                </div>
+            </div>
         </>
     );
 
@@ -236,24 +251,27 @@ const CarregarJobs = (props: any) => {
         if (valor === null || valor === undefined) return;
         console.log(`[CARREGAR-JOBS]: Usuário selecionou opção de Pipeline '${valor}'.`);
         
-        const pipelineReg = pipelinesBanco.filter((item) => item.nome === valor);
-        if (pipelineReg.length < 0) return;
-        console.log(`[CARREGAR-JOBS]: Pipeline '${pipelinesBanco[0].nome}' identificada.`);
+        const pipelineReg = pipelinesBanco.find((item) => item.nome === valor);
+        if (!pipelineReg) {
+            console.log(`[CARREGAR-JOBS]: Pipeline '${valor}' não identificada debter as Pipelines do banco.`);
+            return;
+        };
+        console.log(`[CARREGAR-JOBS]: Pipeline '${pipelineReg.nome}' identificada dentre as Pipelines do banco.`);
 
-        console.log(`[CARREGAR-JOBS]: Pipeline '${valor}' selecionada.`);
+        console.log(`[CARREGAR-JOBS]: Definindo a Pipeline '${pipelineReg.nome}' como main.`);
         const novaPipelineConfig: ConfigAtividadeTYPE = {
-            pipelineNome: pipelinesBanco[0].nome,
-            pipelineDescricao: pipelinesBanco[0].descricao,
+            pipelineNome: pipelineReg.nome,
+            pipelineDescricao: pipelineReg.descricao,
             atividadeNome: "",
             projetoNome: "",
             configuracao: "",
         };
-        dispatch(setMainPipeline({ pipelineNome: pipelinesBanco[0].nome }));
+        dispatch(setMainPipeline({ pipelineNome: pipelineReg.nome }));
         dispatch(setAtividade(novaPipelineConfig));
     }
 
     //Requisição para obter os jobs diretamente do banco
-    async function carregarBanco(aplicarJobsPipeline: boolean) {
+    async function carregarBanco(aplicarPipeline: boolean) {
         console.log(`[CARREGAR-JOBS]: Iniciando requisição 'Download Jobs'.`);
         modalGetPipelinesOff();
         modalNovaPipelineOff();
@@ -261,9 +279,7 @@ const CarregarJobs = (props: any) => {
 
         try {
             const planilhas: JobDTO[] = (await axiosRequest.getAllJobs());
-            const jobsPipeline = mainPipelineIndex > -1 ? pipelinesBanco[mainPipelineIndex].jobs : [];
-            //    .filter((item) => aplicarJobsPipeline)
-            //    .map((item) => aplicarPipeline(item));
+            const jobsPipeline = (mainPipelineIndex > -1 && aplicarPipeline) ? pipelinesBanco[mainPipelineIndex].jobs : [];
             dispatch(setPilha({ jobsBanco: planilhas, jobsPipeline: jobsPipeline }));
 
             history.push('/det-maker/select/');
@@ -296,36 +312,19 @@ const CarregarJobs = (props: any) => {
         }
     }
 
-    //Seleciona todos os jobs da pipeline, deixando pronta para ser executada
-    function aplicarPipeline(jobDto: JobDTO): JobDTO {
-        const pipelineAlvo = pipelinesBanco.filter((item) => item.nome === mainPipelineNome);
-        if (pipelineAlvo.length < 1) return jobDto;
-
-        //console.log(`[CARREGAR-JOBS]: Aplicando Jobs selecionadas da Pipeline ${mainPipelineNome}:`)
-        //const mainPipelineJobs: checkItemPilhaTYPE[] = [];
-        pipelineAlvo[0].jobs.map((jobNome, index) => {
-            if (jobNome === jobDto.nome) {
-                console.log(`[CARREGAR-JOBS]: Job [${jobDto.id}] ${jobDto.nome} em uso pela atual Pipeline.`);
-                jobDto.checked = true;
-            }
-            //allJobs.filter((item) => item.job.nome === jobNome)
-            //    .map((item) => {
-            //        console.log(`Job [${item.job.id}] ${item.job.nome} identificado na pilha de jobs já carregados.`);
-            //        const registro: checkItemPilhaTYPE = {
-            //            id: item.job.id,
-            //            checked: true,
-            //            ordem: index,
-            //        };
-            //        mainPipelineJobs.push(registro);
-            //    })
-        });
-        return jobDto;
-
-        //console.log(`[CARREGAR-JOBS]: ID dos Jobs usados pela Pipeline:` + '\n'
-        //    + ` - ${mainPipelineJobs.join(", ")}`);
-        //mainPipelineJobs.map((item) => {
-        //    dispatch(checkItemPilha(item));
-        //});
+    //Requisição para executar a Pipeline
+    async function reexecutarPipeline() {
+        console.log(`[CARREGAR-JOBS]: Iniciando requisição 'Rexecutar Pipeline'.`);
+        toastOff().then(() => acionarToast("REEXECUTAR PIPELINE: Em execução...", 5000, 'medium'));
+        try {
+            await axiosRequest.reexecutarPilha(mainPipelineNome); //const resposta: string = 
+            toastOff().then(() => acionarToast("REEXECUTAR PIPELINE: Realizada com sucesso.", 5000, 'primary'));
+            console.log(`[CONFIGURAR-JOBS]: Requisição 'Rexecutar Pipeline' funcionou.`);
+        }
+        catch (error) {
+            toastOff().then(() => acionarToast(`REEXECUTAR PIPELINE: ${error}`, 9900, 'warning'));
+            console.error(`[CONFIGURAR-JOBS]: Requisição 'Rexecutar Pipeline' falhou.`);
+        }
     }
 
     //Conteúdo principal renderizado nesta página

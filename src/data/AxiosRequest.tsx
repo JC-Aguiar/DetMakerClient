@@ -198,7 +198,7 @@ export async function getAllJobs(): Promise<JobDTO[]> {
 }
 
 //Requisição para executar a Pipeline
-export async function executarPilha(body: PipelineNovaExecDTO): Promise<EvidenciaDTO[]> {
+export async function executarPilha(body: PipelineNovaExecDTO): Promise<Blob> {
     const titulo = "EXECUTAR PIPELINE";
     requestStart(titulo);
 
@@ -212,12 +212,35 @@ export async function executarPilha(body: PipelineNovaExecDTO): Promise<Evidenci
         data: body,
     };
     //Executando requisiçãao
-    return await axios
-        .request(config)
+    return await axios.request(config)
         .then((response) => {
-            const evidencias: EvidenciaDTO[] = response.data;
-            requestSucesso(titulo, evidencias);
-            return evidencias;
+            return new Blob([response.data], { type: 'text/html' });
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para reexecutar uma Pipeline
+export async function reexecutarPilha(pipelineNome: string): Promise<Blob> {
+    const titulo = "REEXECUTAR PIPELINE";
+    requestStart(titulo);
+
+    //Instanciando Axios
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `http://localhost:1990/pipeline/run/again/${pipelineNome}`,
+        headers: headers,
+        timeout: 60000,
+        //data: pipelineNome,
+    };
+    //Executando requisiçãao
+    return await axios.request(config)
+        .then((response) => {
+            const fileBlob = response.data;
+            requestSucesso(titulo, fileBlob);
+            return fileBlob;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);

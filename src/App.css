@@ -530,6 +530,10 @@ table {
   word-break: break-all;
 }
 
+.pipelines-repo {
+  height: 300px;
+}
+
 #det-check {
   position: absolute;
   right: 2%;

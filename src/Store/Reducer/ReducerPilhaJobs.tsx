@@ -177,7 +177,7 @@ const pilhaJobs = createSlice({
             logItemPilha("Removendo", action.payload);
             const agenda = action.payload.job;
             let removerIndex = -1;
-            state.value.map((itemPronto, index) => {
+            state.value.forEach((itemPronto, index) => {
                 if (itemPronto.job.id === agenda.id) removerIndex = index;
             });
             if (removerIndex !== -1) {

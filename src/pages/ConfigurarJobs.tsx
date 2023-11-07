@@ -1,4 +1,4 @@
-import { InputChangeEventDetail, IonButton, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonPage, IonTextarea, TextareaChangeEventDetail, useIonModal, useIonToast, useIonViewDidEnter } from '@ionic/react';
+import { InputChangeEventDetail, IonButton, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonPage, IonTextarea, TextareaChangeEventDetail, ToastButton, useIonModal, useIonToast, useIonViewDidEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import JobCard from '../components/JobCard';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -22,6 +22,7 @@ import { ConfigAtividadeTYPE, setAtividade } from '../Store/Reducer/ReducerPipel
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
 import { PipelineNovaExecDTO } from '../data/PipelineNovaExecDTO';
 import { RelatorioInfoDTO } from '../data/RelatorioInfoDTO';
+import { UserInfoDTO } from '../data/UserInfoDTO';
 
 
 const ConfigurarJobs = (props: any) => {
@@ -33,7 +34,7 @@ const ConfigurarJobs = (props: any) => {
     const history = useHistory();
     const [thunderGif, setThunderGif] = useState(blueThunder);
     const executarStatus = (pilhaPronta > 0 ? "session-buttons" : "disabled");
-    const gif = (pilhaPronta > 0);
+    const gif = true; //(pilhaPronta > 0);
     const [pipelineNome, setPipelineNome] = useState<string>(
         useSelector((state: RootState) => state.store.configAtividade.pipelineNome)
     );
@@ -50,12 +51,13 @@ const ConfigurarJobs = (props: any) => {
         useSelector((state: RootState) => state.store.configAtividade.configuracao)
     );
     const [toast, toastOff] = useIonToast();
-    const acionarToast = (mensagem: string, tempo: number, cor: string) => {
+    const acionarToast = (mensagem: string, tempo: number, cor: string, buttons: ToastButton[]) => {
         toast({
             message: mensagem,
             duration: tempo,
             position: 'bottom',
             color: cor,
+            buttons: buttons,
         });
     };
     const [modalConfigPipelineOn, modalConfigPipelineOff] = useIonModal(ModalGenerica,
@@ -88,7 +90,7 @@ const ConfigurarJobs = (props: any) => {
     const itensParaExecutar = () => {
         const mensagem = `Temos ${pilhaPronta} de ${pilhaConfig} jobs prontos para executar.`;
         console.log(`[CONFIGURAR-JOBS] ${mensagem}`);
-        toastOff().then(() => acionarToast(mensagem, 5000, 'primary'));
+        toastOff().then(() => acionarToast(mensagem, 5000, 'primary', []));
     }
 
     function camposPipelineProntos(): boolean {
@@ -114,7 +116,7 @@ const ConfigurarJobs = (props: any) => {
     //Requisição para executar a Pipeline
     async function executarPipeline() {
         console.log(`[CONFIGURAR-JOBS]: Iniciando requisição 'Executar Pipeline'.`);
-        toastOff().then(() => acionarToast("EXECUTAR PIPELINE: Em execução...", 5000, 'medium'));
+        toastOff().then(() => acionarToast("EXECUTAR PIPELINE: Em execução...", 5000, 'medium', []));
 
         try {
             const pilhaJobs: JobExecuteDTO[] = pilhaExec
@@ -135,18 +137,33 @@ const ConfigurarJobs = (props: any) => {
                 pipeline: pipelineDto,
                 relatorio: relatorioDto,
                 jobs: pilhaJobs,
+                userInfo: {
+                    nome: "Autopilot DetMaker User",
+                    papel: "IA",
+                    empresa: "PPW",
+                } as UserInfoDTO,
             };
-            const evidencias: EvidenciaDTO[] = await axiosRequest.executarPilha(body);
-            const sucessos = evidencias.filter((evidencia) => evidencia.sucesso).length;
-
-            toastOff().then(() => acionarToast("EXECUTAR PIPELINE: Realizada com sucesso.", 5000, 'primary'));
-            console.log(`[CONFIGURAR-JOBS] Total de jobs executados com sucesso: ${sucessos}.`);
+            const arquivoDet: Blob = await axiosRequest.executarPilha(body);
+            const buttons = [
+                {
+                  text: 'Abrir',
+                  role: 'Abrir DET',
+                  handler: () => abrirDet(arquivoDet),
+                }
+              ]
+            toastOff().then(() => acionarToast("EXECUTAR PIPELINE: Realizada com sucesso.", 5000, 'primary', buttons));
             console.log(`[CONFIGURAR-JOBS]: Requisição 'Executar Pipeline' funcionou.`);
         }
         catch (error) {
-            toastOff().then(() => acionarToast(`EXECUTAR PIPELINE: ${error}`, 9900, 'warning'));
+            toastOff().then(() => acionarToast(`EXECUTAR PIPELINE: ${error}`, 9900, 'warning', []));
             console.error(`[CONFIGURAR-JOBS]: Requisição 'Executar Pipeline' falhou.`);
         }
+    }
+
+    function abrirDet(fileBlob: Blob) {
+        //TODO: >>> OBTER O ARQUIVO E O CAMINHO DO ARQUIVO (PARA IFNORMAR O USUÁRIO) <<<
+        const fileUrl = URL.createObjectURL(fileBlob);
+        window.open(fileUrl, '_blank');
     }
 
     //handler para preencher nome da Pipeline

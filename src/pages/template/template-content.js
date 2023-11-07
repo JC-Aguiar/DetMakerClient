@@ -66,7 +66,7 @@ function TabelaTestcase(
     })
     //Tabelas
     return React.createElement('div', { className: 'table-responsive' },
-        React.createElement('h3', { id: nome, className: 'pt-3' }, titulo),
+        React.createElement('h3', { id: titulo, className: 'pt-3' }, titulo),
         React.createElement('table', { className: 'table table-light table-striped m-0 mb-5 text-start' },
             React.createElement('tbody', null,
                 React.createElement('tr', null,
@@ -120,7 +120,8 @@ document.addEventListener('DOMContentLoaded', function () {
     //Criando Menu-Links
     let testesLinks = [];
     AllTabelasTestecase.forEach(function (element, index) {
-        let testeNome = AllTabelasTestecase[index].props.children[0].props.id + " Titulo";
+        let testeId = AllTabelasTestecase[index].props.children[0].props.id;
+        let testeNome = "-" + testeId;
         testesLinks.push(React.createElement('a', { id: testeNome, className: 'dropdown-item' }, testeNome));
     });
     //Renderizando Menu-Links
@@ -131,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //Vinculando Tabelas x Menu-Links
     testesLinks.forEach(function (element, index) {
         let testeId = AllTabelasTestecase[index].props.children[0].props.id;
-        let testeNome = AllTabelasTestecase[index].props.children[0].props.id + " Titulo";
+        let testeNome = "-" + testeId;
         const tituloTeste = document.getElementById(testeId);
         const menuTeste = document.getElementById(testeNome);
         menuTeste.addEventListener("click", (event) => {
