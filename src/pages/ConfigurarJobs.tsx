@@ -14,7 +14,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
 import { EvidenciaDTO } from '../data/EvidenciaDTO';
 import * as axiosRequest from "../data/AxiosRequest";
-import { JobExecuteDTO, converterEmDto } from '../data/JobExecute';
+import { JobExecuteDTO, configToExecuteDto } from '../data/JobExecute';
 import { useDispatch } from 'react-redux';
 import { show } from '../Store/Reducer/ReducerTabMenu';
 import ModalGenerica from '../components/ModalGenerica';
@@ -121,7 +121,7 @@ const ConfigurarJobs = (props: any) => {
         try {
             const pilhaJobs: JobExecuteDTO[] = pilhaExec
                 .filter((itemPilha) => itemPilha.pronto)
-                .map((itemPilha) => converterEmDto(itemPilha));
+                .map((itemPilha) => configToExecuteDto(itemPilha)); //TODO: ajustar
             const pipelineDto: PipelineInfoDTO = {
                 nome: pipelineNome,
                 descricao: pipelineDescricao,

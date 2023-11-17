@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { JobExecute } from '../../data/JobExecute';
-import { JobDTO } from '../../data/JobDTO';
+import { JobConfigDTO } from '../../data/JobExecute';
+import { JobInfoDTO } from '../../data/JobInfoDTO';
 import { ComandoSQL } from '../../data/ComandoSQL';
 
 const initialState = { value: [] } as PilhaTYPE;
@@ -9,12 +9,12 @@ var pilahExec = 0;
 
 //Interface para definir o tipo de objeto do reducer
 interface PilhaTYPE {
-    value: JobExecute[]
+    value: JobConfigDTO[]
 }
 
 //Interface para definir a pilha de Jobs
 export interface setPilhaTYPE {
-    jobsBanco: JobDTO[],
+    jobsBanco: JobConfigDTO[],
     jobsPipeline: string[],
 }
 
@@ -33,7 +33,6 @@ export interface setItemPilhaStatusTYPE {
     cargas: string[];
     pronto: boolean;
     ordem: number;
-    //antigaOrdem: number;
 }
 
 //Interface para definir argumentos do item-pilha
@@ -65,21 +64,9 @@ const pilhaJobs = createSlice({
             }
             pilahExec = 0;
             state.value = jobsBanco.map((item) => {
-                const ordem = jobsPipeline.findIndex((jobNome) => jobNome === item.nome);
-                if (ordem !== -1)  item.checked = true;
-                return {
-                    ordem: ordem,
-                    job: item,
-                    argumentos: item.parametros.map(e => ""),
-                    queries: item.tabelas.map(e =>
-                        ({
-                            tabela: e,
-                            filtros: ""
-                        }) as ComandoSQL
-                        ),
-                    cargas: item.mascaraEntrada.map(e => ""),
-                    pronto: false,
-                } as JobExecute;
+                const ordem = jobsPipeline.findIndex((jobNome) => jobNome === item.job.nome);
+                if (ordem !== -1)  item.job.checked = true;
+                return item;
             });
             console.log('[ReducerPilhaJobs] Acionado controlador pilhaJobs.setPilha: \n'
                 + `${state.value.map((itemPilha) => itemPilha.job.nome).join(", ")}.` + '\n'
@@ -165,14 +152,14 @@ const pilhaJobs = createSlice({
             logItemPilha(`Redefinindo item do`, state.value.filter((itemPilha) => itemPilha.job.id === itemPilhaQuery.id)[0]);
         },
         //ADICIONANDO NA PILHA DE JOBS---------------------------------------------------------------------------------
-        addItemPilha: (state, action: PayloadAction<JobExecute>) => {
+        addItemPilha: (state, action: PayloadAction<JobConfigDTO>) => {
             console.log('[ReducerPilhaJobs] Acionado controlador pilhaJobs.addItemPilha: \n' + `${action.payload}.`)
             logItemPilha("Adicionando", action.payload);
             state.value.push(action.payload);
             console.log(`[ReducerPilhaJobs] Pilha[${state.value.length - 1}] = ${state[state.value.length - 1]}.`)
         },
         //REMOVENDO NA PILHA DE JOBS-----------------------------------------------------------------------------------
-        removeItemPilha: (state, action: PayloadAction<JobExecute>) => {
+        removeItemPilha: (state, action: PayloadAction<JobConfigDTO>) => {
             console.log('[ReducerPilhaJobs] Acionado controlador pilhaJobs.setItemPilha: \n' + `${action.payload}.`)
             logItemPilha("Removendo", action.payload);
             const agenda = action.payload.job;
@@ -189,7 +176,7 @@ const pilhaJobs = createSlice({
 });
 
 //Exibe informações da item-pilah pelos controladores
-function logItemPilha(mensagem: string, item: JobExecute) {
+function logItemPilha(mensagem: string, item: JobConfigDTO) {
     console.log(`[ReducerPilhaJobs] ${mensagem} card job ${item.job.nome}:` + '\n'
         + ` - Selecionado = ${item.job.checked}` + '\n'
         + ` - Ordem Nº${item.ordem}` + '\n'

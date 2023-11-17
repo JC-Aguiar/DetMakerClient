@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useHistory } from 'react-router';
 import { checkmarkCircle, closeCircle } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { JobExecute } from '../data/JobExecute';
+import { JobConfigDTO } from '../data/JobExecute';
 import { RootState } from '../Store/ReduxStore';
 import { checkItemPilha } from '../Store/Reducer/ReducerPilhaJobs';
 import JobSchedule from '../components/JobSchedule';
@@ -11,7 +11,7 @@ import {show} from '../Store/Reducer/ReducerTabMenu';
 
 const EscolherJobs = (props: any) => {
     const dispatch = useDispatch();
-    const pilha: JobExecute[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
+    const pilha: JobConfigDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
     const [checks, setChecks] = useState<boolean>(true);
     const history = useHistory();
 

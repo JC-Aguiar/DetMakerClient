@@ -1,4 +1,4 @@
-export interface JobDTO {
+export interface JobInfoDTO {
     //Atributos de uso frontend/backend
     id: number;
     nome: string;

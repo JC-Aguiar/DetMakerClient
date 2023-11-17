@@ -8,7 +8,7 @@ export interface PipelineNovaExecDTO {
     userInfo: UserInfoDTO,
     jobs: JobExecuteDTO[],
 
-    //Atributos suados no frontend
+    //Atributos usados no frontend
     pipeline: PipelineInfoDTO,
     relatorio: RelatorioInfoDTO,
 }

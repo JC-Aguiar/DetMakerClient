@@ -1,9 +1,9 @@
 import { ComandoSQL } from "./ComandoSQL";
-import { JobDTO } from "./JobDTO";
+import { JobInfoDTO } from "./JobInfoDTO";
 
-export interface JobExecute {
+export interface JobConfigDTO {
     ordem: number;
-    job: JobDTO;
+    job: JobInfoDTO;
     argumentos: string[];
     queries: ComandoSQL[];
     cargas: string[];
@@ -19,14 +19,13 @@ export interface JobExecuteDTO {
     cargas: string[];
 }
 
-export function converterEmDto(itemPilha: JobExecute): JobExecuteDTO {
-    const dto: JobExecuteDTO = {
+export function configToExecuteDto(itemPilha: JobConfigDTO): JobExecuteDTO {
+    return {
         ordem: itemPilha.ordem,
         id: itemPilha.job.id,
         nome: itemPilha.job.nome,
         argumentos: itemPilha.argumentos.join(" "),
         queries: itemPilha.queries,
         cargas: itemPilha.cargas,
-    };
-    return dto;
+    } as JobExecuteDTO;
 }

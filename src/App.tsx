@@ -29,8 +29,8 @@ import Login from './pages/Login';
 import CarregarJobs from './pages/CarregarJobs';
 import EscolherJobs from './pages/EscolherJobs';
 import ConfigurarJobs from './pages/ConfigurarJobs';
-import { JobDTO } from './data/JobDTO';
-import { JobExecute } from './data/JobExecute';
+import { JobInfoDTO } from './data/JobInfoDTO';
+import { JobConfigDTO } from './data/JobExecute';
 import { RootState } from './Store/ReduxStore';
 import Det from './pages/Det';
 
@@ -40,7 +40,7 @@ setupIonicReact();
 
 export interface AgendaParaPilha {
     add: boolean,
-    job: JobDTO
+    job: JobInfoDTO
 }
 
 export const dataFormato: Intl.DateTimeFormatOptions = {
@@ -54,7 +54,7 @@ const App = () => {
     //const hideTabBarRoutes = ['/det-maker/evidence', '/signup'];
     //setMenuOn(hideTabBarRoutes.some(route => location.pathname.includes(route)));
     const menuTabOn: boolean = useSelector((state: RootState) => state.store.tabMenu);
-    const pilha: JobExecute[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
+    const pilha: JobConfigDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
     const escolherJobsOpt: boolean = pilha.length > 0;
     const jobsCount: number = pilha.filter((itemPilha) => itemPilha.job.checked).length;
     const configurarJobsOpt: boolean = jobsCount > 0;

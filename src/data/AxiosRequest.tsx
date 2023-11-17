@@ -1,11 +1,11 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, AxiosRequestHeaders } from 'axios';
 import { TokenModel } from './TokenModel';
 import { ErroModel } from './ErroModel';
-import { JobDTO } from './JobDTO';
-import { EvidenciaDTO } from './EvidenciaDTO';
-import { JobExecute, JobExecuteDTO as JobExecuteDTO } from './JobExecute';
+import { JobInfoDTO } from './JobInfoDTO';
 import { PipelineInfoDTO } from './PIpelineInfoDTO';
 import { PipelineNovaExecDTO } from './PipelineNovaExecDTO';
+import { ComandoSQL } from './ComandoSQL';
+import { JobConfigDTO } from './JobExecute';
 
 //Headers de comum uso na maioria das requisições
 const headers: AxiosRequestHeaders = {
@@ -47,7 +47,8 @@ export function requestStart(titulo: string) {
 //Padrão de exibição de mensagem em caso da resposta ser positiva
 export function requestSucesso(titulo: string, obj: any) {
     const mensagemSucesso = `Processo realizado com sucesso!`;
-    logInfo(titulo, mensagemSucesso + '\n' + obj);
+    const json = JSON.stringify(obj, null, 2);
+    logInfo(titulo, mensagemSucesso + '\n' + json);
 }
 
 //Padrão de exibição de mensagem em caso da resposta ser negativa
@@ -98,7 +99,7 @@ export async function login(email: string, senha: string): Promise<TokenModel> {
 }
 
 //Requisição para abrir planilha Schedule
-export async function openSchedule(arquivoXlsx: File): Promise<JobDTO[]> {
+export async function openSchedule(arquivoXlsx: File): Promise<JobConfigDTO[]> {
     const titulo = "ABRIR SCHEDULE";
     requestStart(titulo);
 
@@ -129,7 +130,7 @@ export async function openSchedule(arquivoXlsx: File): Promise<JobDTO[]> {
     return await axios
         .request(config)
         .then((response) => {
-            const json: JobDTO[] = response.data;
+            const json: JobConfigDTO[] = response.data;
             requestSucesso(titulo, json);
             return json;
         })
@@ -165,7 +166,7 @@ export async function getAllPipelines(): Promise<PipelineInfoDTO[]> {
 }
 
 //Requisição para obter todos os Jobs no banco
-export async function getAllJobs(): Promise<JobDTO[]> {
+export async function getAllJobs(): Promise<JobConfigDTO[]> {
     const titulo = "OBTENDO JOBS";
     requestStart(titulo);
 
@@ -188,7 +189,7 @@ export async function getAllJobs(): Promise<JobDTO[]> {
     return await axios
         .request(config)
         .then((response) => {
-            const json: JobDTO[] = response.data.content;
+            const json: JobConfigDTO[] = response.data.content;
             requestSucesso(titulo, json);
             return json;
         })
@@ -241,6 +242,31 @@ export async function reexecutarPilha(pipelineNome: string): Promise<Blob> {
             const fileBlob = response.data;
             requestSucesso(titulo, fileBlob);
             return fileBlob;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para obter ConfigQuery's de um Job
+export async function getQueries(jobId: number): Promise<ComandoSQL[]> {
+    const titulo = "OBTER CONFIG-QUERYs";
+    requestStart(titulo);
+
+    //Instanciando Axios
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `http://localhost:1990/queries/job/${jobId}`,
+        headers: headers,
+        timeout: 10000,
+    };
+    //Executando requisiçãao
+    return await axios.request(config)
+        .then((response) => {
+            const listaDto: ComandoSQL[] = response.data;
+            requestSucesso(titulo, listaDto);
+            return listaDto;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);

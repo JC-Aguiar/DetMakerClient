@@ -1,8 +1,8 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { JobDTO } from '../../data/JobDTO';
+import { JobInfoDTO } from '../../data/JobInfoDTO';
 
 interface JobTYPE {
-    value: JobDTO[]
+    value: JobInfoDTO[]
 }
 
 export interface setItemJobTYPE {
@@ -16,7 +16,7 @@ const jobs = createSlice({
     name: 'Jobs',
     initialState,
     reducers: {
-        setJob: (state, action: PayloadAction<JobDTO[]>) => {
+        setJob: (state, action: PayloadAction<JobInfoDTO[]>) => {
             if (!Array.isArray(action.payload)) {
                 console.log('[ReducerJobs] Erro: payload inválido.');
                 return {...state};
@@ -36,13 +36,13 @@ const jobs = createSlice({
                 return item;
             });
         },
-        addJob: (state, action: PayloadAction<JobDTO>) => {
+        addJob: (state, action: PayloadAction<JobInfoDTO>) => {
             console.log('[ReducerJobs] Acionado controlador Jobs.addItemAgenda: \n' + `${action.payload}.`);
             logJob("Adicionando", action.payload);
             state.value.push(action.payload);
             console.log(`[ReducerJobs] Pilha[${state.value.length - 1}] = ${state[state.value.length - 1]}.`);
         },
-        removeJob: (state, action: PayloadAction<JobDTO>) => {
+        removeJob: (state, action: PayloadAction<JobInfoDTO>) => {
             console.log('[ReducerJobs] Acionado controlador Jobs.removeItemAgenda: \n' + `${action.payload}.`);
             logJob("Removendo", action.payload);
             let agenda = action.payload;
@@ -58,7 +58,7 @@ const jobs = createSlice({
     },
 });
 
-function logJob(mensagem: string, agenda: JobDTO) {
+function logJob(mensagem: string, agenda: JobInfoDTO) {
     console.log(`[ReducerJobs] ${mensagem} agenda ID ${agenda.id} ${agenda.nome}:` + '\n'
         + ` - Parametros (${agenda.parametros.length})` + '\n'
         + ` - Tabelas (${agenda.tabelas.length})` + '\n'

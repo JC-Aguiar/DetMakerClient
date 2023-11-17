@@ -1,9 +1,9 @@
 import { IonButton, IonContent, IonIcon, IonItem, IonLabel, IonPage, IonPopover, IonRadio, IonRadioGroup, RadioGroupChangeEventDetail, useIonModal, useIonToast, useIonViewDidEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useState } from 'react';
-import { cloudDownload, create, createOutline, filter, flash, folderOpen, server } from 'ionicons/icons';
+import { cloudDownload, create, createOutline, flash, folderOpen, server } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
-import { JobDTO } from '../data/JobDTO';
+import { JobInfoDTO } from '../data/JobInfoDTO';
 import dayjs from 'dayjs';
 import { RootState } from '../Store/ReduxStore';
 import { useDispatch, useSelector } from 'react-redux';
@@ -17,9 +17,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { Pagination } from 'swiper/modules';
-import { JobExecuteDTO, converterEmDto } from '../data/JobExecute';
-import { PipelineNovaExecDTO } from '../data/PipelineNovaExecDTO';
-import { RelatorioInfoDTO } from '../data/RelatorioInfoDTO';
+import { JobConfigDTO } from '../data/JobExecute';
 
 export function validarExibirData(dataAtualizacao: string): string {
     const date = dayjs(dataAtualizacao);
@@ -230,7 +228,7 @@ const CarregarJobs = (props: any) => {
 
             const formData = new FormData();
             formData.append('file', anexo);
-            const planilhas: JobDTO[] = await axiosRequest.openSchedule(anexo);
+            const planilhas: JobConfigDTO[] = await axiosRequest.openSchedule(anexo);
             dispatch(setPilha({ jobsBanco: planilhas, jobsPipeline:[] }));
 
             toastOff().then(() => acionarToast("ABRIR PLANILHA: Realizado com sucesso.", 5000, 'primary'));
@@ -278,9 +276,12 @@ const CarregarJobs = (props: any) => {
         toastOff().then(() => acionarToast("DOWNLOAD JOBS: Em execução...", 5000, 'medium'));
 
         try {
-            const planilhas: JobDTO[] = (await axiosRequest.getAllJobs());
+            const planilhas: JobConfigDTO[] = (await axiosRequest.getAllJobs());
             const jobsPipeline = (mainPipelineIndex > -1 && aplicarPipeline) ? pipelinesBanco[mainPipelineIndex].jobs : [];
-            dispatch(setPilha({ jobsBanco: planilhas, jobsPipeline: jobsPipeline }));
+            dispatch(setPilha({ 
+                jobsBanco: planilhas, 
+                jobsPipeline: jobsPipeline 
+            }));
 
             history.push('/det-maker/select/');
             toastOff().then(() => acionarToast("DOWNLOAD JOBS: Realizado com sucesso.", 5000, 'primary'));
