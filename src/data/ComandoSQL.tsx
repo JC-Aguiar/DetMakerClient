@@ -4,7 +4,7 @@ export interface ComandoSQL {
     campos: string[];
     tabela: string;
     filtros: FiltroSQL[];
-    ordem: string;
+    sql: string;
     descricao: string;
     dinamico: boolean;
 }

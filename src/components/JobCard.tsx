@@ -89,7 +89,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
             if (comandoSql.dinamico) {
                 return comandoSql.filtros.every((filtroSql) => filtroSql.valor.length > 0);
             }
-            return comandoSql.descricao && comandoSql.descricao.length > 0;
+            return comandoSql.sql && comandoSql.sql.length > 0;
         });
         //const statusCargas = cargas.length === 0 || cargas.every((carga) => carga.trim().length > 0);
         const statusOrdem = ordem !== null && ordem >= 0;
@@ -149,13 +149,13 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
             campos: novasQueries[index].campos,
             tabela: novasQueries[index].tabela,
             filtros: [],
-            ordem: novasQueries[index].ordem,
-            descricao: value,
+            sql: value,
+            descricao: novasQueries[index].descricao,
             dinamico: false,
         };
         queries = (novasQueries);
         console.log(
-            `[CARD-JOB] ${jobExec.job.nome} query[${index}] ${queries[index].tabela} = ${queries[index].descricao}.`
+            `[CARD-JOB] ${jobExec.job.nome} query[${index}] ${queries[index].tabela} = ${queries[index].sql}.`
         );
     }
     const preencherConfigQueries = (event: CustomEvent<InputChangeEventDetail>, queryIndex: number, filtroIndex: number) => {
@@ -298,7 +298,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
                         autoGrow={true}
                         placeholder={`Insira o comando SQL aqui`}
                         onIonChange={(e) => preencherQueries(e, index)}
-                        value={queries[index].descricao}
+                        value={queries[index].sql}
                     />
                 </div>
             </div>
