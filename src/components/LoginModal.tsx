@@ -32,11 +32,10 @@ const LoginModal = (props: any) => {
         });
         try {
             await alert.present().then(esconderModal);
-            const response = await axiosRequest
-                .login(userEmail, userSenha);
-            const token: TokenInterface = new TokenModel(response);
-            const user: UsuarioInterface = new UsuarioModel(token.usuario);
-            callBack(user);
+            //const response = await axiosRequest.login(userEmail, userSenha);
+            //const token: TokenInterface = new TokenModel(response);
+            //const user: UsuarioInterface = new UsuarioModel(token.usuario);
+            //callBack(user);
         }
         catch (error) {
             await exibirModal();

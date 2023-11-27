@@ -1,8 +1,8 @@
 import { IonCheckbox, useIonViewDidEnter } from "@ionic/react";
 import { useDispatch } from "react-redux";
-import { validarExibirData } from "../pages/CarregarJobs";
 import { JobInfoDTO } from "../data/JobInfoDTO";
 import { checkItemPilha } from "../Store/Reducer/ReducerPilhaJobs";
+import { validarExibirData } from "../App";
 
 export interface JobScheduleProps {
     job: JobInfoDTO, 

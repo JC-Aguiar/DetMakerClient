@@ -16,7 +16,7 @@ const EscolherJobs = (props: any) => {
     const history = useHistory();
 
     useIonViewDidEnter(() => {
-        dispatch(show());
+        //dispatch(show());
         console.log(`[ESCOLHER-JOBS] Jobs: ${pilha.map((itemPilha) => itemPilha.job.nome).join(", ")}`);
         if (pilha.length === 0) {
             console.log(`[ESCOLHER-JOBS] A pilha de jobs está vazia. Retornando página.`);

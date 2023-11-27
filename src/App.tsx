@@ -2,6 +2,7 @@ import { IonApp, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonTabBar, IonTa
 import { IonReactRouter } from '@ionic/react-router';
 import { Redirect, Route } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import dayjs from 'dayjs';
 import Intro from './pages/Intro';
 import "./App.css";
 
@@ -47,6 +48,16 @@ export const dataFormato: Intl.DateTimeFormatOptions = {
     dateStyle: 'short', //Utiliza o formato de data curta com separador "/"
 };
 
+export function validarExibirData(dataAtualizacao: string): string {
+    const date = dayjs(dataAtualizacao);
+    if (!dayjs(date).isValid()) return dataAtualizacao;
+    return new Intl.DateTimeFormat('pt-BR').format(date.toDate());
+}
+
+export function dataParaString(data: Date): string {
+    return dayjs(data).format('DD/MM/YYYY HH:mm:ss');
+}
+
 /* Componente <App> */
 const App = () => {
     const [boasVindas, setBoasVindas] = useState(false);
@@ -59,7 +70,7 @@ const App = () => {
     const jobsCount: number = pilha.filter((itemPilha) => itemPilha.job.checked).length;
     const configurarJobsOpt: boolean = jobsCount > 0;
     const executarJobsOpt: boolean = false;
-    const evidenciaPag: boolean = useSelector((state: RootState) => state.store.evidenciaJobs);
+    const evidenciaPag: boolean = useSelector((state: RootState) => state.store.relatorios.value) !== null;
 
     function animationEnd() {
         setBoasVindas(true);
@@ -98,10 +109,11 @@ const App = () => {
                 {/* Rotas Url */}
                 <IonTabs>
                     <IonRouterOutlet>
-                        <Route path="/det-maker/open" exact> <CarregarJobs /> </Route>
-                        <Route path="/det-maker/select" exact> <EscolherJobs /> </Route>
-                        <Route path="/det-maker/config" exact> <ConfigurarJobs /> </Route>
-                        <Route path="/det-maker/evidence" exact> <Det /> </Route>
+                        <Route path="/det-maker/login" exact>   <Login />           </Route>
+                        <Route path="/det-maker/open" exact>    <CarregarJobs />    </Route>
+                        <Route path="/det-maker/select" exact>  <EscolherJobs />    </Route>
+                        <Route path="/det-maker/config" exact>  <ConfigurarJobs />  </Route>
+                        <Route path="/det-maker/evidence" exact><Det />             </Route>
                         <Route> <Redirect to="/det-maker/open" /> </Route>
                     </IonRouterOutlet>
 
@@ -137,7 +149,7 @@ const App = () => {
                         {/* Evidencia */}
                         <IonTabButton tab="evidence" href="/det-maker/evidence"
                             className='pt-2 bg-transparent fw-bold'
-                            disabled={!configurarJobsOpt}
+                            disabled={!evidenciaPag}
                         >
                             <IonIcon icon={documentText} />
                             <IonLabel>Evidencia</IonLabel>

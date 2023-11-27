@@ -65,9 +65,13 @@ const pilhaJobs = createSlice({
             pilahExec = 0;
             state.value = jobsBanco.map((item) => {
                 const ordem = jobsPipeline.findIndex((jobNome) => jobNome === item.job.nome);
-                if (ordem !== -1)  item.job.checked = true;
+                if (ordem !== -1)  {
+                    item.ordem = ordem;
+                    item.job.checked = true;
+                }
                 return item;
             });
+            pilahExec = state.value.filter((item) => item.job.checked).length;
             console.log('[ReducerPilhaJobs] Acionado controlador pilhaJobs.setPilha: \n'
                 + `${state.value.map((itemPilha) => itemPilha.job.nome).join(", ")}.` + '\n'
                 + `Lista atual com ${state.value.length} agendas registradas.`

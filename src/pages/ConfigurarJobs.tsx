@@ -12,43 +12,47 @@ import darkThunder from '../resources/thunder spark gif dark.gif';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
-import { EvidenciaDTO } from '../data/EvidenciaDTO';
 import * as axiosRequest from "../data/AxiosRequest";
 import { JobExecuteDTO, configToExecuteDto } from '../data/JobExecute';
 import { useDispatch } from 'react-redux';
-import { show } from '../Store/Reducer/ReducerTabMenu';
 import ModalGenerica from '../components/ModalGenerica';
-import { ConfigAtividadeTYPE, setAtividade } from '../Store/Reducer/ReducerPipelineExecute';
+import { ReducerProjetoTYPE, setDadosProjeto } from '../Store/Reducer/ReducerProjetos';
+import { addRelatorio } from '../Store/Reducer/ReducerRelatorios';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
 import { PipelineNovaExecDTO } from '../data/PipelineNovaExecDTO';
 import { RelatorioInfoDTO } from '../data/RelatorioInfoDTO';
 import { UserInfoDTO } from '../data/UserInfoDTO';
+import { RelatorioHistoricoDTO } from '../data/RelatorioHistoricoDTO';
 
 
 const ConfigurarJobs = (props: any) => {
     //Propriedades do <ConfigurarJobs>
     const dispatch = useDispatch();
     const pilhaExec = useSelector((state: RootState) => state.store.pilhaJobs.value);
-    const pilhaConfig = pilhaExec.filter((itemPilha) => itemPilha.job.checked).length;
-    const pilhaPronta = pilhaExec.filter((itemPilha) => itemPilha.pronto && itemPilha.job.checked).length;
+    const pilhaChecked = pilhaExec.filter((itemPilha) => itemPilha.job.checked);
+    const numPilhaConfig = pilhaChecked.length;
+    const numPilhaPronta = pilhaChecked.filter((itemPilha) => itemPilha.pronto).length;
     const history = useHistory();
     const [thunderGif, setThunderGif] = useState(blueThunder);
-    const executarStatus = (pilhaPronta > 0 ? "session-buttons" : "disabled");
+    const executarStatus = (numPilhaPronta > 0 ? "session-buttons" : "disabled");
     const gif = true; //(pilhaPronta > 0);
     const [pipelineNome, setPipelineNome] = useState<string>(
-        useSelector((state: RootState) => state.store.configAtividade.pipelineNome)
+        useSelector((state: RootState) => state.store.configProjeto.pipelineNome)
     );
     const [pipelineDescricao, setPipelineDescricao] = useState<string>(
-        useSelector((state: RootState) => state.store.configAtividade.pipelineDescricao)
+        useSelector((state: RootState) => state.store.configProjeto.pipelineDescricao)
     );
-    const [atividadeNome, setAtividadeNome] = useState<string>(
-        useSelector((state: RootState) => state.store.configAtividade.atividadeNome)
+    const [projetoId, setProjetoId] = useState<string>(
+        useSelector((state: RootState) => state.store.configProjeto.projetoId)
     );
     const [projetoNome, setProjetoNome] = useState<string>(
-        useSelector((state: RootState) => state.store.configAtividade.projetoNome)
+        useSelector((state: RootState) => state.store.configProjeto.projetoNome)
+    );
+    const [atividadeNome, setAtividadeNome] = useState<string>(
+        useSelector((state: RootState) => state.store.configProjeto.atividadeNome)
     );
     const [configuracao, setConfiguracao] = useState<string>(
-        useSelector((state: RootState) => state.store.configAtividade.configuracao)
+        useSelector((state: RootState) => state.store.configProjeto.configuracao)
     );
     const [toast, toastOff] = useIonToast();
     const acionarToast = (mensagem: string, tempo: number, cor: string, buttons: ToastButton[]) => {
@@ -70,7 +74,7 @@ const ConfigurarJobs = (props: any) => {
 
     //Acionamento assim que esta página for montada
     useIonViewDidEnter(() => {
-        dispatch(show());
+        //dispatch(show());
         console.log(`[CONFIGURAR-JOBS] Jobs: ${pilhaExec.map((itemPilha) => itemPilha.job.nome).join(", ")}`);
         if (pilhaExec.length === 0) {
             console.log(`[CONFIGURAR-JOBS] A pilha de jobs está vazia. Retornando página.`);
@@ -88,7 +92,7 @@ const ConfigurarJobs = (props: any) => {
 
     //Mensagem em log e em Tost da quantidade de Job na Pipeline para executar
     const itensParaExecutar = () => {
-        const mensagem = `Temos ${pilhaPronta} de ${pilhaConfig} jobs prontos para executar.`;
+        const mensagem = `Temos ${numPilhaPronta} de ${numPilhaConfig} jobs prontos para executar.`;
         console.log(`[CONFIGURAR-JOBS] ${mensagem}`);
         toastOff().then(() => acionarToast(mensagem, 5000, 'primary', []));
     }
@@ -119,9 +123,9 @@ const ConfigurarJobs = (props: any) => {
         toastOff().then(() => acionarToast("EXECUTAR PIPELINE: Em execução...", 5000, 'medium', []));
 
         try {
-            const pilhaJobs: JobExecuteDTO[] = pilhaExec
+            const pilhaJobs: JobExecuteDTO[] = pilhaChecked
                 .filter((itemPilha) => itemPilha.pronto)
-                .map((itemPilha) => configToExecuteDto(itemPilha)); //TODO: ajustar
+                .map((itemPilha) => configToExecuteDto(itemPilha)); //TODO: melhorar?
             const pipelineDto: PipelineInfoDTO = {
                 nome: pipelineNome,
                 descricao: pipelineDescricao,
@@ -129,9 +133,13 @@ const ConfigurarJobs = (props: any) => {
                 checked: true,
             };
             const relatorioDto: RelatorioInfoDTO = {
-                nomeAtividade: atividadeNome,
+                idProjeto: projetoId,
                 nomeProjeto: projetoNome,
+                nomeAtividade: atividadeNome,
                 configuracao: configuracao,
+                testeTipo: "Unitário",
+                //sistema: "",
+                //ambiente: "",
             };
             const body: PipelineNovaExecDTO = {
                 pipeline: pipelineDto,
@@ -143,15 +151,20 @@ const ConfigurarJobs = (props: any) => {
                     empresa: "PPW",
                 } as UserInfoDTO,
             };
-            const arquivoDet: Blob = await axiosRequest.executarPilha(body);
-            const buttons = [
-                {
-                  text: 'Abrir',
-                  role: 'Abrir DET',
-                  handler: () => abrirDet(arquivoDet),
-                }
-              ]
-            toastOff().then(() => acionarToast("EXECUTAR PIPELINE: Realizada com sucesso.", 5000, 'primary', buttons));
+            //const arquivoDet: Blob = await axiosRequest.executarPilha(body);
+            //const buttons = [
+            //    {
+            //      text: 'Abrir',
+            //      role: 'Abrir DET',
+            //      handler: () => abrirDet(arquivoDet),
+            //    }
+            //  ]
+            //toastOff().then(() => acionarToast("EXECUTAR PIPELINE: Realizada com sucesso.", 5000, 'primary', buttons));
+            const relatorio: RelatorioHistoricoDTO = await axiosRequest.executarPilha(body);
+            dispatch(addRelatorio({ value: relatorio }));
+            history.push('/det-maker/evidence/');
+
+            toastOff().then(() => acionarToast("EXECUTAR PIPELINE: Realizada com sucesso.", 5000, 'primary', []));
             console.log(`[CONFIGURAR-JOBS]: Requisição 'Executar Pipeline' funcionou.`);
         }
         catch (error) {
@@ -180,18 +193,25 @@ const ConfigurarJobs = (props: any) => {
         console.log(`[CONFIGURAR-JOBS] Pipeline descrição alterada para ${value}.`);
     }
 
+    //Handler para preencher id do projeto
+    const preencherProjetoId = (event: CustomEvent<InputChangeEventDetail>) => {
+        const value = (event.target as HTMLInputElement).value.trim();
+        setProjetoId(value);
+        console.log(`[CONFIGURAR-JOBS] Projeto id alterado para ${value}.`);
+    }
+
+    //Handler para preencher nome do projeto
+    const preencherProjetoNome = (event: CustomEvent<InputChangeEventDetail>) => {
+        const value = (event.target as HTMLInputElement).value.trim();
+        setProjetoNome(value);
+        console.log(`[CONFIGURAR-JOBS] Projeto nome alterado para ${value}.`);
+    }
+
     //Handler para preencher nome da atividade
     const preencherAtividade = (event: CustomEvent<InputChangeEventDetail>) => {
         const value = (event.target as HTMLInputElement).value.trim();
         setAtividadeNome(value);
         console.log(`[CONFIGURAR-JOBS] Atividade nome alterada para ${value}.`);
-    }
-
-    //Handler para preencher nome do projeto
-    const preencherProjeto = (event: CustomEvent<InputChangeEventDetail>) => {
-        const value = (event.target as HTMLInputElement).value.trim();
-        setProjetoNome(value);
-        console.log(`[CONFIGURAR-JOBS] Projeto nome alterado para ${value}.`);
     }
 
     //Handler para preencher configuração do môdulo
@@ -220,7 +240,7 @@ const ConfigurarJobs = (props: any) => {
                 <div className='col row text-primary border border-1 rounded mt-2 bg-white'>
                     <div className='h5 text-center text-primary py-1'>Preencha os dados abaixo para prosseguir</div>
                     <IonItem className='text-primary'>
-                        <IonLabel >*Pipeline:</IonLabel>
+                        <IonLabel className='fw-bold' >*Pipeline:</IonLabel>
                         <IonInput inputmode='text' 
                             maxlength={200} 
                             value={pipelineNome} 
@@ -229,7 +249,7 @@ const ConfigurarJobs = (props: any) => {
                         />
                     </IonItem>
                     <IonItem className='text-primary'>
-                        <IonLabel >*Descrição:</IonLabel>
+                        <IonLabel className='fw-bold' >*Descrição:</IonLabel>
                         <IonTextarea inputmode='text' 
                             maxlength={500} 
                             value={pipelineDescricao} 
@@ -238,7 +258,25 @@ const ConfigurarJobs = (props: any) => {
                         />
                     </IonItem>
                     <IonItem className='text-primary'>
-                        <IonLabel className=''>Atividade:</IonLabel>
+                        <IonLabel className='fw-bold'>Projeto Id:</IonLabel>
+                        <IonInput inputmode='text'
+                            type='text'
+                            size={10}
+                            maxlength={7}
+                            value={projetoId}
+                            onIonChange={(e) => preencherProjetoId(e)} 
+                        ></IonInput>
+                        <IonLabel className='fw-bold'>Projeto Nome:</IonLabel>
+                        <IonInput inputmode='text'
+                            type='text'
+                            size={50}
+                            maxlength={200}
+                            value={projetoNome}
+                            onIonChange={(e) => preencherProjetoNome(e)} 
+                        ></IonInput>
+                    </IonItem>
+                    <IonItem className='text-primary'>
+                        <IonLabel className='fw-bold'>Atividade:</IonLabel>
                         <IonInput inputmode='text' 
                             maxlength={300}
                             value={atividadeNome}
@@ -246,15 +284,7 @@ const ConfigurarJobs = (props: any) => {
                         ></IonInput>
                     </IonItem>
                     <IonItem className='text-primary'>
-                        <IonLabel className=''>Projeto:</IonLabel>
-                        <IonInput inputmode='text' 
-                            maxlength={200}
-                            value={projetoNome}
-                            onIonChange={(e) => preencherProjeto(e)} 
-                        ></IonInput>
-                    </IonItem>
-                    <IonItem className='text-primary'>
-                        <IonLabel className=''>Configurações:</IonLabel>
+                        <IonLabel className='fw-bold'>Configurações:</IonLabel>
                         <IonTextarea inputmode='text' 
                             maxlength={200}
                             value={configuracao}
@@ -269,14 +299,15 @@ const ConfigurarJobs = (props: any) => {
                         disabled={!camposPipelineProntos()}
                         onClick={() => {
                             modalConfigPipelineOff();
-                            const novaPipelineConfig: ConfigAtividadeTYPE = {
+                            const novoDadosProjeto: ReducerProjetoTYPE = {
                                 pipelineNome: pipelineNome,
                                 pipelineDescricao: pipelineDescricao,
-                                atividadeNome: atividadeNome,
+                                projetoId: projetoId,
                                 projetoNome: projetoNome,
+                                atividadeNome: atividadeNome,
                                 configuracao: configuracao,
                             };
-                            dispatch(setAtividade(novaPipelineConfig));
+                            dispatch(setDadosProjeto(novoDadosProjeto));
                             executarPipeline();
                         }}
                     >
@@ -333,8 +364,7 @@ const ConfigurarJobs = (props: any) => {
                 >
                     <div className='d-flex justify-items-center'>
                     {
-                        pilhaExec.filter((itemPilha) => itemPilha.job.checked)
-                            .map((itemPilha, index) => {
+                        pilhaChecked.map((itemPilha, index) => {
                                 return (
                                     <SwiperSlide key={index}>
                                         <JobCard id={itemPilha.job.id} 

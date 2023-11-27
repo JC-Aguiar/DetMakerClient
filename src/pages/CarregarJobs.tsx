@@ -3,15 +3,12 @@ import { useHistory } from 'react-router';
 import { useState } from 'react';
 import { cloudDownload, create, createOutline, flash, folderOpen, server } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
-import { JobInfoDTO } from '../data/JobInfoDTO';
-import dayjs from 'dayjs';
 import { RootState } from '../Store/ReduxStore';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPilha } from '../Store/Reducer/ReducerPilhaJobs';
-import { show } from '../Store/Reducer/ReducerTabMenu';
 import ModalGenerica from '../components/ModalGenerica';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
-import { ConfigAtividadeTYPE, setAtividade } from '../Store/Reducer/ReducerPipelineExecute';
+import { ReducerProjetoTYPE, setDadosProjeto } from '../Store/Reducer/ReducerProjetos';
 import { setMainPipeline, setPipelines } from '../Store/Reducer/ReducerPipelines';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
@@ -19,11 +16,6 @@ import 'swiper/css/pagination';
 import { Pagination } from 'swiper/modules';
 import { JobConfigDTO } from '../data/JobExecute';
 
-export function validarExibirData(dataAtualizacao: string): string {
-    const date = dayjs(dataAtualizacao);
-    if (!dayjs(date).isValid()) return dataAtualizacao;
-    return new Intl.DateTimeFormat('pt-BR').format(date.toDate());
-}
 
 const CarregarJobs = (props: any) => {
     //Propriedades do <CarregarJobs>
@@ -199,7 +191,7 @@ const CarregarJobs = (props: any) => {
 
     //Operações ao carregar esta página
     useIonViewDidEnter(() => {
-        dispatch(show());
+        //dispatch(show());
     }, []);
 
     //Coletando arquivo da máquina local
@@ -257,15 +249,16 @@ const CarregarJobs = (props: any) => {
         console.log(`[CARREGAR-JOBS]: Pipeline '${pipelineReg.nome}' identificada dentre as Pipelines do banco.`);
 
         console.log(`[CARREGAR-JOBS]: Definindo a Pipeline '${pipelineReg.nome}' como main.`);
-        const novaPipelineConfig: ConfigAtividadeTYPE = {
+        const novaPipelineConfig: ReducerProjetoTYPE = {
             pipelineNome: pipelineReg.nome,
             pipelineDescricao: pipelineReg.descricao,
-            atividadeNome: "",
+            projetoId: "",
             projetoNome: "",
+            atividadeNome: "",
             configuracao: "",
         };
         dispatch(setMainPipeline({ pipelineNome: pipelineReg.nome }));
-        dispatch(setAtividade(novaPipelineConfig));
+        dispatch(setDadosProjeto(novaPipelineConfig));
     }
 
     //Requisição para obter os jobs diretamente do banco

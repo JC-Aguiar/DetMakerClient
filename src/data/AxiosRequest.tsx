@@ -6,6 +6,16 @@ import { PipelineInfoDTO } from './PIpelineInfoDTO';
 import { PipelineNovaExecDTO } from './PipelineNovaExecDTO';
 import { ComandoSQL } from './ComandoSQL';
 import { JobConfigDTO } from './JobExecute';
+import { RelatorioHistoricoDTO } from './RelatorioHistoricoDTO';
+import { JwtDTO } from './JwtDTO';
+
+export const GOOGLE_CLIENT_ID = '19761887139-3pq8c2re83pkh5scpls4sblkhe3c26sh.apps.googleusercontent.com';
+export const GOOGLE_CLIENT_SECRET = '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';
+export const GOOGLE_REDIRECT_URI = 'http://localhost:3000/det-maker/login';
+export const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
+export const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+//const GOOGLE_AUTH_URL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&scope=openid%20email&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_REDIRECT_URI}`;
+
 
 //Headers de comum uso na maioria das requisições
 const headers: AxiosRequestHeaders = {
@@ -78,24 +88,54 @@ export function requestErro(titulo: string, axiosError: AxiosError): string {
  * @param senha
  * @returns
  */
-export async function login(email: string, senha: string): Promise<TokenModel> {
+export async function getAccessToken(code: string): Promise<JwtDTO> {
+    const titulo = "GET ACEESS TOKEN";
+    requestStart(titulo);
+
+    const data = {
+        code,
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: GOOGLE_REDIRECT_URI,
+        grant_type: 'authorization_code',
+    };
+
     return await axios
-        .post("http://localhost:8010/login", { email, senha }, headers)
+        .post(GOOGLE_TOKEN_URL, data)
         .then((response) => {
-            // console.log(`[AxiosRequest] \n\t response: ${response.toString()}`);
-            // console.log(`[AxiosRequest] \n\t response.data: ${response.data.toString()}`);
-            // const responseData = new ResponseModel<TokenInterface, string>(response.data);
-            // console.log(`[AxiosRequest] \n\t responseData: ${responseData.toString()}`);
-            // const data = (response.status < 200 || response.status >= 300) ?
-            //     new ErroModel(response.data) : new TokenModel(response.data);
-            const data = new TokenModel(response.data);
-            console.log(`[AxiosRequest] \n\t response: ${data}`);
-            return data;
+            requestSucesso(titulo, response.data);
+            //const jwt = {
+            //    access_token: response.data.access_token,
+            //    expires_in: response.data.expires_in,
+            //    id_token: response.data.id_token,
+            //    scope: response.data.scope,
+            //    token_type: response.data.token_type,
+            //} as JwtDTO;
+            return response.data;
         })
         .catch((erro) => {
-            console.log(erro.response.data.mensagem);
-            throw new ErroModel(erro.response.data);
+            throw requestErro(titulo, erro);
         });
+
+    // Faça algo com o token de acesso
+
+    //return await axios
+    //    .post("http://localhost:8010/login", { email, senha }, headers)
+    //    .then((response) => {
+    //        // console.log(`[AxiosRequest] \n\t response: ${response.toString()}`);
+    //        // console.log(`[AxiosRequest] \n\t response.data: ${response.data.toString()}`);
+    //        // const responseData = new ResponseModel<TokenInterface, string>(response.data);
+    //        // console.log(`[AxiosRequest] \n\t responseData: ${responseData.toString()}`);
+    //        // const data = (response.status < 200 || response.status >= 300) ?
+    //        //     new ErroModel(response.data) : new TokenModel(response.data);
+    //        const data = new TokenModel(response.data);
+    //        console.log(`[AxiosRequest] \n\t response: ${data}`);
+    //        return data;
+    //    })
+    //    .catch((erro) => {
+    //        console.log(erro.response.data.mensagem);
+    //        throw new ErroModel(erro.response.data);
+    //    });
 }
 
 //Requisição para abrir planilha Schedule
@@ -199,7 +239,35 @@ export async function getAllJobs(): Promise<JobConfigDTO[]> {
 }
 
 //Requisição para executar a Pipeline
-export async function executarPilha(body: PipelineNovaExecDTO): Promise<Blob> {
+export async function executarPilha(body: PipelineNovaExecDTO): Promise<RelatorioHistoricoDTO> {
+    const titulo = "EXECUTAR PIPELINE";
+    requestStart(titulo);
+
+    //Gerando timeout com base na quantidade de JObs (aprimorar!) 
+    const timeout = 40000 * body.jobs.length;
+
+    //Instanciando Axios
+    let config: AxiosRequestConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: 'http://localhost:1990/pipeline/run',
+        headers: headers,
+        timeout: timeout,
+        data: body,
+    };
+    //Executando requisiçãao
+    return await axios.request(config)
+        .then((response) => {
+            return response.data;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//>>>>>>>>>>>>>>>> TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+//Requisição para executar a Pipeline
+export async function getDet(body: PipelineNovaExecDTO): Promise<Blob> {
     const titulo = "EXECUTAR PIPELINE";
     requestStart(titulo);
 
@@ -207,7 +275,7 @@ export async function executarPilha(body: PipelineNovaExecDTO): Promise<Blob> {
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: 'http://localhost:1990/pipeline/run/new',
+        url: 'http://localhost:1990/pipeline/run',
         headers: headers,
         timeout: 60000,
         data: body,

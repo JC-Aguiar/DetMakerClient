@@ -454,14 +454,14 @@ ion-content#intro-bg {
 }
 
 .login-btn {
-  left: calc(50% - (20vh + 3vw)/2);
+  left: calc(50% - (6vw + 4vh)/2);
 }
 
 .login-btn ion-fab-button,
 .login-btn ion-fab-button ion-icon {
-  position: fixed;
-  height: calc(20vh + 3vw);
-  width: calc(20vh + 3vw);
+  /* position: fixed; */
+  height: calc(6vw + 4vh);
+  width: calc(6vw + 4vh);
 }
 
 #google {
