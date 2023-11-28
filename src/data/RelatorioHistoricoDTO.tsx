@@ -1,6 +1,7 @@
 import { EvidenciaInfoDTO } from "./EvidenciaInfoDTO";
 
 export interface RelatorioHistoricoDTO {
+    id: number,
     pipeline: string,
     idProjeto: string,
     nomeProjeto: string,

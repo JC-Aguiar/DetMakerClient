@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const tabMenu = createSlice({
     name: 'tabMenu',
-    initialState: true,
+    initialState: false,
     reducers: {
         show: (state) => {
             console.log('[ReducerTabMenu] Acionado controlador tabMenu.show! \n');

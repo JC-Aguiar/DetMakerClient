@@ -1,15 +1,19 @@
-import { InputChangeEventDetail, IonButton, IonContent, IonGrid, IonIcon, IonInput, IonItem, IonLabel, IonPage, IonRadio, IonRadioGroup, IonRow, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonViewDidEnter } from '@ionic/react';
+import { InputChangeEventDetail, IonButton, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonIcon, IonInput, IonItem, IonLabel, IonPage, IonRadio, IonRadioGroup, IonRow, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, ToastButton, useIonToast, useIonViewDidEnter } from '@ionic/react';
 import capaDet from '../resources/VIVO_DET_PAGE_BACKGROUND_3.png';
 //import { Page, View, Document, PDFDownloadLink } from '@react-pdf/renderer';
 //import { PDFExport, savePDF } from '@progress/kendo-react-pdf';
 import { useDispatch, useSelector } from 'react-redux';
 import { RelatorioHistoricoDTO } from '../data/RelatorioHistoricoDTO';
 import { RootState } from '../Store/ReduxStore';
-import { setTestcaseExpectativa, setTestcaseResultado, setTestcaseRevisor } from '../Store/Reducer/ReducerRelatorios';
+import { setTestcaseExpectativa, setTestcaseResultado, setTestcaseRevisor, setTestcaseLock } from '../Store/Reducer/ReducerRelatorios';
 import { dataParaString } from '../App';
 import { EvidenciaInfoDTO } from '../data/EvidenciaInfoDTO';
 import './template/template.css';
-import { alertCircle, checkmarkCircle } from 'ionicons/icons';
+import { alertCircle, checkmarkCircle, closeCircle, document, helpCircle, save } from 'ionicons/icons';
+import { UserDTO } from '../data/UserDTO';
+import { EvidenciaRevisadaDTO } from '../data/EvidenciaRevisadaDTO';
+import * as axiosRequest from '../data/AxiosRequest';
+import { EvidenciasRevisadasDTO } from '../data/AxiosRequest';
 
 
 //Interface das tabelas da sessão 'Evolução dos Testes' no DET
@@ -18,7 +22,7 @@ export interface DetTestcase {
     nome: string,
     descricao: string,
     preCondicoes: string,
-    expectativa: string,
+    comentario: string,
     resultado: string,
     parametros: string,
     revisor: string,
@@ -35,19 +39,31 @@ export interface DetTestcase {
     saidasNome: string[],
     anexosTotais: JSX.Element[],
     pronto: boolean,
+    lock: boolean,
 }
 
-export type DetResultadoStatusTYPE = "Aprovado" | "Reprovado" | "Parcial";
+export type DetStatusTYPE = "Aprovado" | "Reprovado" | "Parcial";
 
 
 const Det = (props: any) => {
     const dispatch = useDispatch();
+    const [toast, toastOff] = useIonToast();
+    const acionarToast = (mensagem: string, tempo: number, cor: string, buttons: ToastButton[]) => {
+        toast({
+            message: `${mensagem}`,
+            duration: tempo,
+            position: 'bottom',
+            color: cor,
+            buttons: buttons,
+        });
+    };
+    const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
     const relatorio: RelatorioHistoricoDTO | null = useSelector((state: RootState) => state.store.relatorios.value);
     if (relatorio === null) {
         throw "O RelatorioHistoricoDTO no ReducerRelatorio está nulo. A página Evidência não poderá ser gerada.";
     };
 
-    const resultadoStatus: DetResultadoStatusTYPE[] = ["Aprovado", "Reprovado", "Parcial"];
+    const resultadoStatus: DetStatusTYPE[] = ["Aprovado", "Reprovado", "Parcial"];
 
     //campos da sessão 'identificação' no DET
     const idProjeto = relatorio.idProjeto;
@@ -87,10 +103,8 @@ const Det = (props: any) => {
             saidasConteudo.push(anexo.conteudo);
             saidasNome.push(anexo.nome);
         });
-        const pronto: boolean = evidencia.expectativa !== null
-            && evidencia.resultado !== null
+        const pronto: boolean = evidencia.resultado !== null
             && evidencia.revisor !== null
-            && evidencia.expectativa.length > 0
             && evidencia.resultado.length > 0
             && evidencia.revisor.length > 0;
         return ({
@@ -98,7 +112,7 @@ const Det = (props: any) => {
             nome: evidencia.job,
             descricao: evidencia.jobDescricao,
             preCondicoes: "(TODO)",
-            expectativa: evidencia.expectativa,
+            comentario: evidencia.comentario,
             resultado: evidencia.resultado,
             parametros: evidencia.argumentos,
             revisor: evidencia.revisor,
@@ -115,6 +129,7 @@ const Det = (props: any) => {
             saidasNome: saidasNome,
             anexosTotais: [],
             pronto: pronto,
+            lock: evidencia.lock,
         } as DetTestcase);
     });
 
@@ -198,15 +213,22 @@ const Det = (props: any) => {
         //dispatch(hide());
     }, []);
 
-    const statusIcon = (texto: string) => {
-        const srtatus = (texto && texto.length > 0) ? checkmarkCircle : alertCircle;
-        return <IonIcon icon={srtatus} size='large' color='primary' className='opacity-50' />
+    const iconCampoObrigatorio = (texto: string) => {
+        const valido = (texto && texto.length > 0);
+        const status = valido ? checkmarkCircle : alertCircle;
+        const opacity = valido ? 'opacity-50' : 'opacity-75';
+        return <IonIcon icon={status} size='large' color={valido ? 'primary' : 'warning'} className={opacity} />
+    }
+
+    const iconCampoFacultativo = (texto: string) => {
+        const status = (texto && texto.length > 0) ? checkmarkCircle : helpCircle;
+        return <IonIcon icon={status} size='large' color='primary' className='opacity-50' />
     }
 
     const gerarTabelaTeste = (teste: DetTestcase, index: number) => <div className='table-responsive' key={index}>
         <IonGrid className='ion-align-items-center pt-3 pb-0'>
             <IonRow>
-                {statusIcon(teste.pronto ? "sim" : "")}
+                {iconCampoObrigatorio(teste.pronto ? "sim" : "")}
                 <span id={`${teste.evidenciaId}`} className='h3'>{teste.nome}</span>
             </IonRow>
         </IonGrid>
@@ -229,67 +251,75 @@ const Det = (props: any) => {
                     <td>{teste.preCondicoes}</td>
                 </tr>
                 <tr>
-                    <th>Resultado Esperado</th>
+                    <th>
+                        <IonGrid>
+                            <IonRow className='ion-align-items-center'>
+                                <IonCol className='p-0 m-0'>Resultado Obtido</IonCol>
+                                <IonCol className='p-0 m-0' size='auto'>{iconCampoObrigatorio(teste.resultado)}</IonCol>
+                            </IonRow>
+                        </IonGrid>
+                    </th>
                     <td>
-                        <IonItem lines='none' className='ion-align-items-center' >
-                            {statusIcon(teste.expectativa)}
-                            <IonTextarea inputmode='text'
-                                maxlength={280}
-                                className='text-dark bg-white bg-opacity-50 ps-2 mx-2 mb-2 rounded rounded-3'
-                                value={teste.expectativa}
-                                onIonChange={
-                                    (e) => dispatch(setTestcaseExpectativa({ index: index, valor: e.detail.value }))
-                                }
-                            />
-                        </IonItem>
+                        <IonRadioGroup
+                            value={teste.resultado}
+                            onIonChange={(e) => {
+                                dispatch(
+                                    setTestcaseResultado({ index: index, valor: e.detail.value }));
+                                dispatch(
+                                    setTestcaseRevisor({ index: index, valor: user!.name }));
+                            }}
+                        >
+                            <div className='d-flex justify-items-center'>
+                            {
+                                resultadoStatus.map((item, index) => {
+                                    return (
+                                        <IonItem key={index} 
+                                            lines='none' 
+                                            className='bg-info bg-opacity-25 rounded rounded-4 m-1 my-2'
+                                            disabled={teste.lock}
+                                        >
+                                            <IonLabel color='primary' className='p-0 m-0'>{item}</IonLabel>
+                                            <IonRadio color='primary' className='p-0 m-1' slot="start" value={item} />
+                                        </IonItem>
+                                    );
+                                })
+                            }
+                            </div>
+                        </IonRadioGroup>
                     </td>
                 </tr>
                 <tr>
-                    <th>Resultado Obtido</th>
+                    <th>
+                        <IonGrid>
+                            <IonRow className='ion-align-items-center'>
+                                <IonCol className='p-0 m-0'>Comentário</IonCol>
+                                <IonCol className='p-0 m-0' size='auto'>{iconCampoFacultativo(teste.comentario)}</IonCol>
+                            </IonRow>
+                        </IonGrid>
+                    </th>
                     <td>
-                        <IonItem key={index} lines='none' className=''>
-                            {statusIcon(teste.resultado)}
-                            <IonRadioGroup
-                                className='mx-2'
-                                value={teste.resultado}
-                                onIonChange={(e) => dispatch(
-                                    setTestcaseResultado({ index: index, valor: e.detail.value })
-                                )}
-                            >
-                                <div className='d-flex justify-items-center'>
-                                    {
-                                        resultadoStatus.map((item, index) => {
-                                            return (
-                                                <IonItem key={index} lines='none' className='bg-info bg-opacity-25 rounded rounded-4 m-1 my-2'>
-                                                    <IonLabel color='primary' className='p-0 m-0'>{item}</IonLabel>
-                                                    <IonRadio color='primary' className='p-0 m-1' slot="start" value={item} />
-                                                </IonItem>
-                                            );
-                                        })
-                                    }
-                                </div>
-                            </IonRadioGroup>
-                        </IonItem>
+                        <IonTextarea inputmode='text'
+                            maxlength={280}
+                            className='text-dark bg-white bg-opacity-50 ps-2 mb-2 rounded rounded-3 border'
+                            value={teste.comentario}
+                            disabled={teste.lock}
+                            onIonChange={
+                                (e) => dispatch(setTestcaseExpectativa({ index: index, valor: e.detail.value }))
+                            }
+                        />
                     </td>
                 </tr>
                 <tr>
-                    <th>Revisor</th>
-                    <td>
-                        <IonItem lines='none' className=''>
-                            <IonLabel >
-                                {statusIcon(teste.revisor)}
-                            </IonLabel>
-                            <IonInput inputmode='text'
-                                type='text'
-                                size={100}
-                                maxlength={100}
-                                className='text-dark bg-white bg-opacity-50 mx-2 rounded rounded-3'
-                                value={teste.revisor}
-                                onIonChange={
-                                    (e) => dispatch(setTestcaseRevisor({ index: index, valor: e.detail.value }))
-                                }
-                            />
-                        </IonItem>
+                    <th>
+                        <IonGrid>
+                            <IonRow className='ion-align-items-center'>
+                                <IonCol className='p-0 m-0'>Revisor</IonCol>
+                                <IonCol className='p-0 m-0' size='auto'>{iconCampoObrigatorio(teste.revisor)}</IonCol>
+                            </IonRow>
+                        </IonGrid>
+                    </th>
+                    <td className='align-middle'>
+                        <span className='text-primary h6'>{teste.revisor}</span>
                     </td>
                 </tr>
                 <tr>
@@ -303,6 +333,38 @@ const Det = (props: any) => {
             </tbody>
         </table>
     </div>
+
+    const gerarEstatisticas = () => {
+        let aprovados = 0;
+        let reprovados = 0;
+        let parciais = 0;
+        testcases.forEach((teste, index) => {
+            if (teste.resultado === "Reprovado") reprovados++;
+            else if (teste.resultado === "Parcial") parciais++;
+            else if (teste.resultado === "Aprovado") aprovados++;
+        });
+        let aprovadosPorcent = Math.round((aprovados * 100) / testcases.length);
+        let reprovadosPorcent = Math.round((reprovados * 100) / testcases.length);
+        let parciaisPorcent = Math.round((parciais * 100) / testcases.length);
+
+        const elementos: { valor: string, cor: string }[] = [];
+        if (aprovados > 0)
+            elementos.push({ valor: `Jobs Aprovados: ${aprovados} (${aprovadosPorcent}%)`, cor: 'bg-primary' });
+        if (parciais > 0)
+            elementos.push({ valor: `Jobs Parciais: ${parciais} (${parciaisPorcent}%)`, cor: 'bg-secondary' });
+        if (reprovados > 0)
+            elementos.push({ valor: `Jobs Reprovados: ${reprovados} (${reprovadosPorcent}%)`, cor: 'bg-warning' });
+
+        return (
+            <h4 className='py-0 my-0'>
+                {
+                    elementos.map((item, index) =>
+                        <span key={index} className={`me-2 badge bg-opacity-75 ${item.cor}`}> {item.valor} </span>
+                    )
+                }
+            </h4>
+        );
+    }
 
     //Método usado nas tabelas testcases para abrir o conteúdo dos anexos
     function abrirAnexo(nome: string, conteudo: string) {
@@ -321,72 +383,95 @@ const Det = (props: any) => {
         newWindow?.document.close();
     }
 
-    //function navegarPara(event: MouseEvent, id: string): void {
-    //    //event.preventDefault();
-    //    const idAlvo = document.getElementById(id);
-    //    idAlvo!.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
-    //}
+    const salvarRevisao = async () => {
+        const data = new Date();
+        const evidencias: EvidenciaRevisadaDTO[] = testcases.filter((item) => item.pronto)
+            .map((item) => {
+                return {
+                    evidenciaId: item.evidenciaId,
+                    resivor: item.revisor,
+                    dataRevisao: data,
+                    comentario: item.comentario,
+                    resultado: item.resultado,
+                } as EvidenciaRevisadaDTO;
+            });
+        console.log(`[DET]: Total de Evidências revisadas para salvar: ` + evidencias.length);
+        if (evidencias.length < 1) return;
 
-    {/* <PDFExport ref={pdfExportComponent} paperSize="A4"> */ }
+        console.log(`[DET]: Iniciando requisição 'Salvar Revisoão'.`);
+        console.log(`[DET]: IDs das Evidências revisadas para salvar: ` + evidencias.map((item) => item.evidenciaId));
+        toastOff().then(() => acionarToast("SALVAR REVISÃO: Em execução...", 5000, 'medium', []));
+        try {
+            const evidenciasSalvas: EvidenciasRevisadasDTO = await axiosRequest.saveRevisaoEvidencia(evidencias);
+            dispatch(setTestcaseLock(evidenciasSalvas.saved))
+            toastOff().then(() => acionarToast("SALVAR REVISÃO: Realizada com sucesso.", 5000, 'primary', []));
+            console.log(`[DET]: Requisição 'Salvar Revisoão' funcionou.`);
+        }
+        catch (error) {
+            toastOff().then(() => acionarToast(`SALVAR REVISÃO: ${error}`, 9900, 'warning', []));
+            console.error(`[DET]: Requisição 'Salvar Revisoão' falhou.`);
+        }
+    };
+
+    const gerarDet = async () => {
+        console.log(`[DET]: Iniciando requisição 'Obter Det'.`);
+        toastOff().then(() => acionarToast("OBTER DET: Em execução...", 5000, 'medium', []));
+        try {
+            const fileBlob: Blob = await axiosRequest.getDet(relatorio.id);
+            const buttons = [
+                {
+                  text: 'Abrir',
+                  role: 'Abrir DET',
+                  handler: () => abrirDet(fileBlob),
+                }
+            ];
+            toastOff().then(() => acionarToast("OBTER DET: Realizada com sucesso.", 5000, 'primary', buttons));
+            console.log(`[DET]: Requisição 'Obter Det' funcionou.`);
+        }
+        catch (error) {
+            toastOff().then(() => acionarToast(`OBTER DET: ${error}`, 9900, 'warning', []));
+            console.error(`[DET]: Requisição 'Obter Det' falhou.`);
+        }
+    }
+
+    function abrirDet(fileBlob: Blob) {
+        //TODO: >>> OBTER O ARQUIVO E O CAMINHO DO ARQUIVO (PARA IFNORMAR O USUÁRIO) <<<
+        const fileUrl = URL.createObjectURL(fileBlob);
+        window.open(fileUrl, '_blank');
+    }
+
+    const podeGerarDet = (): boolean => {
+        const totalPronto = testcases.filter((teste) => teste.pronto).length;
+        const totalLock = relatorio.evidencias.filter((ev) => !ev.lock).length;
+        return totalLock === 0 && totalPronto === testcases.length;
+    }
 
     //Renderização do componente
     return (
         <IonPage>
             <IonContent fullscreen={false} scrollEvents={false} >
-                {/*
-                    <IonHeader className='fixed-top ion-no-border'>
-                        <IonToolbar color='#'>
-                            <IonButtons className="ion-justify-content-center">
-                                <IonItem color='#' lines='none'>
-                                    <IonButton id="menu-identificacao"
-                                        className="text-dark"
-                                        fill='solid'
-                                        color='tertiary'
-                                        size='default'
-                                        onClick={(e) => navegarPara(e, "identificacao")}
-                                    >
-                                        IDENTIFICAÇÃO
-                                    </IonButton>
-                                    <IonButton id="menu-detalhamento"
-                                        className="text-dark"
-                                        fill='solid'
-                                        color='tertiary'
-                                        size='default'
-                                        onClick={(e) => navegarPara(e, "detalhamento")}
-                                    >
-                                        DETALHAMENTO DOS TESTES
-                                    </IonButton>
-                                    <IonButton id="menu-testcase-links"
-                                        className='text-dark'
-                                        fill='solid'
-                                        color='tertiary'
-                                        size='default'
-                                    >
-                                        EVOLUÇÃO DOS TESTES
-                                    </IonButton>
-                                    <IonPopover trigger="menu-testcase-links" triggerAction="click" showBackdrop={false}>
-                                    {
-                                        TabelasTestecase.map((tabela, index) =>
-                                            <IonContent
-                                                id={`link-${tabela.id}`}
-                                                key={index}
-                                                className='ion-padding text-center w-100'
-                                                onClick={(e) => navegarPara(e, tabela.id)}
-                                                color='primary'
-                                            >
-                                                {tabela.titulo}
-                                            </IonContent>
-                                        )
-                                    }
-                                    </IonPopover>
-                                </IonItem>
-                            </IonButtons>
-                        </IonToolbar>
-                    </IonHeader>
-
-                    <div className="p-5"></div>
-                */}
-                {/* Fim do Menu Fixo */}
+                <IonFab slot="fixed" vertical="bottom" horizontal="end" className='pe-5'>
+                    <IonGrid className='py-0 my-0'>
+                        <IonRow className="ion-justify-content-center">
+                            <IonLabel color='#' className="ion-justify-content-center">
+                                <IonFabButton className='ms-3 mb-1' onClick={(e) => salvarRevisao()}>
+                                    <IonIcon icon={save}></IonIcon>
+                                </IonFabButton>
+                                <small className="text-center text-primary fw-bold me-3">
+                                    Salvar Revisão
+                                </small>
+                            </IonLabel>
+                            <IonLabel color='#' className="ion-justify-content-center">
+                                <IonFabButton className='mb-1' onClick={(e) => gerarDet()} disabled={!podeGerarDet()}>
+                                    <IonIcon icon={document}></IonIcon>
+                                </IonFabButton>
+                                <small className="text-center text-primary fw-bold me-5">
+                                    Gerar DET
+                                </small>
+                            </IonLabel>
+                        </IonRow>
+                    </IonGrid>
+                </IonFab>
 
                 {/* Corpo principal */}
                 <div className="container justify-content-center bg-white px-0 pb-5 my-5">
@@ -485,7 +570,13 @@ const Det = (props: any) => {
                                         </tr>
                                         <tr>
                                             <th>Parâmetros da Execução do Sistema</th>
-                                            <td id="parametros">{parametros}</td>
+                                            <td id="parametros">
+                                            {
+                                                parametros.split(" ").map((item, index) => 
+                                                    <p key={index} className='my-0' >{item}</p>
+                                                )
+                                            }
+                                            </td>
                                         </tr>
                                         <tr>
                                             <th>Dados de Teste</th>
@@ -498,6 +589,26 @@ const Det = (props: any) => {
                                         <tr>
                                             <th>Ambiente</th>
                                             <td id="ambiente">{ambiente}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Estatística</th>
+                                            <td id="estatistica">{gerarEstatisticas()}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <IonGrid>
+                                                    <IonRow className='ion-align-items-center'>
+                                                        <IonCol className='p-0 m-0'>Considerações</IonCol>
+                                                        {/* <IonCol className='p-0 m-0' size='auto'>{iconCampoFacultativo(teste.expectativa)}</IonCol> */}
+                                                    </IonRow>
+                                                </IonGrid>
+                                            </th>
+                                            <td>
+                                                <IonTextarea inputmode='text'
+                                                    maxlength={500}
+                                                    className='text-dark bg-white bg-opacity-50 ps-2 mb-2 rounded rounded-3 border'
+                                                />
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -514,9 +625,9 @@ const Det = (props: any) => {
                             {/* Conteúdo */}
                             <div className="table-responsive m-0 text-start">
                                 <div className=" table-light table-striped px-3">
-                                {
-                                    testcases.map((tabela, index) => gerarTabelaTeste(tabela, index))
-                                }
+                                    {
+                                        testcases.map((tabela, index) => gerarTabelaTeste(tabela, index))
+                                    }
                                 </div>
                             </div>
                         </div>

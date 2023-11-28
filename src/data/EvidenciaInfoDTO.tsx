@@ -20,6 +20,9 @@ export interface EvidenciaInfoDTO {
     revisor: string, 
     dataRevisao: Date,
     requisitos: string, 
-    expectativa: string, 
+    comentario: string, 
     resultado: string, 
+
+    //propriedade usada somente no front
+    lock: boolean,
 }

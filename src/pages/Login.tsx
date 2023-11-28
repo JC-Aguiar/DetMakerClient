@@ -1,17 +1,19 @@
 import { IonPage, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonFab, IonFabButton, IonIcon, IonContent, } from "@ionic/react";
 import { logoGoogle } from "ionicons/icons";
 import { useEffect } from "react";
-import { GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI, GOOGLE_AUTH_URL, getAccessToken } from "../data/AxiosRequest";
+import { GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI, GOOGLE_AUTH_URL, getAccessToken, getUserInfo } from "../data/AxiosRequest";
 import { useDispatch } from "react-redux";
-import { setUser } from '../Store/Reducer/ReducerUser';
+import { setJwt, setUser } from '../Store/Reducer/ReducerUser';
+import { show, hide } from '../Store/Reducer/ReducerTabMenu';
 import { JwtDTO } from "../data/JwtDTO";
+import { UserDTO } from "../data/UserDTO";
 
 const Login = (props: any) => {
     const dispatch = useDispatch();
     const login = () => {
         const params = new URLSearchParams({
             response_type: 'code',
-            scope: 'openid email',
+            scope: 'openid email profile',
             client_id: GOOGLE_CLIENT_ID,
             redirect_uri: GOOGLE_REDIRECT_URI,
         });
@@ -22,9 +24,13 @@ const Login = (props: any) => {
         console.log(`[LOGIN]: Authorization-Code: ${authorizationCode}.`);
         try {
             const jwt: JwtDTO = await getAccessToken(authorizationCode);
-            dispatch(setUser({ value:jwt }));
+            const user: UserDTO = await getUserInfo(jwt.access_token);
+            dispatch(show());
+            dispatch(setJwt(jwt));
+            dispatch(setUser(user));
         }
         catch (error) {
+            dispatch(hide());
             console.error(error);
         }
       };

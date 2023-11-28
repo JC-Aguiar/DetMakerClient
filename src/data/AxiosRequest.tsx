@@ -1,23 +1,25 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosRequestHeaders } from 'axios';
-import { TokenModel } from './TokenModel';
-import { ErroModel } from './ErroModel';
-import { JobInfoDTO } from './JobInfoDTO';
 import { PipelineInfoDTO } from './PIpelineInfoDTO';
 import { PipelineNovaExecDTO } from './PipelineNovaExecDTO';
 import { ComandoSQL } from './ComandoSQL';
 import { JobConfigDTO } from './JobExecute';
 import { RelatorioHistoricoDTO } from './RelatorioHistoricoDTO';
 import { JwtDTO } from './JwtDTO';
+import { UserDTO } from './UserDTO';
+import { EvidenciaRevisadaDTO } from './EvidenciaRevisadaDTO';
+import { RelatorioRevisadoDTO } from './RelatorioRevisadoDTO';
 
 export const GOOGLE_CLIENT_ID = '19761887139-3pq8c2re83pkh5scpls4sblkhe3c26sh.apps.googleusercontent.com';
 export const GOOGLE_CLIENT_SECRET = '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';
 export const GOOGLE_REDIRECT_URI = 'http://localhost:3000/det-maker/login';
 export const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 export const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+export const GOOGLE_PROFILE_INFO = 'https://www.googleapis.com/oauth2/v3/userinfo';
+export const GOOGLE_PEOPLE_API_URL = 'https://people.googleapis.com/v1/people/me?personFields=photos';
 //const GOOGLE_AUTH_URL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&scope=openid%20email&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_REDIRECT_URI}`;
 
 
-//Headers de comum uso na maioria das requisições
+//Headers para requisições ao backend do Det-Maker
 const headers: AxiosRequestHeaders = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "http://localhost:1990/*",
@@ -79,15 +81,7 @@ export function requestErro(titulo: string, axiosError: AxiosError): string {
     return mensagemErro;
 }
 
-/**
- * Usuário clica em login
- * recebe ou um TokenInterface ou um ErroInterface
- * dependendo do status, será tipado uma dessas interfaces e instanciada
- * de volta ao usuário
- * @param email
- * @param senha
- * @returns
- */
+//Obtendo access token JWT da Google com base no código regado via autenticação AOuth2
 export async function getAccessToken(code: string): Promise<JwtDTO> {
     const titulo = "GET ACEESS TOKEN";
     requestStart(titulo);
@@ -104,39 +98,47 @@ export async function getAccessToken(code: string): Promise<JwtDTO> {
         .post(GOOGLE_TOKEN_URL, data)
         .then((response) => {
             requestSucesso(titulo, response.data);
-            //const jwt = {
-            //    access_token: response.data.access_token,
-            //    expires_in: response.data.expires_in,
-            //    id_token: response.data.id_token,
-            //    scope: response.data.scope,
-            //    token_type: response.data.token_type,
-            //} as JwtDTO;
             return response.data;
         })
         .catch((erro) => {
             throw requestErro(titulo, erro);
         });
-
-    // Faça algo com o token de acesso
-
-    //return await axios
-    //    .post("http://localhost:8010/login", { email, senha }, headers)
-    //    .then((response) => {
-    //        // console.log(`[AxiosRequest] \n\t response: ${response.toString()}`);
-    //        // console.log(`[AxiosRequest] \n\t response.data: ${response.data.toString()}`);
-    //        // const responseData = new ResponseModel<TokenInterface, string>(response.data);
-    //        // console.log(`[AxiosRequest] \n\t responseData: ${responseData.toString()}`);
-    //        // const data = (response.status < 200 || response.status >= 300) ?
-    //        //     new ErroModel(response.data) : new TokenModel(response.data);
-    //        const data = new TokenModel(response.data);
-    //        console.log(`[AxiosRequest] \n\t response: ${data}`);
-    //        return data;
-    //    })
-    //    .catch((erro) => {
-    //        console.log(erro.response.data.mensagem);
-    //        throw new ErroModel(erro.response.data);
-    //    });
 }
+
+//Obtendo dados do usuário Google, usando tokende acesso JWT
+export async function getUserInfo(accessToken: string): Promise<UserDTO> {
+    const titulo = "GET PROFILE PHOTO";
+    requestStart(titulo);
+
+    const headers = {
+        Authorization: `Bearer ${accessToken}`,
+    };
+
+    return await axios
+        .get(GOOGLE_PROFILE_INFO, { headers: headers })
+        .then((response) => {
+            requestSucesso(titulo, response.data);
+            return response.data;
+        })
+        .catch((erro) => {
+            throw requestErro(titulo, erro);
+        });
+}
+
+/* 
+export async function getFoto(url: string): Blob {
+    return await axios
+    .get(url, {
+        responseType: 'stream'
+    })
+    .then((response) => {
+        response.data.pipe(fs.createWriteStream('profile-image.jpg'));
+    })
+    .catch((error) => {
+        console.error('Erro ao fazer o download da imagem:', error);
+    });
+}
+*/
 
 //Requisição para abrir planilha Schedule
 export async function openSchedule(arquivoXlsx: File): Promise<JobConfigDTO[]> {
@@ -267,18 +269,17 @@ export async function executarPilha(body: PipelineNovaExecDTO): Promise<Relatori
 
 //>>>>>>>>>>>>>>>> TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //Requisição para executar a Pipeline
-export async function getDet(body: PipelineNovaExecDTO): Promise<Blob> {
-    const titulo = "EXECUTAR PIPELINE";
+export async function getDet(relatorioId: number): Promise<Blob> {
+    const titulo = "OBTER DET";
     requestStart(titulo);
 
     //Instanciando Axios
     let config: AxiosRequestConfig = {
-        method: 'post',
+        method: 'get',
         maxBodyLength: Infinity,
-        url: 'http://localhost:1990/pipeline/run',
+        url: `http://localhost:1990/relatorio/det/${relatorioId}`,
         headers: headers,
         timeout: 60000,
-        data: body,
     };
     //Executando requisiçãao
     return await axios.request(config)
@@ -335,6 +336,62 @@ export async function getQueries(jobId: number): Promise<ComandoSQL[]> {
             const listaDto: ComandoSQL[] = response.data;
             requestSucesso(titulo, listaDto);
             return listaDto;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Interface retornada pela requisição
+export interface EvidenciasRevisadasDTO { 
+    saved: number[],
+    failed: number[] 
+}
+
+//Requisição para salvar as revisões das Evidências
+export async function saveRevisaoEvidencia(evidencias: EvidenciaRevisadaDTO[]): Promise<EvidenciasRevisadasDTO> {
+    const titulo = "SALVAR REVISÃO EVIDÊNCIA";
+    requestStart(titulo);
+
+    //Instanciando Axios
+    let config: AxiosRequestConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `http://localhost:1990/evidencia/save/review`,
+        data: evidencias,
+        headers: headers,
+        timeout: 10000,
+    };
+    //Executando requisiçãao
+    return await axios.request(config)
+        .then((response) => {
+            const mensagem: EvidenciasRevisadasDTO = response.data;
+            requestSucesso(titulo, mensagem);
+            return mensagem;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para salvar as revisões do Relatorio
+export async function saveRevisaoRelatorio(relatorio: RelatorioRevisadoDTO): Promise<void> {
+    const titulo = "SALVAR REVISÃO RELATÓRIO";
+    requestStart(titulo);
+
+    //Instanciando Axios
+    let config: AxiosRequestConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `http://localhost:1990/relatorio/save/review`,
+        headers: headers,
+        timeout: 10000,
+    };
+    //Executando requisiçãao
+    return await axios.request(config)
+        .then((response) => {
+            requestSucesso(titulo, "Sucesso");
+            return;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);

@@ -129,12 +129,14 @@ ion-content#intro-bg {
 @supports(-webkit-mask-image: url(#mask)) or (mask-image: url(#mask)) {}
 
 #avatar {
-  margin-top: -10px;
-  height: 86px;
-  width: 86px;
-  margin-left: 0px;
-  padding-right: 0;
-  margin-right: 0;
+  /* 86px */
+  position: fixed;
+  right: 0px;
+  bottom: 0px;
+  margin-right: max(3vw, 32px);
+  margin-bottom: max(2vh, 32px);
+  height: calc(max(6vw + 4vh, 64px));
+  width: calc(max(6vw + 4vh, 64px));
 }
 
 

@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RelatorioHistoricoDTO } from '../../data/RelatorioHistoricoDTO';
-import { DetResultadoStatusTYPE } from '../../pages/Det';
+import { DetStatusTYPE } from '../../pages/Det';
 
 //Valores iniciais do recuder
 const initialState = { 
@@ -22,7 +22,7 @@ export interface SetTestcaseExpectativaTYPE {
 //Interface do acionador relatorios.setTestcaseResultado
 export interface SetTestcaseResultadoTYPE {
     index: number,
-    valor: DetResultadoStatusTYPE,
+    valor: DetStatusTYPE,
 }
 
 //Interface do acionador relatorios.setTestcaseRevisor
@@ -30,6 +30,7 @@ export interface SetTestcaseRevisorTYPE {
     index: number,
     valor: string | null | undefined,
 }
+
 
 const relatorios = createSlice({
     name: 'relatorios',
@@ -49,7 +50,7 @@ const relatorios = createSlice({
             console.log('[ReducerRelatorios] Acionado controlador relatorios.setTestcaseExpectativa! \n');
             let {index, valor} = action.payload;
             valor = (valor === null || valor === undefined) ? "" : valor;
-            if (state.value) state.value.evidencias[index].expectativa = valor;
+            if (state.value) state.value.evidencias[index].comentario = valor;
             logRelatorio(state.value);
         },
         setTestcaseResultado: (state, action: PayloadAction<SetTestcaseResultadoTYPE>) => {
@@ -65,12 +66,23 @@ const relatorios = createSlice({
             if (state.value) state.value.evidencias[index].revisor = valor;
             logRelatorio(state.value);
         },
+        setTestcaseLock: (state, action: PayloadAction<number[]>) => {
+            console.log('[ReducerRelatorios] Acionado controlador relatorios.setTestcaseLock! \n');
+            action.payload.map((evId) => {
+                if (state.value && state.value.evidencias && state.value.evidencias.length > 0) {
+                    const index = state.value.evidencias.findIndex((ev) => ev.id === evId);
+                    console.log(`[ReducerRelatorios]: Travando evidência[${index}] ID ${evId}.`)
+                    state.value.evidencias[index].lock = true;
+                }
+            });
+            logRelatorio(state.value);
+        },
     },
 });
 
 function logRelatorio(body: RelatorioHistoricoDTO | null) {
-    console.log('Payload: \n' + JSON.stringify(body));
+    console.log('[ReducerRelatorios] Payload: ' + JSON.stringify(body));
 }
 
 export default relatorios.reducer;
-export const { addRelatorio, removeRelatorio, setTestcaseExpectativa, setTestcaseResultado, setTestcaseRevisor } = relatorios.actions;
+export const { addRelatorio, removeRelatorio, setTestcaseExpectativa, setTestcaseResultado, setTestcaseRevisor, setTestcaseLock } = relatorios.actions;

@@ -1,31 +1,30 @@
-import { IonAvatar, IonIcon } from "@ionic/react";
-import { personCircleOutline, personCircleSharp } from "ionicons/icons";
-import React from "react";
+import { IonAvatar, IonFab, IonFabButton, IonIcon, IonText } from "@ionic/react";
+import { chevronUpCircle, personCircleOutline, personCircleSharp } from "ionicons/icons";
+import { UserDTO } from "../data/UserDTO";
 
-/* TODO "IMG-VALID"
- * MÉTODO PARA VALIDAÇÀO DE IMAGENS
- * 1) FETCH NA URL
- * 2) CONFERIR O FORMATO E O TAMANHO DENTRO DOS PADRÕES
- * 3) SE FORA DOS PADÕES, AVATAR GENÊRICO É COLOCADO
- */
+function loadAvatar(user: UserDTO) {
+    if (user === null) return(<></>);
 
-
-function loadAvatar(picture: string) {
-    if (picture !== null && picture !== "") {
-        return (
-            <IonAvatar slot="start" id="avatar">
-                <img src={picture} alt="user avatar" />
-            </IonAvatar>
-        );
+    let icon;
+    if (user.picture !== "" && user.picture.length > 0) {
+        icon = <IonAvatar slot="start">
+            <img src={user.picture} alt="user avatar"  referrerPolicy="no-referrer"/>
+        </IonAvatar>;
     }
-    return (
-        <IonIcon
-            id="avatar"
+    else {
+        icon = <IonIcon
             slot="start"
             md={personCircleOutline}
-            ios={personCircleSharp}
             color="dark"
-        />
+        />;
+    }
+    return (
+        <IonFab slot="fixed" vertical="bottom" horizontal="end" className="ion-justify-content-center me-2">
+            <IonAvatar className="ms-0">
+                <img src={user.picture} alt="user avatar"  referrerPolicy="no-referrer"/>
+            </IonAvatar>
+            <small className="text-center text-primary fw-bold">{user.name}</small>
+        </IonFab>
     );
 }
 
