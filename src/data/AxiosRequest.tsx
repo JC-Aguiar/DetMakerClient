@@ -397,3 +397,29 @@ export async function saveRevisaoRelatorio(relatorio: RelatorioRevisadoDTO): Pro
             throw requestErro(titulo, error);
         });
 }
+
+//Requisição para validar querys
+export async function validarQuery(comandoSql: ComandoSQL | string): Promise<string> {
+    const titulo = "VALIDAR QUERY";
+    requestStart(titulo);
+    const endpoint = (typeof comandoSql === 'string') ? 'manual' : 'dynamic';
+
+    //Instanciando Axios
+    let config: AxiosRequestConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `http://localhost:1990/queries/validade/${endpoint}`,
+        headers: headers,
+        timeout: 10000,
+        data: comandoSql,
+    };
+    //Executando requisiçãao
+    return await axios.request(config)
+        .then((response) => {
+            requestSucesso(titulo, response.data);
+            return response.data;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}

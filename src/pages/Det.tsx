@@ -21,7 +21,7 @@ export interface DetTestcase {
     evidenciaId: number,
     nome: string,
     descricao: string,
-    preCondicoes: string,
+    requisitos: string,
     comentario: string,
     resultado: string,
     parametros: string,
@@ -111,7 +111,7 @@ const Det = (props: any) => {
             evidenciaId: evidencia.id,
             nome: evidencia.job,
             descricao: evidencia.jobDescricao,
-            preCondicoes: "(TODO)",
+            requisitos: "(TODO)",
             comentario: evidencia.comentario,
             resultado: evidencia.resultado,
             parametros: evidencia.argumentos,
@@ -247,8 +247,12 @@ const Det = (props: any) => {
                     <td>{teste.parametros}</td>
                 </tr>
                 <tr>
-                    <th>Pré-Condições</th>
-                    <td>{teste.preCondicoes}</td>
+                    <th>Requisitos</th>
+                    <td>{teste.requisitos}</td>
+                </tr>
+                <tr>
+                    <th>Data do Teste</th>
+                    <td>{teste.data}</td>
                 </tr>
                 <tr>
                     <th>
@@ -292,7 +296,20 @@ const Det = (props: any) => {
                     <th>
                         <IonGrid>
                             <IonRow className='ion-align-items-center'>
-                                <IonCol className='p-0 m-0'>Comentário</IonCol>
+                                <IonCol className='p-0 m-0'>Revisor</IonCol>
+                                <IonCol className='p-0 m-0' size='auto'>{iconCampoObrigatorio(teste.revisor)}</IonCol>
+                            </IonRow>
+                        </IonGrid>
+                    </th>
+                    <td className='align-middle'>
+                        <span className='text-primary h6'>{teste.revisor}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        <IonGrid>
+                            <IonRow className='ion-align-items-center'>
+                                <IonCol className='p-0 m-0'>Notas do Revisor</IonCol>
                                 <IonCol className='p-0 m-0' size='auto'>{iconCampoFacultativo(teste.comentario)}</IonCol>
                             </IonRow>
                         </IonGrid>
@@ -308,23 +325,6 @@ const Det = (props: any) => {
                             }
                         />
                     </td>
-                </tr>
-                <tr>
-                    <th>
-                        <IonGrid>
-                            <IonRow className='ion-align-items-center'>
-                                <IonCol className='p-0 m-0'>Revisor</IonCol>
-                                <IonCol className='p-0 m-0' size='auto'>{iconCampoObrigatorio(teste.revisor)}</IonCol>
-                            </IonRow>
-                        </IonGrid>
-                    </th>
-                    <td className='align-middle'>
-                        <span className='text-primary h6'>{teste.revisor}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <th>Data do Teste</th>
-                    <td>{teste.data}</td>
                 </tr>
                 <tr>
                     <th>Anexos de Evidência</th>
@@ -386,6 +386,7 @@ const Det = (props: any) => {
     const salvarRevisao = async () => {
         const data = new Date();
         const evidencias: EvidenciaRevisadaDTO[] = testcases.filter((item) => item.pronto)
+            .filter((item) => !item.lock)
             .map((item) => {
                 return {
                     evidenciaId: item.evidenciaId,
@@ -499,18 +500,17 @@ const Det = (props: any) => {
                                 <table className="table table-light table-striped">
                                     <tbody>
                                         <tr>
-                                            <th>ID(S) DA ORIGEM</th>
-                                            <th>NOME/DESCRIÇÃO DA ORIGEM</th>
+                                            <th>PROJETO ID</th>
+                                            <th>PROJETO NOME</th>
                                         </tr>
-                                        {/* Conteúdo */}
                                         <tr>
-                                            <td id="projeto-id">{idProjeto}</td>
-                                            <td id="projeto-nome">{nomeProjeto}</td>
+                                            <td id="projeto-id">Projeto Id</td>
+                                            <td id="projeto-nome">Projeto Nome</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
-
+                            {/* Sobre os testes */}
                             <h3 className="pt-2">SOBRE OS TESTES</h3>
                             <div className="table-responsive px-3">
                                 <table className="table table-light table-striped">
@@ -519,7 +519,6 @@ const Det = (props: any) => {
                                             <th>TIPO DE TESTE</th>
                                             <th>SISTEMA(S)</th>
                                         </tr>
-                                        {/* Conteúdo */}
                                         <tr>
                                             <td id="teste-tipo">{testeTipo}</td>
                                             <td id="teste-sistema">{sistema}</td>
@@ -539,7 +538,6 @@ const Det = (props: any) => {
                                             <th>E-MAIL</th>
                                             <th>TELEFONE</th>
                                         </tr>
-                                        {/* Conteúdo */}
                                         <tr>
                                             <td id="user-nome-1">{nome}</td>
                                             <td id="user-cargo-1">{cargo}</td>
@@ -552,7 +550,6 @@ const Det = (props: any) => {
                             </div>
                         </div>
                     </div>
-
 
                     {/*-----[PARTE 3: DETALHAMENTO DOS TESTES]--------------------------------------------------*/}
                     <div id="detalhamento" className="p-5 text-center">

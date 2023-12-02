@@ -2,7 +2,7 @@ import { InputChangeEventDetail, IonButton, IonCard, IonCardContent, IonCardHead
 import React, { ChangeEvent, useState } from "react";
 import { JobConfigDTO } from "../data/JobExecute";
 import { ComandoSQL } from "../data/ComandoSQL";
-import { codeWorking } from "ionicons/icons";
+import { codeWorking, shieldCheckmark } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../Store/ReduxStore";
 import { setItemPilhaStatus } from "../Store/Reducer/ReducerPilhaJobs";
@@ -281,7 +281,14 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
     function inputQuerysManual(comandoSql: ComandoSQL, index: number) {
         return (
             <div className="px-1 mb-2">
-                <div className="position-relative text-center pb-1 mt-1 mb-3">
+                <div className="position-relative text-center mx-3 mt-1 mb-4">
+                    <IonIcon icon={shieldCheckmark} 
+                        className="btn btn-light sticky-top border rounded rounded-circle p-2"
+                        color="primary"
+                        title="Validar Query"
+                        style={{position: 'absolute', top: '0%', left: `100%`, transform: `translate(-50%, -50%)`}}
+                        onClick={(e) => validarQuery(queries[index].sql)}
+                    />
                     <IonLabel className="badge bg-info mx-1 sticky-top"
                         style={{
                             position: 'absolute',
@@ -308,11 +315,19 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
         if (queries.length === 0) return;
         
         //Gerando preenchimento dinâmico para as ConfigQuery's cadastradas
-        const queriesDinamicas = jobExec.queries.filter((queryDto) => queryDto.filtros.length > 0)
+        const queriesDinamicas = jobExec.queries
+            .filter((queryDto) => queryDto.filtros.length > 0)
             .map((queryDto, queryIndex) => 
                 <div key={queryIndex}
-                    className="position-relative text-dark border border-1 bg-white rounded-3 mx-3 mt-1 mb-4 py-3 px-2"
+                    className="position-relative text-dark card bg-white mx-3 mt-1 mb-4 pt-2 pb-4 px-2"
                 >
+                    <IonIcon icon={shieldCheckmark} 
+                        className="btn btn-light border rounded rounded-circle p-2"
+                        color="primary"
+                        title="Validar Query"
+                        style={{position: 'absolute', top: '0%', left: `100%`, transform: `translate(-50%, -50%)`}}
+                        onClick={(e) => validarQuery(queries[queryIndex])}
+                    />
                     <IonLabel className="badge bg-info mx-1 sticky-top"
                         key={queryIndex}
                         style={{position: 'absolute', top: '0%', left: `0%`, transform: `translate(0%, -50%)`}}
@@ -320,14 +335,18 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
                         {queryDto.tabela}
                     </IonLabel>
                     {queryDto.descricao}<br/>
+                    <div className="font-monospace small card text-secondary my-2 px-2 ">
+                        {queryDto.dinamico ? queryDto.sql : null}
+                    </div>
                     {
                         queryDto.filtros.map((filtro, filtroIndex) => 
-                            <IonItem className="text-primary" key={queryIndex * filtroIndex}>
+                            <IonItem className="text-primary card" key={queryIndex * filtroIndex}>
                                 <IonLabel className="fw-bold">{filtro.coluna + ":"}</IonLabel>
                                 <IonInput placeholder={filtro.tipo}
                                     value={filtro.valor}
                                     onIonChange={(e) => preencherConfigQueries(e, queryIndex, filtroIndex)}
                                 />
+                                
                             </IonItem>
                         )
                     }
@@ -383,6 +402,20 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
                 }
             </div>
         );
+    }
+
+    const validarQuery = async (comandoSql: ComandoSQL | string) => {
+        console.log(`[CARD-JOB]: Iniciando requisição 'Validar ConfigQuery'.`);
+        toastOff().then(() => acionarToast("VALIDAR QUERY: Em execução...", 5000, 'medium', []));
+        try {
+            const resultado: string = await axiosRequest.validarQuery(comandoSql);
+            toastOff().then(() => acionarToast(`VALIDAR SQL: ${resultado}`, 5000, 'primary', []));
+            console.log(`[CARD-JOB]: Requisição 'Validar ConfigQuery' funcionou.`);
+        }
+        catch (error) {
+            toastOff().then(() => acionarToast(`VALIDAR QUERY: ${error}`, 9900, 'warning', []));
+            console.error(`[CARD-JOB]: Requisição 'Validar ConfigQuery' falhou.`);
+        }
     }
 
     if (!jobExec) return null;

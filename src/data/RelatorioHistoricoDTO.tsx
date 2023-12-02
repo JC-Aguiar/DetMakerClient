@@ -13,7 +13,6 @@ export interface RelatorioHistoricoDTO {
     sistema: string,
     ambiente: string,
     evidencias: EvidenciaInfoDTO[],
-    dataInicio: string,
-    dataFim: string,
+    data: string,
     sucesso: string,
 }
