@@ -1,17 +1,18 @@
-import { InputChangeEventDetail, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonSelect, IonSelectOption, IonText, IonTextarea, SelectChangeEventDetail, TextareaChangeEventDetail, ToastButton, useIonModal, useIonToast, useIonViewDidEnter } from "@ionic/react";
+import { InputChangeEventDetail, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonReorder, IonRow, IonSelect, IonSelectOption, IonText, IonTextarea, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from "@ionic/react";
 import React, { ChangeEvent, useState } from "react";
 import { JobConfigDTO } from "../data/JobExecute";
 import { ComandoSQL } from "../data/ComandoSQL";
-import { codeWorking, shieldCheckmark } from "ionicons/icons";
+import { codeWorking, reorderFour, settings, shieldCheckmark } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../Store/ReduxStore";
 import { setItemPilhaStatus } from "../Store/Reducer/ReducerPilhaJobs";
 import * as axiosRequest from "../data/AxiosRequest";
 import { FiltroSQL } from "../data/FiltroSQL";
-import { Console } from "console";
+import { Noticacao } from "./Noticacao";
 
 export interface JobCardProps {
     id: number,
+    notificacao: Noticacao,
     callback: () => void
 }
 
@@ -19,7 +20,7 @@ interface JobCardModalProps {
     onDismiss: () => void
 }
 
-const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
+const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
     //Propriedades do componente <JobCard>
     const dispatch = useDispatch();
     const pilhaExec = useSelector((state: RootState) => state.store.pilhaJobs.value)
@@ -29,20 +30,6 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
     let queries: ComandoSQL[] = JSON.parse(JSON.stringify(jobExec.queries));
     let cargas: string[] = jobExec.cargas;
     let pronto: boolean = jobExec.pronto;
-    let ordem: number = jobExec.ordem;
-    const [ordemVO, setOrdemVO] = useState<number>(ordem);
-
-    //Modelo de Toast usado pelo componente
-    const [toast, toastOff] = useIonToast();
-    const acionarToast = (mensagem: string, tempo: number, cor: string, buttons: ToastButton[]) => {
-        toast({
-            message: mensagem,
-            duration: tempo,
-            position: 'bottom',
-            color: cor,
-            buttons: buttons,
-        });
-    };
 
     //Modelo e função da modal usada nos cards
     const JobCardModal: React.FC<JobCardModalProps> = ({ onDismiss }) => {
@@ -58,7 +45,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
                     </IonFabButton>
                 </IonFab>
                 <div className="p-2">
-                    { inputOrdem() }
+                    { jobInfos() }
                     { inputParametros() }
                     { inputConfigQuerys() }
                     { inputCarga() }
@@ -76,10 +63,10 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
     );
 
     //Método chamado quando este componente fica visível
-    useIonViewDidEnter(() => {
-        if (!jobExec) return;
-        console.log(`[CARD-JOB] Renderizando card do job ${jobExec.job.nome}.`);
-    }, []);
+    //useIonViewDidEnter(() => {
+    //    if (!jobExec) return;
+    //    console.log(`[CARD-JOB] Renderizando card do job ${jobExec.job.nome}.`);
+    //}, []);
 
     //Método para callback á página {@link ConfigurarJobs}, enviando o {@link JobExecute} do card e suas respectivas
     //configurações e seu respectivo index
@@ -92,8 +79,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
             return comandoSql.sql && comandoSql.sql.length > 0;
         });
         //const statusCargas = cargas.length === 0 || cargas.every((carga) => carga.trim().length > 0);
-        const statusOrdem = ordem !== null && ordem >= 0;
-        pronto = (statusQueries && statusOrdem); //&& statusParametros && statusCargas
+        pronto = (statusQueries); //&& statusParametros && statusCargas
         try {
             //if (itemPilha.argumentos === parametros
             //    && itemPilha.cargas === cargas
@@ -104,7 +90,6 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
 
             console.log(
                 `[CARD-JOB] Status do card job [${jobExec.job.id}] ${jobExec.job.nome}: ` + '\n'
-                + ` - Status Ordem ${statusOrdem}` + '\n'
                 + ` - Status Queries ${statusQueries}` + '\n'
                 + ` - Status Pronto = ${pronto}.`
             );
@@ -115,7 +100,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
                     queries: queries,
                     cargas: cargas,
                     pronto: pronto,
-                    ordem: ordemVO,
+                    ordem: jobExec.ordem,
                 }
             ));
         }
@@ -124,17 +109,6 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
         }
     }
 
-    //Funções para preencher as variáveis de manipulação dos cards
-    const preencherOrdem = (event:  ChangeEvent<HTMLSelectElement>) => {
-        const value = event.target.value;
-        const numero = Number.parseInt(value.toString().trim());
-        if (!isNaN(numero)) {
-            //setAntigaOrdem(ordem);
-            ordem = (numero);
-            setOrdemVO(ordem);
-        }
-        console.log(`[CARD-JOB] ${jobExec.job.nome} nova ordem = ${ordem}.`); //, antiga ordem = ${antigaOrdem}
-    }
     const preencherParametro = (event: CustomEvent<InputChangeEventDetail>, index: number) => {
         const value = (event.target as HTMLInputElement).value;
         const novosParam = [...parametros];
@@ -182,8 +156,8 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
 
     //Procedimento para abrir modal com as infos do Job (ao clicar no botão 'CONFIGURAR JOB')
     //
-    const abrirModal = async (jobId: number) => {
-        //console.log(`[CARD-JOB]: Iniciando requisição 'Coletar ConfigQuery'.`);
+    const abrirModal = (jobId: number) => {
+        //console.log(`[CARD-JOB]: Abrindo modal.`);
         //toastOff().then(() => acionarToast("OBTER CONFIG-QUERYs: Em execução...", 5000, 'medium', []));
         //try {
         //    const resultado: ComandoSQL[] = await axiosRequest.getQueries(jobId);
@@ -207,36 +181,35 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
         //    console.error(`[CARD-JOB]: Requisição 'Coletar ConfigQuery' falhou.`);
         //}
         //finally {
-            modalParamOn();
+        //    modalParamOn();
         //}
     }
 
-    //Gerando configurações do job
-    function inputOrdem() {
-        return (
-            <div className="px-1 py-2 mb-2 text-start">
-                <IonLabel className="badge bg-info mx-1 sticky-top"
-                    style={{
-                        position: 'absolute',
-                        top: '0%',
-                        left: `2%`,
-                        transform: 'translate(0%, 225%)',
-                    }}
-                >
-                    Ordem de Execução
-                </IonLabel>
-                <select className="form-select" id="floatingSelect"
-                    aria-label="Floating label select example"
-                    onChange={(e) => preencherOrdem(e)}
-                    value={ordemVO}
-                >
-                {
-                    pilhaExec.map((itemPilha) => 
-                        <option value={itemPilha.ordem}>Nº {itemPilha.ordem}</option>
-                    )
-                }
-                </select>
+    function jobInfos() {
+        let sessaoExecutarApos: JSX.Element | null = null;
+        if (jobExec.job.executarAposJob.length > 0) {
+            sessaoExecutarApos = <div>Executar após Jobs: 
+                {jobExec.job.programa.map((recursos) => <span className="badge bg-info m-0">{recursos}</span>)}
             </div>
+        }
+        let sessaoProgramas: JSX.Element | null = null; 
+        if (jobExec.job.programa.length > 0) {
+            sessaoProgramas = <div>Programas: 
+                {jobExec.job.executarAposJob.map((idPosJob) => <span className="badge bg-info m-0">{idPosJob}</span>)}
+            </div>
+        }
+        return (
+            <>
+                <label className="form-label fw-bold text-primary" htmlFor={`job${jobExec.job.id}-param`}>
+                    INFORMAÇÕES
+                </label>
+                <div className="text-dark card bg-white mx-4 mt-1 mb-4 pt-2 pb-4 px-2">
+                    {sessaoExecutarApos}
+                    {sessaoProgramas}
+                    <div className="d-flex">Grupo: <span className="badge bg-info mt-1">UDA{jobExec.job.grupoUda}</span></div>
+                    <div className="d-flex">Descrição: {jobExec.job.descricao}</div>
+                </div>
+            </>
         );
     }
 
@@ -244,26 +217,21 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
         if (jobExec.job.parametros.length === 0) return;
         return (
             <div className="px-1 mb-2">
-                <label className="form-label fw-bold text-primary" htmlFor={`job${jobExec.job.id}-param`}>
-                    PARÂMETROS DE EXECUÇÃO
+                <label className="form-label fw-bold text-primary pb-0 mb-0" htmlFor={`job${jobExec.job.id}-param`}>
+                    PARÂMETROS
                 </label>
                 {
                     jobExec.job.parametros.map((param, index) => {
                         return (
-                            <div className="position-relative pb-1 mt-1 mb-3">
+                            <div className="position-relative mx-3 mt-1 mb-4 pt-2 pb-4 px-2">
                                 <IonLabel className="badge bg-info mx-1 sticky-top"
-                                    style={{
-                                        position: 'absolute',
-                                        top: '0%',
-                                        left: `0%`,
-                                        transform: 'translate(0%, -50%)',
-                                    }}
+                                    style={{position: 'absolute', top: '0%', rigth: `100%`}}
                                 >
                                     {jobExec.job.parametros[index]}
                                 </IonLabel>
                                 <IonInput id={`job${jobExec.job.id}-param`}
                                     type="text"
-                                    className="form-control"
+                                    className="form-control w-100"
                                     aria-label="Sizing example input"
                                     aria-describedby="inputGroup-sizing-default"
                                     placeholder={jobExec.job.descricaoParametros[index]}
@@ -346,7 +314,6 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
                                     value={filtro.valor}
                                     onIonChange={(e) => preencherConfigQueries(e, queryIndex, filtroIndex)}
                                 />
-                                
                             </IonItem>
                         )
                     }
@@ -406,59 +373,47 @@ const JobCard: React.FC<JobCardProps> = ({ id, callback }) => {
 
     const validarQuery = async (comandoSql: ComandoSQL | string) => {
         console.log(`[CARD-JOB]: Iniciando requisição 'Validar ConfigQuery'.`);
-        toastOff().then(() => acionarToast("VALIDAR QUERY: Em execução...", 5000, 'medium', []));
+        notificacao.toastInfo("VALIDAR QUERY: Em execução...", []);
         try {
             const resultado: string = await axiosRequest.validarQuery(comandoSql);
-            toastOff().then(() => acionarToast(`VALIDAR SQL: ${resultado}`, 5000, 'primary', []));
+            notificacao.toastOk(`VALIDAR SQL: ${resultado}`, []);
             console.log(`[CARD-JOB]: Requisição 'Validar ConfigQuery' funcionou.`);
         }
         catch (error) {
-            toastOff().then(() => acionarToast(`VALIDAR QUERY: ${error}`, 9900, 'warning', []));
+            notificacao.toastErro(`VALIDAR QUERY: ${error}`, []);
             console.error(`[CARD-JOB]: Requisição 'Validar ConfigQuery' falhou.`);
         }
     }
 
     if (!jobExec) return null;
     return (
-        <IonCard target="_self" className="border border-1 p-0">
-            <IonCardHeader className="banner p-2" >
-                <IonCardTitle  >
-                    <span className="badge bg-white me-1 text-primary">{jobExec.job.id}</span>
-                    <span className="font-monospace text-white fw-bold">{jobExec.job.nome}</span>
-                </IonCardTitle>
-            </IonCardHeader>
-            <IonCardContent className="rounded rounded-2 bg-light m-3">
-                <div className="lh-1 py-2 text-dark">
-                    {/* TODO: adicionar estilo css para o nome do job quebrar em qualquer letra (adicionar isso na modal também) */}
-                    <p>Ordem: {ordem}</p>
-                    Executar após IDs: {
-                        jobExec.job.executarAposJob.map((idPosJob) => <span className="badge bg-info m-0">{idPosJob}</span>)
-                    }
-                    <div className="my-1" />
-
-                    Programas: {
-                        jobExec.job.programa.map((recursos) => <span className="badge bg-info m-0">{recursos}</span>)
-                    }
-                    <div className="my-1" />
-
-                    Grupo: <span className="badge bg-info m-0">UDA{jobExec.job.grupoUda}</span>
-                    <div className="my-1" />
-
-                    {jobExec.job.descricao}
-                    <div className="my-1" />
-
-                    <div className="ion-text-center d-flex align-items-center">
-                        <IonButton id="session-login-button" fill="solid" onClick={() => abrirModal(jobExec.job.id)} >
-                            <IonIcon icon={codeWorking} size='large' />
-                            <IonText className="session-buttons">
-                                Configurar Job
-                            </IonText>
-                        </IonButton>
-                    </div>
-
-                </div>
-            </IonCardContent>
-        </IonCard>
+        <IonRow className="ion-align-items-center ion-justify-content-between w-100">
+            <IonItem className="w-100 border-bottom" lines="none">
+                <IonLabel className="p-0 m-0">
+                    <IonReorder slot="start" className='w-100 ion-align-items-center'>
+                        <IonItem className='text-secondary container w-100 p-0 m-0' lines='none'>
+                            <span><IonIcon icon={reorderFour} /></span>
+                            <span className='small h-6'>Nº{jobExec.ordem}</span>
+                            <span><IonIcon icon={reorderFour} /></span>
+                            <IonCard target="_self" className="bg-primary w-100 border border-2 px-1 py-1">
+                                <span>
+                                    <span className="ms-1 badge bg-white me-1 text-primary">
+                                        ID <span>{jobExec.job.id}</span>
+                                    </span>
+                                    <span className="ms-1 font-monospace text-white fw-bold">
+                                        {jobExec.job.nome}
+                                    </span>
+                                </span>
+                            </IonCard>
+                        </IonItem>
+                    </IonReorder>
+                </IonLabel>
+                <IonButton fill="clear" shape="round" onClick={(e) => modalParamOn()} >
+                    <IonIcon icon={settings} />
+                </IonButton>
+            </IonItem>
+        </IonRow>
+        
     );
 };
 

@@ -293,6 +293,17 @@ ion-content#intro-bg {
   border-radius: 20px;
 }
 
+/* MODALS EM GERAL */
+ion-modal::part(content) {
+  top: 0vh;
+  border: 0px;
+  height: 70vh;
+  width: 80vw;
+  min-width: 600px;
+  min-width: 800px;
+  border-radius: 16px;
+}
+
 .card-login {
   height: 100%;
 }
@@ -451,7 +462,7 @@ ion-content#intro-bg {
   -webkit-text-stroke: calc(0.15vw + 0.10vh) white;
   text-stroke: calc(0.15vw + 0.10vh) white;
   font-family: 'Play', sans-serif;
-  font-size: calc(3vw + 2vh);
+  font-size: calc(4vw + 3vh + 2px);
   text-shadow: calc(0.15vw + 0.10vh) calc(0.18vw + 0.12vh) #ffff00;
 }
 
@@ -552,6 +563,10 @@ table {
   background: var(--ion-color-light);
 }
 
+/* CONFIG JOBS */
+.job-card {
+  min-width: calc(28vw);
+}
 
 @media (max-width: 767px) {
 

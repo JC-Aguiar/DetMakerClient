@@ -1,4 +1,4 @@
-import { IonApp, IonAvatar, IonHeader, IonIcon, IonImg, IonLabel, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs, setupIonicReact } from '@ionic/react';
+import { IonApp, IonAvatar, IonHeader, IonIcon, IonImg, IonLabel, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs, ToastButton, setupIonicReact, useIonToast } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Redirect, Route } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -37,10 +37,30 @@ import Det from './pages/Det';
 import { validarJwt } from './data/JwtDTO';
 import { validarUser } from './data/UserDTO';
 import Avatar from './components/Avatar';
+import DynamicPage from './components/DynamicPage';
+import { Noticacao } from './components/Noticacao';
 
 /* Recursos de uso comum */
 
 setupIonicReact();
+
+export const URL_BASE = "/det-maker";
+export const URL_PIPELINES = `${URL_BASE}/open`;
+export const URL_JOBS = `${URL_BASE}/select`;
+export const URL_CONFIG = `${URL_BASE}/config`;
+export const URL_DET = `${URL_BASE}/evidence`;
+export const URL_LOGIN = `${URL_BASE}/login`;
+
+type rotaTYPE = {
+    path: string,
+    exact: boolean,
+    titulo: string,
+    subtitulo: string,
+    conteudo: JSX.Element,
+    icone: string,
+    desativado: boolean,
+    efeito: JSX.Element | null,
+}
 
 export const dataFormato: Intl.DateTimeFormatOptions = {
     dateStyle: 'short', //Utiliza o formato de data curta com separador "/"
@@ -72,6 +92,94 @@ const App = () => {
     const executarJobsOpt: boolean = false;
     const evidenciaPag: boolean = useSelector((state: RootState) => state.store.relatorios.value) !== null;
 
+    const [toast, toastOff] = useIonToast();
+    const closeToast = {
+      text: 'X',
+      role: 'Close',
+      handler: () => toastOff(),
+    };
+    const toastInfo = (mensagem: string, buttons: ToastButton[]) => {
+        buttons.push(closeToast);
+        toastOff().then(() =>
+            toast({
+                message: mensagem,
+                duration: 5000,
+                position: 'bottom',
+                color: 'medium',
+                buttons: buttons,
+            })
+        );
+    };
+    const toastOk = (mensagem: string, buttons: ToastButton[]) => {
+        buttons.push(closeToast);
+        toastOff().then(() =>
+            toast({
+                message: mensagem,
+                duration: 5000,
+                position: 'bottom',
+                color: 'primary',
+                buttons: buttons,
+            })
+        );
+    };
+    const toastErro = (mensagem: string, buttons: ToastButton[]) => {
+        buttons.push(closeToast);
+        toastOff().then(() =>
+            toast({
+                message: mensagem,
+                duration: 8000,
+                position: 'bottom',
+                color: 'warning',
+                buttons: buttons,
+            })
+        );
+    };
+    const notificacao = { toastInfo: toastInfo, toastOk: toastOk, toastErro: toastErro } as Noticacao;
+
+    const rotas: rotaTYPE[] = [
+        {
+            path: URL_PIPELINES,
+            exact: true,
+            titulo: "Carregar Jobs", 
+            subtitulo: "Escolha uma das opções abaixo para iniciar uma Pipeline", 
+            conteudo: <CarregarJobs {...notificacao} />,
+            icone: document,
+            desativado: false,
+            efeito: null,
+        },
+        {
+            path: URL_JOBS,
+            exact: true,
+            titulo: "Selecionar Jobs", 
+            subtitulo: "Documentação detalhada dos jobs disponíveis", 
+            conteudo: <EscolherJobs {...notificacao} />,
+            icone: checkbox,
+            desativado: !escolherJobsOpt,
+            efeito: null, 
+        },
+        {
+            path: URL_CONFIG,
+            exact: true,
+            titulo: "Configurar Jobs", 
+            subtitulo: "", 
+            conteudo: <ConfigurarJobs {...notificacao} />,
+            icone: settings,
+            desativado: !configurarJobsOpt,
+            efeito: contadorConfigJobs(),
+        },
+        {
+            path: URL_DET,
+            exact: true,
+            titulo: "DET", 
+            subtitulo: "Revisando o documento de evidência dos testes", 
+            conteudo: <Det {...notificacao} />,
+            icone: documentText,
+            desativado: !evidenciaPag,
+            efeito: null,
+        },
+    ];
+
+
     function animationEnd() {
         setBoasVindas(true);
     }
@@ -98,69 +206,45 @@ const App = () => {
         return (
             <IonTabs>
                 <IonRouterOutlet>
-                    <Route path="/det-maker/open" exact>    <CarregarJobs />    </Route>
-                    <Route path="/det-maker/select" exact>  <EscolherJobs />    </Route>
-                    <Route path="/det-maker/config" exact>  <ConfigurarJobs />  </Route>
-                    <Route path="/det-maker/evidence" exact><Det />             </Route>
-                    <Route> <Redirect to="/det-maker/open" /> </Route>
+                    {
+                        rotas.map((r, index) =>
+                            <Route path={r.path} exact={r.exact}>    
+                                <DynamicPage key={index} titulo={r.titulo} subtitulo={r.subtitulo} elemento={r.conteudo}/> 
+                            </Route> 
+                        )
+                    }
+                    <Route> 
+                        <Redirect to={URL_PIPELINES} />
+                    </Route>
                 </IonRouterOutlet>
 
                 {/* Links no menu */}
                 <IonTabBar slot="top" className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' >
-                    {/* Carregar Jobs */}
-                    <IonTabButton tab="open" href="/det-maker/open"
-                        className='pt-1 bg-transparent fw-bold'
-                    >
-                        <IonIcon icon={document} />
-                        <IonLabel>Carregar Jobs</IonLabel>
-                    </IonTabButton>
-
-                    {/* Escolher Jobs */}
-                    <IonTabButton tab="select" href="/det-maker/select/"
-                        className='pt-2 bg-transparent fw-bold'
-                        disabled={!escolherJobsOpt}
-                    >
-                        <IonIcon icon={checkbox} />
-                        <IonLabel>Escolher Jobs</IonLabel>
-                    </IonTabButton>
-
-                    {/* Configurar Jobs */}
-                    <IonTabButton tab="config" href="/det-maker/config"
-                        className='pt-2 bg-transparent fw-bold'
-                        disabled={!configurarJobsOpt}
-                    >
-                        <IonIcon icon={settings} />
-                        <IonLabel>Configurar Jobs {contadorConfigJobs()} </IonLabel>
-                    </IonTabButton>
-
-
-                    {/* Evidencia */}
-                    <IonTabButton tab="evidence" href="/det-maker/evidence"
-                        className='pt-2 bg-transparent fw-bold'
-                        disabled={!evidenciaPag}
-                    >
-                        <IonIcon icon={documentText} />
-                        <IonLabel>Evidencia</IonLabel>
-                    </IonTabButton>
+                {
+                    rotas.map((r, index) => 
+                        <IonTabButton key={index} tab={r.titulo} href={r.path}
+                            className='pt-1 bg-transparent fw-bold'
+                            disabled={r.desativado}
+                        >
+                            <IonIcon icon={r.icone} />
+                            <IonLabel>{r.titulo}{r.efeito}</IonLabel>
+                        </IonTabButton>
+                    )
+                }
                 </IonTabBar>
             </IonTabs>
         );
     }
 
     function principal() {
-        if (validarJwt(jwt) && validarUser(user)) {
-            //<IonImg src={user!.picture} />
-            //menu(); 
-            return menu();
-        }
-        else {
-            return <>
-                <IonRouterOutlet>
-                    <Route path="/det-maker/login" exact> <Login /> </Route>
-                    <Route> <Redirect to="/det-maker/login" /> </Route>
-                </IonRouterOutlet>
-            </>;
-        }
+        if (validarJwt(jwt) && validarUser(user)) return menu();
+        return <IonTabs>
+            <IonRouterOutlet>
+                <Route path={URL_LOGIN} exact> <Login /> </Route>
+                <Route> <Redirect to="/det-maker/login" /> </Route>
+            </IonRouterOutlet>
+            <IonTabBar slot="top" className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' />
+        </IonTabs>
     }
 
     function rotasDeAcesso() {
@@ -176,7 +260,7 @@ const App = () => {
                     <IonHeader id='ppw-titulo' className='text-center'>
                         <div className="navbar-brand disabled text-white fs-1 m-0 lh-1" >
                             Peopleware
-                            {/*<div className="fs-6">joao.aguiar@gmail.com</div>*/}
+    s                        {/*<div className="fs-6">joao.aguiar@gmail.com</div>*/}
                         </div>
                     </IonHeader>
                     {rotasDeAcesso()}
