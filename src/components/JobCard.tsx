@@ -1,14 +1,17 @@
-import { InputChangeEventDetail, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonReorder, IonRow, IonSelect, IonSelectOption, IonText, IonTextarea, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from "@ionic/react";
+import { InputChangeEventDetail, IonButton, IonCard, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonReorder, IonRow, IonTextarea, TextareaChangeEventDetail, useIonModal } from "@ionic/react";
 import React, { ChangeEvent, useState } from "react";
-import { JobConfigDTO } from "../data/JobExecute";
+import { JobConfig, JobConfigDTO } from "../data/JobConfigDTO";
 import { ComandoSQL } from "../data/ComandoSQL";
-import { codeWorking, reorderFour, settings, shieldCheckmark } from "ionicons/icons";
+import { reorderFour, settings, shieldCheckmark } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../Store/ReduxStore";
-import { setItemPilhaStatus } from "../Store/Reducer/ReducerPilhaJobs";
+import { setJobs } from "../Store/Reducer/ReducerJobs";
 import * as axiosRequest from "../data/AxiosRequest";
 import { FiltroSQL } from "../data/FiltroSQL";
 import { Noticacao } from "./Noticacao";
+import DynamicModal from "./DynamicModal";
+import { JobInfoDTO } from "../data/JobInfoDTO";
+import { updateOneMainJob } from "../Store/Reducer/ReducerAtividade";
 
 export interface JobCardProps {
     id: number,
@@ -23,38 +26,31 @@ interface JobCardModalProps {
 const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
     //Propriedades do componente <JobCard>
     const dispatch = useDispatch();
-    const pilhaExec = useSelector((state: RootState) => state.store.pilhaJobs.value)
-        .filter((itemPilha) => itemPilha.job.checked);
-    const jobExec: JobConfigDTO = pilhaExec.filter((itemPilha) => itemPilha.job.id === id)[0];
+    const jobInfo: JobInfoDTO = useSelector((state: RootState) => state.store.pilhaJobs.catalago)
+        .filter((item) => item.id === id)[0];
+    const jobExec: JobConfig = useSelector((state: RootState) => state.store.configAtividade.mainJobs)
+        .filter((item) => item.id === id)[0];
     let parametros: string[] = jobExec.argumentos;
     let queries: ComandoSQL[] = JSON.parse(JSON.stringify(jobExec.queries));
     let cargas: string[] = jobExec.cargas;
-    let pronto: boolean = jobExec.pronto;
+    //let pronto: boolean = jobExec.pronto;
 
     //Modelo e função da modal usada nos cards
-    const JobCardModal: React.FC<JobCardModalProps> = ({ onDismiss }) => {
-        return (
-            <IonContent className="">
-                <IonHeader className="banner p-2 m-0">
-                    <span className="badge bg-white me-1 text-primary">{jobExec.job.id}</span>
-                    <span className="font-monospace text-white fw-bold">{jobExec.job.nome}</span>
-                </IonHeader>
-                <IonFab edge={true} vertical="top" horizontal="end">
-                    <IonFabButton className="close-icon" color="#" onClick={onDismiss} >
-                        <IonIcon icon="close" color="#" />
-                    </IonFabButton>
-                </IonFab>
-                <div className="p-2">
-                    { jobInfos() }
-                    { inputParametros() }
-                    { inputConfigQuerys() }
-                    { inputCarga() }
-                </div>
-            </IonContent>
-        )
-    }
+    const jobCardModal = <div className="p-2">
+        {informacoes()}
+        {inputParametros()}
+        {inputConfigQuerys()}
+        {inputCarga()}
+    </div>;
+
     const [modalParamOn, modalParamOff] = useIonModal(
-        JobCardModal, {
+        DynamicModal,
+        {
+            titulo: <>
+                <span className="badge bg-white me-1 text-primary">ID {id}</span>
+                {jobExec.nome}
+            </>,
+            elemento: jobCardModal,
             onDismiss: () => {
                 salvandoItem();
                 modalParamOff()
@@ -68,8 +64,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
     //    console.log(`[CARD-JOB] Renderizando card do job ${jobExec.job.nome}.`);
     //}, []);
 
-    //Método para callback á página {@link ConfigurarJobs}, enviando o {@link JobExecute} do card e suas respectivas
-    //configurações e seu respectivo index
+    //Método para salvar o ConfigJob preenchido pelo usuário no banco
     async function salvandoItem() {
         //const statusParametros = parametros.length === 0 || parametros.every((param) => param.trim().length > 0);
         const statusQueries = queries.length === 0 || queries.every((comandoSql) => {
@@ -79,34 +74,20 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
             return comandoSql.sql && comandoSql.sql.length > 0;
         });
         //const statusCargas = cargas.length === 0 || cargas.every((carga) => carga.trim().length > 0);
-        pronto = (statusQueries); //&& statusParametros && statusCargas
-        try {
-            //if (itemPilha.argumentos === parametros
-            //    && itemPilha.cargas === cargas
-            //    && itemPilha.ordem === ordem
-            //    && itemPilha.queries === queries
-            //    && itemPilha.pronto === pronto)
-            //      return;
-
-            console.log(
-                `[CARD-JOB] Status do card job [${jobExec.job.id}] ${jobExec.job.nome}: ` + '\n'
-                + ` - Status Queries ${statusQueries}` + '\n'
-                + ` - Status Pronto = ${pronto}.`
-            );
-            dispatch(setItemPilhaStatus(
-                {
-                    id: jobExec.job.id,
-                    argumentos: parametros,
-                    queries: queries,
-                    cargas: cargas,
-                    pronto: pronto,
-                    ordem: jobExec.ordem,
-                }
-            ));
-        }
-        finally {
-            callback();
-        }
+        //pronto = (statusQueries); //&& statusParametros && statusCargas
+        //if (itemPilha.argumentos === parametros
+        //    && itemPilha.cargas === cargas
+        //    && itemPilha.ordem === ordem
+        //    && itemPilha.queries === queries
+        //    && itemPilha.pronto === pronto)
+        //      return;
+        console.log(
+            `[CARD-JOB] Status do card job [${jobExec.id}] ${jobExec.nome}: ` + '\n'
+            + ` - Status Queries ${statusQueries}` //+ '\n'
+            //+ ` - Status Pronto = ${pronto}.`
+        );
+        dispatch(updateOneMainJob(jobExec));
+        //callback();
     }
 
     const preencherParametro = (event: CustomEvent<InputChangeEventDetail>, index: number) => {
@@ -114,7 +95,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
         const novosParam = [...parametros];
         novosParam[index] = value.trim();
         parametros = (novosParam);
-        console.log(`[CARD-JOB] ${jobExec.job.nome} parâmetro[${index}] = ${parametros[index]}.`);
+        console.log(`[CARD-JOB] ${jobExec.nome} parâmetro[${index}] = ${parametros[index]}.`);
     }
     const preencherQueries = (event: CustomEvent<TextareaChangeEventDetail>, index: number) => {
         const value = (event.target as HTMLInputElement).value;
@@ -129,7 +110,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
         };
         queries = (novasQueries);
         console.log(
-            `[CARD-JOB] ${jobExec.job.nome} query[${index}] ${queries[index].tabela} = ${queries[index].sql}.`
+            `[CARD-JOB] ${jobExec.nome} query[${index}] ${queries[index].tabela} = ${queries[index].sql}.`
         );
     }
     const preencherConfigQueries = (event: CustomEvent<InputChangeEventDetail>, queryIndex: number, filtroIndex: number) => {
@@ -139,9 +120,9 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
             valor: value,
         } as FiltroSQL;
         const tabelaAtualizada = queries[queryIndex].tabela;
-        const {coluna, tipo, valor} = queries[queryIndex].filtros[filtroIndex];
+        const { coluna, tipo, valor } = queries[queryIndex].filtros[filtroIndex];
         console.log(
-            `[CARD-JOB] ${jobExec.job.nome} query[${queryIndex}] ${tabelaAtualizada}.${coluna} = ${valor}.`
+            `[CARD-JOB] ${jobExec.nome} query[${queryIndex}] ${tabelaAtualizada}.${coluna} = ${valor}.`
         );
     }
     const preencherCargas = (event: CustomEvent<TextareaChangeEventDetail>, index: number) => {
@@ -151,95 +132,64 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
             novasCargas[index] = value != null && value != undefined ? value.trim() : "";
             cargas = (novasCargas);
         }
-        console.log(`[CARD-JOB] ${jobExec.job.nome} carga[${index}] = ${cargas[index]}.`);
+        console.log(`[CARD-JOB] ${jobExec.nome} carga[${index}] = ${cargas[index]}.`);
     }
 
-    //Procedimento para abrir modal com as infos do Job (ao clicar no botão 'CONFIGURAR JOB')
-    //
-    const abrirModal = (jobId: number) => {
-        //console.log(`[CARD-JOB]: Abrindo modal.`);
-        //toastOff().then(() => acionarToast("OBTER CONFIG-QUERYs: Em execução...", 5000, 'medium', []));
-        //try {
-        //    const resultado: ComandoSQL[] = await axiosRequest.getQueries(jobId);
-        //    dispatch(setItemPilhaStatus({
-        //        id: jobId,
-        //        argumentos: jobExec.argumentos,
-        //        queries: resultado,
-        //        cargas: jobExec.cargas,
-        //        pronto: jobExec.pronto,
-        //        ordem: jobExec.ordem,
-        //    }));
-        //    setQueryDinamica(true);
-        //    toastOff().then(() => acionarToast("OBTER CONFIG-QUERYs: Realizada com sucesso.", 5000, 'primary', []));
-        //    console.log(`[CARD-JOB]: Requisição 'Coletar ConfigQuery' funcionou.`);
-        //}
-        //catch (error) {
-        //    const mensagem = error + ' Por causa do erro, o preenchimento das queries de forma dinâmica está indisponível.'
-        //        + ' Preenchimento manual habilitado.'
-        //    setQueryDinamica(false);
-        //    toastOff().then(() => acionarToast(`OBTER CONFIG-QUERYs: ${mensagem}`, 9900, 'warning', []));
-        //    console.error(`[CARD-JOB]: Requisição 'Coletar ConfigQuery' falhou.`);
-        //}
-        //finally {
-        //    modalParamOn();
-        //}
-    }
-
-    function jobInfos() {
+    //Exibindo dados do Job no card
+    function informacoes() {
         let sessaoExecutarApos: JSX.Element | null = null;
-        if (jobExec.job.executarAposJob.length > 0) {
-            sessaoExecutarApos = <div>Executar após Jobs: 
-                {jobExec.job.programa.map((recursos) => <span className="badge bg-info m-0">{recursos}</span>)}
+        if (jobInfo.executarAposJob.length > 0) {
+            sessaoExecutarApos = <div>Executar após Jobs:
+                {jobInfo.programa.map((recursos) => <span className="badge bg-info m-0">{recursos}</span>)}
             </div>
         }
-        let sessaoProgramas: JSX.Element | null = null; 
-        if (jobExec.job.programa.length > 0) {
-            sessaoProgramas = <div>Programas: 
-                {jobExec.job.executarAposJob.map((idPosJob) => <span className="badge bg-info m-0">{idPosJob}</span>)}
+        let sessaoProgramas: JSX.Element | null = null;
+        if (jobInfo.programa.length > 0) {
+            sessaoProgramas = <div>Programas:
+                {jobInfo.executarAposJob.map((idPosJob) => <span className="badge bg-info m-0">{idPosJob}</span>)}
             </div>
         }
         return (
             <>
-                <label className="form-label fw-bold text-primary" htmlFor={`job${jobExec.job.id}-param`}>
+                <label className="form-label fw-bold text-primary" htmlFor={`job${id}-param`}>
                     INFORMAÇÕES
                 </label>
                 <div className="text-dark card bg-white mx-4 mt-1 mb-4 pt-2 pb-4 px-2">
                     {sessaoExecutarApos}
                     {sessaoProgramas}
-                    <div className="d-flex">Grupo: <span className="badge bg-info mt-1">UDA{jobExec.job.grupoUda}</span></div>
-                    <div className="d-flex">Descrição: {jobExec.job.descricao}</div>
+                    <div className="d-flex">Grupo: <span className="badge bg-info mt-1">UDA{jobInfo.grupoUda}</span></div>
+                    <div className="d-flex">Descrição: {jobInfo.descricao}</div>
                 </div>
             </>
         );
     }
 
     function inputParametros() {
-        if (jobExec.job.parametros.length === 0) return;
+        if (jobExec.argumentos.length === 0) return;
         return (
             <div className="px-1 mb-2">
-                <label className="form-label fw-bold text-primary pb-0 mb-0" htmlFor={`job${jobExec.job.id}-param`}>
+                <label className="form-label fw-bold text-primary pb-0 mb-0" htmlFor={`job${id}-param`}>
                     PARÂMETROS
                 </label>
                 {
-                    jobExec.job.parametros.map((param, index) => {
+                    jobExec.argumentos.map((param, index) => {
                         return (
                             <div className="position-relative mx-3 mt-1 mb-4 pt-2 pb-4 px-2">
                                 <IonLabel className="badge bg-info mx-1 sticky-top"
-                                    style={{position: 'absolute', top: '0%', rigth: `100%`}}
+                                    style={{ position: 'absolute', top: '0%', rigth: `100%` }}
                                 >
-                                    {jobExec.job.parametros[index]}
+                                    {jobInfo.parametros[index]}
                                 </IonLabel>
-                                <IonInput id={`job${jobExec.job.id}-param`}
+                                <IonInput id={`job${id}-param`}
                                     type="text"
                                     className="form-control w-100"
                                     aria-label="Sizing example input"
                                     aria-describedby="inputGroup-sizing-default"
-                                    placeholder={jobExec.job.descricaoParametros[index]}
+                                    placeholder={jobInfo.descricaoParametros[index]}
                                     onIonChange={(e) => preencherParametro(e, index)}
                                     value={parametros[index]}
                                 />
                             </div>
-
                         );
                     })
                 }
@@ -250,11 +200,11 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
         return (
             <div className="px-1 mb-2">
                 <div className="position-relative text-center mx-3 mt-1 mb-4">
-                    <IonIcon icon={shieldCheckmark} 
+                    <IonIcon icon={shieldCheckmark}
                         className="btn btn-light sticky-top border rounded rounded-circle p-2"
                         color="primary"
                         title="Validar Query"
-                        style={{position: 'absolute', top: '0%', left: `100%`, transform: `translate(-50%, -50%)`}}
+                        style={{ position: 'absolute', top: '0%', left: `100%`, transform: `translate(-50%, -50%)` }}
                         onClick={(e) => validarQuery(queries[index].sql)}
                     />
                     <IonLabel className="badge bg-info mx-1 sticky-top"
@@ -267,7 +217,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
                     >
                         {comandoSql.tabela}
                     </IonLabel>
-                    <IonTextarea id={`job${jobExec.job.id}-sql`}
+                    <IonTextarea id={`job${id}-sql`}
                         className="form-control text-start m-0 p-0"
                         aria-label="With textarea"
                         autoGrow={true}
@@ -279,35 +229,37 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
             </div>
         );
     }
+
+    //Mecânica para adicionar queries ao ConfigJob
     function inputConfigQuerys() {
         if (queries.length === 0) return;
-        
+
         //Gerando preenchimento dinâmico para as ConfigQuery's cadastradas
         const queriesDinamicas = jobExec.queries
             .filter((queryDto) => queryDto.filtros.length > 0)
-            .map((queryDto, queryIndex) => 
+            .map((queryDto, queryIndex) =>
                 <div key={queryIndex}
                     className="position-relative text-dark card bg-white mx-3 mt-1 mb-4 pt-2 pb-4 px-2"
                 >
-                    <IonIcon icon={shieldCheckmark} 
+                    <IonIcon icon={shieldCheckmark}
                         className="btn btn-light border rounded rounded-circle p-2"
                         color="primary"
                         title="Validar Query"
-                        style={{position: 'absolute', top: '0%', left: `100%`, transform: `translate(-50%, -50%)`}}
+                        style={{ position: 'absolute', top: '0%', left: `100%`, transform: `translate(-50%, -50%)` }}
                         onClick={(e) => validarQuery(queries[queryIndex])}
                     />
                     <IonLabel className="badge bg-info mx-1 sticky-top"
                         key={queryIndex}
-                        style={{position: 'absolute', top: '0%', left: `0%`, transform: `translate(0%, -50%)`}}
+                        style={{ position: 'absolute', top: '0%', left: `0%`, transform: `translate(0%, -50%)` }}
                     >
                         {queryDto.tabela}
                     </IonLabel>
-                    {queryDto.descricao}<br/>
+                    {queryDto.descricao}<br />
                     <div className="font-monospace small card text-secondary my-2 px-2 ">
                         {queryDto.dinamico ? queryDto.sql : null}
                     </div>
                     {
-                        queryDto.filtros.map((filtro, filtroIndex) => 
+                        queryDto.filtros.map((filtro, filtroIndex) =>
                             <IonItem className="text-primary card" key={queryIndex * filtroIndex}>
                                 <IonLabel className="fw-bold">{filtro.coluna + ":"}</IonLabel>
                                 <IonInput placeholder={filtro.tipo}
@@ -318,7 +270,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
                         )
                     }
                 </div>
-        );
+            );
         //Adicionando preenchimento manual para as ConfigQuery's pendentes 
         const queriesManuais = jobExec.queries.filter((tabela) => tabela.filtros.length < 1)
             .map((tabela, index) => inputQuerysManual(tabela, index));
@@ -326,7 +278,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
         //Renderização da função
         return (
             <div className="px-1 mb-2">
-                <label className="form-label fw-bold text-primary" htmlFor={`job${jobExec.job.id}-sql`}>
+                <label className="form-label fw-bold text-primary" htmlFor={`job${id}-sql`}>
                     QUERIES DE CONSULTA
                 </label>
                 {queriesDinamicas}
@@ -334,35 +286,30 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
             </div>
         );
     }
+
+    //Mecânica para adicionar cargas ao ConfigJob
     function inputCarga() {
         if (jobExec.cargas.length === 0) return;
         return (
+
+
             <div className="px-1 mb-2">
-                <label className="form-label fw-bold text-primary" htmlFor={`job${jobExec.job.id}-carga`}>
+                <label className="form-label fw-bold text-primary pb-0 mb-0" htmlFor={`job${id}-carga`}>
                     CARGAS DE ENTRADA
                 </label>
                 {
                     jobExec.cargas.map((carga, index) => {
                         return (
-                            <div className="position-relative text-center pb-1 mt-1 mb-3">
+                            <div className="position-relative mx-3 mt-1 mb-4 pt-2 pb-4 px-2">
                                 <IonLabel className="badge bg-info mx-1 sticky-top"
-                                    style={{
-                                        position: 'absolute',
-                                        top: '0%',
-                                        left: `0%`,
-                                        transform: `translate(0%, -50%)`,
-                                    }}
+                                    style={{ position: 'absolute', top: '0%', rigth: `100%` }}
                                 >
-                                    {jobExec.job.mascaraEntrada[index]}
+                                    {jobInfo.mascaraEntrada[index]}
                                 </IonLabel>
-                                <IonTextarea id={`job${jobExec.job.id}-carga`}
-                                    className="form-control m-0 p-0 text-start"
-                                    aria-label="With textarea"
-                                    autoGrow={true}
-                                    placeholder="insira aqui o conteúdo da carga"
-                                    onIonChange={(e) => preencherCargas(e, index)}
-                                    value={cargas[index]}
-                                />
+                                <form action="/upload" method="post" encType="multipart/form-data" className="py-0my-0" >
+                                    <label htmlFor="formFile" className="form-label " ></label>
+                                    <input className="form-control " type="file" id="formFile" /> {/* onChange={getFile} */}
+                                </form>
                             </div>
                         );
                     })
@@ -393,15 +340,15 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
                     <IonReorder slot="start" className='w-100 ion-align-items-center'>
                         <IonItem className='text-secondary container w-100 p-0 m-0' lines='none'>
                             <span><IonIcon icon={reorderFour} /></span>
-                            <span className='small h-6'>Nº{jobExec.ordem}</span>
+                            <span><small className="p-0 m-0">Nº{jobExec.ordem}</small></span>
                             <span><IonIcon icon={reorderFour} /></span>
                             <IonCard target="_self" className="bg-primary w-100 border border-2 px-1 py-1">
                                 <span>
                                     <span className="ms-1 badge bg-white me-1 text-primary">
-                                        ID <span>{jobExec.job.id}</span>
+                                        ID <span>{id}</span>
                                     </span>
                                     <span className="ms-1 font-monospace text-white fw-bold">
-                                        {jobExec.job.nome}
+                                        {jobExec.nome}
                                     </span>
                                 </span>
                             </IonCard>
@@ -413,7 +360,7 @@ const JobCard: React.FC<JobCardProps> = ({ id, notificacao, callback }) => {
                 </IonButton>
             </IonItem>
         </IonRow>
-        
+
     );
 };
 

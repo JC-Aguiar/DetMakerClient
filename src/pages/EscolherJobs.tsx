@@ -3,39 +3,40 @@ import { useState } from 'react';
 import { useHistory } from 'react-router';
 import { checkmarkCircle, closeCircle } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { JobConfigDTO } from '../data/JobExecute';
 import { RootState } from '../Store/ReduxStore';
-import { checkItemPilha } from '../Store/Reducer/ReducerPilhaJobs';
 import JobSchedule from '../components/JobSchedule';
 import { Noticacao } from '../components/Noticacao';
+import { URL_PIPELINES } from '../data/AxiosRequest';
+import { JobInfoDTO } from '../data/JobInfoDTO';
 
 const EscolherJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
     const dispatch = useDispatch();
-    const pilha: JobConfigDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
+    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.catalago);
     const [checks, setChecks] = useState<boolean>(true);
     const history = useHistory();
 
     useIonViewDidEnter(() => {
         //dispatch(show());
-        if (pilha.length === 0) {
+        if (catalogoJobs.length === 0) {
             console.log(`[ESCOLHER-JOBS] A pilha de jobs está vazia. Retornando página.`);
-            history.push('/det-maker/open/');
+            console.log(`[APP] Navegando para: ${URL_PIPELINES}`);
+            history.push(URL_PIPELINES);
         }
         else {
             console.log(`[ESCOLHER-JOBS] Carregando tabela com base na pilha de jobs disponíveis.`);
         }
     }, []);
 
-    async function handlerCheckAll() {
-        console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para 'false'`);
-        pilha.forEach((itemPilha) => dispatch( 
-            checkItemPilha({
-                id: itemPilha.job.id, 
-                checked: false,
-                ordem: itemPilha.ordem
-            })
-        ));
-    }
+    //async function handlerCheckAll() {
+    //    console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para 'false'`);
+    //    catalogoJobs.forEach((item) => dispatch( 
+    //        checkitem({
+    //            id: item.id, 
+    //            checked: false,
+    //            ordem: item.ordem
+    //        })
+    //    ));
+    //}
 
     return (
         <div className="schedule-tabela px-1">
@@ -45,7 +46,7 @@ const EscolherJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) =>
                     <thead className='sticky-top align-items-center align-middle '>
                         <tr className='text-white fs-6'>
                             <th className='bg-primary'>
-                                <button className='btn btn-outline-light bg-transparent border-0 p-1 pb-0 m-0' onClick={handlerCheckAll}>
+                                <button className='btn btn-outline-light bg-transparent border-0 p-1 pb-0 m-0' > {/* onClick={handlerCheckAll} */}
                                     <IonIcon icon={checks ? closeCircle : checkmarkCircle} size='large' />
                                 </button>
                             </th>
@@ -76,10 +77,9 @@ const EscolherJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) =>
                     </thead>
                     <tbody>
                     {
-                        pilha.map((itemPilha, index) => {
-                            const job = itemPilha.job;
-                            const indexId: string = `job-index-${job.id}`;
-                            return <JobSchedule job={job} indexId={indexId} ordem={itemPilha.ordem} key={index} />
+                        catalogoJobs.map((item, index) => {
+                            const indexId: string = `job-index-${item.id}`;
+                            return <JobSchedule job={item} indexId={indexId} ordem={index} key={index} />
                         })
                     }
                     </tbody>

@@ -2,32 +2,44 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosRequestHeaders } from 'axio
 import { PipelineInfoDTO } from './PIpelineInfoDTO';
 import { PipelineNovaExecDTO } from './PipelineNovaExecDTO';
 import { ComandoSQL } from './ComandoSQL';
-import { JobConfigDTO } from './JobExecute';
+import { JobConfigDTO } from './JobConfigDTO';
 import { RelatorioHistoricoDTO } from './RelatorioHistoricoDTO';
 import { JwtDTO } from './JwtDTO';
 import { UserDTO } from './UserDTO';
 import { EvidenciaRevisadaDTO } from './EvidenciaRevisadaDTO';
 import { RelatorioRevisadoDTO } from './RelatorioRevisadoDTO';
+import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_PROFILE_INFO, GOOGLE_REDIRECT_URI, GOOGLE_TOKEN_URL } from '../config/OAuth2';
+import { JobInfoDTO } from './JobInfoDTO';
 
-export const GOOGLE_CLIENT_ID = '19761887139-3pq8c2re83pkh5scpls4sblkhe3c26sh.apps.googleusercontent.com';
-export const GOOGLE_CLIENT_SECRET = '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';
-export const GOOGLE_REDIRECT_URI = 'http://localhost:3000/det-maker/login';
-export const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
-export const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
-export const GOOGLE_PROFILE_INFO = 'https://www.googleapis.com/oauth2/v3/userinfo';
-export const GOOGLE_PEOPLE_API_URL = 'https://people.googleapis.com/v1/people/me?personFields=photos';
-//const GOOGLE_AUTH_URL = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&scope=openid%20email&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_REDIRECT_URI}`;
+const EM_TESTE = true;
 
+//URLs do servidor
+export const SERVER_URL = 'localhost:8080'; //window.location.origin;
+export const SERVER_URL_DEV = 'localhost:1990';
+export const SERVER_CONTEXT_PATH = '/det-maker-server';
+export const SERVER_CONTEXT_PATH_DEV = '';
+export const REQUEST_URL = EM_TESTE ? 
+    `http://${SERVER_URL_DEV}${SERVER_CONTEXT_PATH_DEV}` : 
+    `http://${SERVER_URL}${SERVER_CONTEXT_PATH}`;
+
+//URLs do cliente
+export const CLIENT_URL = 'localhost:8080'; //'172.31.10.17';
+export const CLIENT_URL_DEV = 'localhost:3000';
+//export const CLIENT_CONTEXT_PATH = '/det-maker-client';
+export const URL_PIPELINES = `/open`;
+export const URL_JOBS = `/select`;
+export const URL_CONFIG = `/config`;
+export const URL_DET = `/evidence`;
+export const URL_LOGIN = `/login`;
 
 //Headers para requisições ao backend do Det-Maker
 const headers: AxiosRequestHeaders = {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "http://localhost:1990/*",
+    "Access-Control-Allow-Origin": `${REQUEST_URL}/*`,
     "Access-Control-Allow-Methods": "POST, GET",
     "Access-Control-Allow-Headers": "*",
     "Access-Control-Max-Age": "60000",
 }
-
 
 //Padrão de exibição das mensagens
 function logInfo(titulo: string, mensagem: string) {
@@ -90,7 +102,7 @@ export async function getAccessToken(code: string): Promise<JwtDTO> {
         code,
         client_id: GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: GOOGLE_REDIRECT_URI,
+        redirect_uri: GOOGLE_REDIRECT_URI, //'http://localhost:1990/det-maker-client/login',
         grant_type: 'authorization_code',
     };
 
@@ -141,13 +153,13 @@ export async function getFoto(url: string): Blob {
 */
 
 //Requisição para abrir planilha Schedule
-export async function openSchedule(arquivoXlsx: File): Promise<JobConfigDTO[]> {
+export async function openSchedule(arquivoXlsx: File): Promise<JobInfoDTO[]> {
     const titulo = "ABRIR SCHEDULE";
     requestStart(titulo);
 
-    //Configurando requisição
+//Configurando requisição
     const headersXlsx: AxiosRequestHeaders = {
-        "Access-Control-Allow-Origin": "http://localhost:1990/*",
+        "Access-Control-Allow-Origin": `${REQUEST_URL}/*`,
         "Access-Control-Allow-Methods": "POST, GET",
         "Access-Control-Allow-Headers": "*",
         "Access-Control-Max-Age": "60000",
@@ -163,7 +175,7 @@ export async function openSchedule(arquivoXlsx: File): Promise<JobConfigDTO[]> {
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: 'http://localhost:1990/job/open/xlsx',
+        url: `${REQUEST_URL}/job/open/xlsx`,
         headers: headersXlsx,
         timeout: 30000,
         data: data
@@ -172,7 +184,7 @@ export async function openSchedule(arquivoXlsx: File): Promise<JobConfigDTO[]> {
     return await axios
         .request(config)
         .then((response) => {
-            const json: JobConfigDTO[] = response.data;
+            const json: JobInfoDTO[] = response.data;
             requestSucesso(titulo, json);
             return json;
         })
@@ -190,7 +202,7 @@ export async function getAllPipelines(): Promise<PipelineInfoDTO[]> {
     let config: AxiosRequestConfig = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: 'http://localhost:1990/pipeline?itens=200',
+        url: `${REQUEST_URL}/pipeline?itens=200`,
         headers: headers,
         timeout: 30000,
     };
@@ -208,13 +220,13 @@ export async function getAllPipelines(): Promise<PipelineInfoDTO[]> {
 }
 
 //Requisição para obter todos os Jobs no banco
-export async function getAllJobs(): Promise<JobConfigDTO[]> {
+export async function getAllJobs(): Promise<JobInfoDTO[]> {
     const titulo = "OBTENDO JOBS";
     requestStart(titulo);
 
     //Configurando endereço da requisição
     const headersXlsx: AxiosRequestHeaders = {
-        "Access-Control-Allow-Origin": "http://localhost:1990/*",
+        "Access-Control-Allow-Origin": `${REQUEST_URL}/*`,
         "Access-Control-Allow-Methods": "POST, GET",
         "Access-Control-Allow-Headers": "*",
         "Access-Control-Max-Age": "60000",
@@ -223,7 +235,7 @@ export async function getAllJobs(): Promise<JobConfigDTO[]> {
     let config: AxiosRequestConfig = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: 'http://localhost:1990/job?itens=200',
+        url: `${REQUEST_URL}/job?itens=200`,
         headers: headersXlsx,
         timeout: 30000,
     };
@@ -231,7 +243,7 @@ export async function getAllJobs(): Promise<JobConfigDTO[]> {
     return await axios
         .request(config)
         .then((response) => {
-            const json: JobConfigDTO[] = response.data.content;
+            const json: JobInfoDTO[] = response.data.content;
             requestSucesso(titulo, json);
             return json;
         })
@@ -252,7 +264,7 @@ export async function executarPilha(body: PipelineNovaExecDTO): Promise<Relatori
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: 'http://localhost:1990/pipeline/run',
+        url: `${REQUEST_URL}/pipeline/run`,
         headers: headers,
         timeout: timeout,
         data: body,
@@ -277,7 +289,7 @@ export async function getDet(relatorioId: number): Promise<Blob> {
     let config: AxiosRequestConfig = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: `http://localhost:1990/relatorio/det/${relatorioId}`,
+        url: `${REQUEST_URL}/relatorio/det/${relatorioId}`,
         headers: headers,
         timeout: 60000,
     };
@@ -300,7 +312,7 @@ export async function reexecutarPilha(pipelineNome: string): Promise<Blob> {
     let config: AxiosRequestConfig = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: `http://localhost:1990/pipeline/run/again/${pipelineNome}`,
+        url: `${REQUEST_URL}/pipeline/run/again/${pipelineNome}`,
         headers: headers,
         timeout: 60000,
         //data: pipelineNome,
@@ -326,7 +338,7 @@ export async function getQueries(jobId: number): Promise<ComandoSQL[]> {
     let config: AxiosRequestConfig = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: `http://localhost:1990/queries/job/${jobId}`,
+        url: `${REQUEST_URL}/queries/job/${jobId}`,
         headers: headers,
         timeout: 10000,
     };
@@ -357,7 +369,7 @@ export async function saveRevisaoEvidencia(evidencias: EvidenciaRevisadaDTO[]): 
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `http://localhost:1990/evidencia/save/review`,
+        url: `${REQUEST_URL}/evidencia/save/review`,
         data: evidencias,
         headers: headers,
         timeout: 10000,
@@ -383,7 +395,7 @@ export async function saveRevisaoRelatorio(relatorio: RelatorioRevisadoDTO): Pro
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `http://localhost:1990/relatorio/save/review`,
+        url: `${REQUEST_URL}/relatorio/save/review`,
         headers: headers,
         timeout: 10000,
     };
@@ -408,7 +420,7 @@ export async function validarQuery(comandoSql: ComandoSQL | string): Promise<str
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `http://localhost:1990/queries/validade/${endpoint}`,
+        url: `${REQUEST_URL}/queries/validade/${endpoint}`,
         headers: headers,
         timeout: 10000,
         data: comandoSql,

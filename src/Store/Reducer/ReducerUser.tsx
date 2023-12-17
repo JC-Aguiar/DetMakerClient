@@ -18,7 +18,7 @@ const login = createSlice({
     name: 'login',
     initialState,
     reducers: {
-        setJwt: (state, action: PayloadAction<JwtDTO>) => {
+        setJwt: (state, action: PayloadAction<JwtDTO | null>) => {
             console.log('[ReducerUser] Acionado controlador login.setJwt! \n');
             state.jwt = action.payload;
             console.log('[ReducerUser] Jwt atual: ' + JSON.stringify(state.jwt));

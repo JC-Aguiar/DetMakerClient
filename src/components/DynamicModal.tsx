@@ -1,4 +1,5 @@
-import { IonContent, IonFab, IonFabButton, IonHeader, IonIcon, } from "@ionic/react";
+import { IonContent, IonFab, IonFabButton, IonFooter, IonHeader, IonIcon, } from "@ionic/react";
+import { close, closeCircle, closeCircleOutline } from "ionicons/icons";
 import React from "react";
 
 //Propriedades da modal 
@@ -11,19 +12,22 @@ export interface DynamicModalProps {
 //Conteúdo da modal
 const DynamicModal: React.FC<DynamicModalProps> = ({ titulo, elemento, onDismiss }) => {
     return (
-        <IonContent className="h-100 w-100 custom-modal" fullscreen={true} >
-            <IonHeader className="banner p-2 m-0 text-center">
+        <>
+            <IonHeader className="banner p-2 m-0 text-center border-bottom border-2 border-warning">
                 <span className="font-monospace text-white fw-bold">{titulo}</span>
             </IonHeader>
             <IonFab edge={true} vertical="top" horizontal="end">
                 <IonFabButton className="close-icon" color="#" onClick={onDismiss} >
-                    <IonIcon icon="close" color="#" />
+                    <IonIcon icon={close} color="#" />
                 </IonFabButton>
             </IonFab>
-            <div className="p-2">
-                {elemento}
-            </div>
-        </IonContent>
+            <IonContent className="h-100 w-100 p-5" fullscreen={false} >
+                <div className="p-2">
+                    {elemento}
+                </div>
+            </IonContent>
+            <IonFooter className="w-100 banner py-1"></IonFooter>
+        </>
     );
 }
 

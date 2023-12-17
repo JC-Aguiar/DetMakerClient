@@ -1,8 +1,8 @@
-import { IonApp, IonAvatar, IonHeader, IonIcon, IonImg, IonLabel, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs, ToastButton, setupIonicReact, useIonToast } from '@ionic/react';
+import { IonApp, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs, ToastButton, setupIonicReact, useIonToast } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Redirect, Route } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { show, hide } from './Store/Reducer/ReducerTabMenu';
+//import { show, hide } from './Store/Reducer/ReducerTabMenu';
 import dayjs from 'dayjs';
 import Intro from './pages/Intro';
 import "./App.css";
@@ -26,30 +26,27 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import { useState } from 'react';
-import { document, checkbox, settings, documentText } from 'ionicons/icons';
+import { document, checkbox, settings, documentText, cube, layers, receipt, checkmarkCircle, cogOutline, logoGoogle, closeCircleOutline } from 'ionicons/icons';
 import Login from './pages/Login';
-import CarregarJobs from './pages/CarregarJobs';
+import EscolherPipelines from './pages/EscolherPipelines';
 import EscolherJobs from './pages/EscolherJobs';
 import ConfigurarJobs from './pages/ConfigurarJobs';
-import { JobConfigDTO } from './data/JobExecute';
+import { JobConfigDTO } from './data/JobConfigDTO';
 import { RootState } from './Store/ReduxStore';
-import Det from './pages/Det';
+import RevisarRelatorio from './pages/RevisarRelatorio';
 import { validarJwt } from './data/JwtDTO';
 import { validarUser } from './data/UserDTO';
 import Avatar from './components/Avatar';
 import DynamicPage from './components/DynamicPage';
 import { Noticacao } from './components/Noticacao';
+import { URL_PIPELINES, URL_JOBS, URL_CONFIG, URL_DET, URL_LOGIN } from './data/AxiosRequest';
+import { createBrowserHistory } from "history";
+import DynamicButtons from './components/DynamicButtons';
+import { JobInfoDTO } from './data/JobInfoDTO';
 
 /* Recursos de uso comum */
 
 setupIonicReact();
-
-export const URL_BASE = "/det-maker";
-export const URL_PIPELINES = `${URL_BASE}/open`;
-export const URL_JOBS = `${URL_BASE}/select`;
-export const URL_CONFIG = `${URL_BASE}/config`;
-export const URL_DET = `${URL_BASE}/evidence`;
-export const URL_LOGIN = `${URL_BASE}/login`;
 
 type rotaTYPE = {
     path: string,
@@ -79,22 +76,23 @@ export function dataParaString(data: Date): string {
 /* Componente <App> */
 const App = () => {
     const dispatch = useDispatch();
+    const history = createBrowserHistory();
     const [boasVindas, setBoasVindas] = useState(false);
     //const location = useLocation();
     //const hideTabBarRoutes = ['/det-maker/evidence', '/signup'];
     //setMenuOn(hideTabBarRoutes.some(route => location.pathname.includes(route)));
     const {jwt, user} = useSelector((state: RootState) => state.store.login);
-    const showMenu: boolean = useSelector((state: RootState) => state.store.tabMenu);
-    const pilha: JobConfigDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.value);
-    const escolherJobsOpt: boolean = pilha.length > 0;
-    const jobsCount: number = pilha.filter((itemPilha) => itemPilha.job.checked).length;
-    const configurarJobsOpt: boolean = jobsCount > 0;
-    const executarJobsOpt: boolean = false;
+    //const showMenu: boolean = useSelector((state: RootState) => state.store.tabMenu);
+    const catalagoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.catalago);
+    const escolherJobsOpt: boolean = catalagoJobs.length > 0;
+    //const jobsCount: number = catalagoJobs.filter((item) => item.job.checked).length;
+    //const configurarJobsOpt: boolean = jobsCount > 0;
+    //const executarJobsOpt: boolean = false;
     const evidenciaPag: boolean = useSelector((state: RootState) => state.store.relatorios.value) !== null;
 
     const [toast, toastOff] = useIonToast();
     const closeToast = {
-      text: 'X',
+      text: 'x',
       role: 'Close',
       handler: () => toastOff(),
     };
@@ -140,40 +138,40 @@ const App = () => {
         {
             path: URL_PIPELINES,
             exact: true,
-            titulo: "Carregar Jobs", 
-            subtitulo: "Escolha uma das opções abaixo para iniciar uma Pipeline", 
-            conteudo: <CarregarJobs {...notificacao} />,
-            icone: document,
+            titulo: "Pipelines", 
+            subtitulo: "Escolha ou crie uma Pipeline para iniciar um fluxo de execução", 
+            conteudo: <EscolherPipelines {...notificacao} />,
+            icone: layers,
             desativado: false,
             efeito: null,
         },
         {
             path: URL_JOBS,
             exact: true,
-            titulo: "Selecionar Jobs", 
-            subtitulo: "Documentação detalhada dos jobs disponíveis", 
+            titulo: "Jobs", 
+            subtitulo: "Documentação detalhada dos Jobs disponíveis", 
             conteudo: <EscolherJobs {...notificacao} />,
-            icone: checkbox,
+            icone: cube,
             desativado: !escolherJobsOpt,
             efeito: null, 
         },
         {
             path: URL_CONFIG,
             exact: true,
-            titulo: "Configurar Jobs", 
-            subtitulo: "", 
+            titulo: "Configurar Jobs", //"Relatórios", 
+            subtitulo: "", //"Lista dos relatórios prontos ou a revisar", 
             conteudo: <ConfigurarJobs {...notificacao} />,
-            icone: settings,
-            desativado: !configurarJobsOpt,
-            efeito: contadorConfigJobs(),
+            icone: cogOutline, //receipt,
+            desativado: false, //!configurarJobsOpt,
+            efeito: null, //contadorConfigJobs(),
         },
         {
             path: URL_DET,
             exact: true,
-            titulo: "DET", 
-            subtitulo: "Revisando o documento de evidência dos testes", 
-            conteudo: <Det {...notificacao} />,
-            icone: documentText,
+            titulo: "Revisão", 
+            subtitulo: "Analise e preencha os campos obrigatórios das evidências", 
+            conteudo: <RevisarRelatorio {...notificacao} />,
+            icone: checkmarkCircle,
             desativado: !evidenciaPag,
             efeito: null,
         },
@@ -185,9 +183,9 @@ const App = () => {
     }
 
     function contadorConfigJobs() {
-        if (jobsCount === 0) return null;
+        //if (jobsCount === 0) return null;
         return (
-            <span className='badge bg-primary config-job-count'>{jobsCount}</span>
+            <span className='badge bg-primary config-job-count'>??? {/*jobsCount*/}</span>
         );
     }
 
@@ -202,26 +200,48 @@ const App = () => {
         );
     }
 
-    function menu() {
+    function rotasVisitante() {
         return (
-            <IonTabs>
-                <IonRouterOutlet>
-                    {
-                        rotas.map((r, index) =>
-                            <Route path={r.path} exact={r.exact}>    
-                                <DynamicPage key={index} titulo={r.titulo} subtitulo={r.subtitulo} elemento={r.conteudo}/> 
-                            </Route> 
-                        )
-                    }
-                    <Route> 
-                        <Redirect to={URL_PIPELINES} />
-                    </Route>
-                </IonRouterOutlet>
+            <IonRouterOutlet>
+                <Route path={URL_LOGIN} exact> <Login /> </Route>
+                <Route> <Redirect from='/*' to={URL_LOGIN} /> </Route>
+            </IonRouterOutlet>
+        );
+    }
 
-                {/* Links no menu */}
-                <IonTabBar slot="top" className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' >
+    function menuVisitante() {
+        return (
+            <IonTabBar slot="top" className='pt-4 mt-2 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' >
+                <IonTabButton tab='Login' href={URL_LOGIN} className='pt-1 bg-transparent fw-bold' >
+                    <IonIcon icon={logoGoogle} />
+                    <IonLabel>Login</IonLabel>
+                </IonTabButton>
+            </IonTabBar>
+        );
+    }
+
+    function rotasAutenticado() {
+        return (
+            <IonRouterOutlet>
                 {
-                    rotas.map((r, index) => 
+                    rotas.map((r, index) =>
+                        <Route key={index} path={r.path} exact={r.exact}>
+                            <DynamicPage key={index} titulo={r.titulo} subtitulo={r.subtitulo} elemento={r.conteudo} />
+                        </Route>
+                    )
+                }
+                <Route>
+                    <Redirect from='/*' to={URL_PIPELINES} />
+                </Route>
+            </IonRouterOutlet>
+        );
+    }
+
+    function menuAutenticado() {
+        return (
+            <IonTabBar slot="top" className='pt-4 mt-2 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' >
+                {
+                    rotas.map((r, index) =>
                         <IonTabButton key={index} tab={r.titulo} href={r.path}
                             className='pt-1 bg-transparent fw-bold'
                             disabled={r.desativado}
@@ -231,40 +251,37 @@ const App = () => {
                         </IonTabButton>
                     )
                 }
-                </IonTabBar>
-            </IonTabs>
+            </IonTabBar>
         );
     }
 
-    function principal() {
-        if (validarJwt(jwt) && validarUser(user)) return menu();
-        return <IonTabs>
-            <IonRouterOutlet>
-                <Route path={URL_LOGIN} exact> <Login /> </Route>
-                <Route> <Redirect to="/det-maker/login" /> </Route>
-            </IonRouterOutlet>
-            <IonTabBar slot="top" className='pt-4 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' />
-        </IonTabs>
+    function logado() {
+        return (validarJwt(jwt) && validarUser(user));
+        
     }
 
-    function rotasDeAcesso() {
-        //if boasVindas
-        if (true) return principal();
-        else return intro();
+    function mapaDeRotas() {
+        return logado() ? rotasAutenticado() : rotasVisitante();
+    }
+
+    function mapaDeMenus() {
+        return logado() ? menuAutenticado() : menuVisitante();
     }
 
     return (
         <IonApp>
-            <IonReactRouter>
+            <IonReactRouter basename={process.env.PUBLIC_URL}>
                 <div className='banner h-100'>
                     <IonHeader id='ppw-titulo' className='text-center'>
                         <div className="navbar-brand disabled text-white fs-1 m-0 lh-1" >
                             Peopleware
-    s                        {/*<div className="fs-6">joao.aguiar@gmail.com</div>*/}
                         </div>
                     </IonHeader>
-                    {rotasDeAcesso()}
-                    <Avatar picture={user} />
+                    <IonTabs>
+                        {mapaDeRotas()}
+                        {mapaDeMenus()}
+                    </IonTabs>
+                    <DynamicButtons avatar={ <Avatar user={user}/> } />
                 </div>
             </IonReactRouter>
         </IonApp>

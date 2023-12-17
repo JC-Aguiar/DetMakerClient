@@ -8,6 +8,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lugrasimo&family=Play:wght@700&display=swap');
 
+
+
+/*
+ion-tab-bar {
+  display: contents;
+  width: 80px;
+}
+*/
 #mini-logo {
   position: fixed;
   right: 2%;
@@ -173,6 +181,12 @@ ion-content#intro-bg {
   animation: gradient 20s ease-in infinite;
 }
 
+#main-card {
+  height: 64px;
+  min-height: 64px;
+  max-height: 64px;
+}
+
 #thunder-gif-1 {
   position: absolute;
   width: 128px;
@@ -299,9 +313,7 @@ ion-modal::part(content) {
   border: 0px;
   height: 70vh;
   width: 80vw;
-  min-width: 600px;
-  min-width: 800px;
-  border-radius: 16px;
+  /*border-radius: 16px;*/
 }
 
 .card-login {
@@ -462,8 +474,36 @@ ion-modal::part(content) {
   -webkit-text-stroke: calc(0.15vw + 0.10vh) white;
   text-stroke: calc(0.15vw + 0.10vh) white;
   font-family: 'Play', sans-serif;
-  font-size: calc(4vw + 3vh + 2px);
-  text-shadow: calc(0.15vw + 0.10vh) calc(0.18vw + 0.12vh) #ffff00;
+  font-size: calc(3vw + 2vh);
+  text-shadow: 0 calc(0.15vw + 0.10vh) #ffff00;
+  padding: 0;
+  margin: 0;
+}
+
+ion-split-pane {
+  /*--side-width: 24%; */
+  /*--side-min-width: calc(min(5vw, 5px));*/
+  /*--side-max-width: 10px;*/
+  /*--border: 2px solid var(--ion-color-warning);*/
+}
+
+ion-menu {
+  --side-min-width: 280px;
+  --side-max-width: 280px;
+}
+
+.item-native {
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.item-inner {
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 .login-btn {
@@ -502,7 +542,7 @@ ion-modal::part(content) {
 }
 
 .schedule-tabela {
-  height: 50vh; /*300px  55vh*/
+  height: 70vh; /*300px  55vh*/
 }
 
 th, td {

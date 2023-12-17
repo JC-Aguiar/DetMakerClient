@@ -25,5 +25,5 @@ export interface JobInfoDTO {
     atualizadoPor: string;
 
     //Atributos de uso do front:
-    checked: boolean;
+    //checked: boolean;
 }

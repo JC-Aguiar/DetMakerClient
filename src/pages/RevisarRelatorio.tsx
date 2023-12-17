@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RelatorioHistoricoDTO } from '../data/RelatorioHistoricoDTO';
 import { RootState } from '../Store/ReduxStore';
 import { setTestcaseExpectativa, setTestcaseResultado, setTestcaseRevisor, setTestcaseLock } from '../Store/Reducer/ReducerRelatorios';
-import { dataParaString } from '../App';
 import { EvidenciaInfoDTO } from '../data/EvidenciaInfoDTO';
 import './template/template.css';
 import { alertCircle, checkmarkCircle, closeCircle, document, helpCircle, save } from 'ionicons/icons';
@@ -15,6 +14,7 @@ import { EvidenciaRevisadaDTO } from '../data/EvidenciaRevisadaDTO';
 import * as axiosRequest from '../data/AxiosRequest';
 import { EvidenciasRevisadasDTO } from '../data/AxiosRequest';
 import { Noticacao } from '../components/Noticacao';
+import dayjs from 'dayjs';
 
 
 //Interface das tabelas da sessão 'Evolução dos Testes' no DET
@@ -46,13 +46,17 @@ export interface DetTestcase {
 export type DetStatusTYPE = "Aprovado" | "Reprovado" | "Parcial";
 
 
-const Det: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
+const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
     const dispatch = useDispatch();
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
     const relatorio: RelatorioHistoricoDTO | null = useSelector((state: RootState) => state.store.relatorios.value);
     if (relatorio === null) {
         throw "O RelatorioHistoricoDTO no ReducerRelatorio está nulo. A página Evidência não poderá ser gerada.";
     };
+
+    function offsetDateTimeParaString(data: number): string {
+        return dayjs.unix(data).format('DD/MM/YYYY HH:mm:ss');
+    }
 
     const resultadoStatus: DetStatusTYPE[] = ["Aprovado", "Reprovado", "Parcial"];
 
@@ -107,7 +111,7 @@ const Det: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
             resultado: evidencia.resultado,
             parametros: evidencia.argumentos,
             revisor: evidencia.revisor,
-            data: dataParaString(evidencia.dataFim),
+            data: offsetDateTimeParaString(evidencia.dataFim),
             queries: evidencia.queries,
             tabelasNome: evidencia.tabelasNome,
             tabelasPreJob: evidencia.tabelasPreJob,
@@ -237,10 +241,12 @@ const Det: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
                     <th>Parâmetros do Job</th>
                     <td>{teste.parametros}</td>
                 </tr>
+                { /*
                 <tr>
                     <th>Requisitos</th>
                     <td>{teste.requisitos}</td>
                 </tr>
+                */}
                 <tr>
                     <th>Data do Teste</th>
                     <td>{teste.data}</td>
@@ -374,6 +380,12 @@ const Det: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
         newWindow?.document.close();
     }
 
+    const podeSalvarRevisao = (): boolean => {
+        const totalPronto = testcases.filter((teste) => teste.pronto).length;
+        const totalLock = relatorio.evidencias.filter((ev) => !ev.lock).length;
+        return totalLock > 0 && totalPronto > testcases.length;
+    }
+
     const salvarRevisao = async () => {
         const data = new Date();
         const evidencias: EvidenciaRevisadaDTO[] = testcases.filter((item) => item.pronto)
@@ -442,10 +454,10 @@ const Det: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
     return (
         <>
             <IonFab slot="fixed" vertical="bottom" horizontal="end" className='pe-5'>
-                <IonGrid className='py-0 my-0'>
-                    <IonRow className="ion-justify-content-center">
+                <IonGrid className='py-0 my-0 position-fixed bottom-0 end-0' style={{transform: `translate(-25%, -10%)`}}> 
+                    <IonRow className="ion-justify-content-center ">
                         <IonLabel color='#' className="ion-justify-content-center">
-                            <IonFabButton className='ms-3 mb-1' onClick={(e) => salvarRevisao()}>
+                            <IonFabButton className='ms-3 mb-1' onClick={(e) => salvarRevisao()} >
                                 <IonIcon icon={save}></IonIcon>
                             </IonFabButton>
                             <small className="text-center text-primary fw-bold me-3">
@@ -494,8 +506,8 @@ const Det: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
                                         <th>PROJETO NOME</th>
                                     </tr>
                                     <tr>
-                                        <td id="projeto-id">Projeto Id</td>
-                                        <td id="projeto-nome">Projeto Nome</td>
+                                        <td id="projeto-id">{idProjeto}</td>
+                                        <td id="projeto-nome">{nomeProjeto}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -628,4 +640,4 @@ const Det: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
     );
 };
 
-export default Det;
+export default RevisarRelatorio;

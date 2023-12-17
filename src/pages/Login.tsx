@@ -1,16 +1,27 @@
-import { IonPage, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonFab, IonFabButton, IonIcon, IonContent, } from "@ionic/react";
+import { IonPage, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonFab, IonFabButton, IonIcon, IonContent, IonProgressBar, } from "@ionic/react";
 import { logoGoogle } from "ionicons/icons";
-import { useEffect } from "react";
-import { GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI, GOOGLE_AUTH_URL, getAccessToken, getUserInfo } from "../data/AxiosRequest";
-import { useDispatch } from "react-redux";
-import { setJwt, setUser } from '../Store/Reducer/ReducerUser';
+import { useEffect, useState } from "react";
+import { GOOGLE_CLIENT_ID, GOOGLE_AUTH_URL, GOOGLE_REDIRECT_URI } from "../config/OAuth2";
+import { useDispatch, useSelector } from "react-redux";
+import { ReducerUserTYPE, setJwt, setUser } from '../Store/Reducer/ReducerUser';
 import { show, hide } from '../Store/Reducer/ReducerTabMenu';
-import { JwtDTO } from "../data/JwtDTO";
+import { JwtDTO, validarJwt } from "../data/JwtDTO";
 import { UserDTO } from "../data/UserDTO";
+import { getAccessToken, getUserInfo } from "../data/AxiosRequest";
+import { RootState } from "../Store/ReduxStore";
+import { useHistory } from "react-router";
+import * as axiosRequest from "../data/AxiosRequest";
+
 
 const Login = (props: any) => {
     const dispatch = useDispatch();
+    const history = useHistory();
+    const user: ReducerUserTYPE = useSelector((state: RootState) => state.store.login);
+    const [loading, setLoading] = useState<boolean>(validarJwt(user.jwt));
+    
     const login = () => {
+        console.log(`GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}`);
+        console.log(`window.location.origin: ${window.location.origin}`);
         const params = new URLSearchParams({
             response_type: 'code',
             scope: 'openid email profile',
@@ -28,6 +39,7 @@ const Login = (props: any) => {
             dispatch(show());
             dispatch(setJwt(jwt));
             dispatch(setUser(user));
+            history.push(axiosRequest.URL_PIPELINES);
         }
         catch (error) {
             dispatch(hide());
@@ -38,9 +50,21 @@ const Login = (props: any) => {
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const authorizationCode = urlParams.get('code');
-        if (!authorizationCode) return 
+        if (!authorizationCode) return;
+        setLoading(true);
         exchangeAuthorizationCodeForAccessToken(authorizationCode);
     }, []);
+
+    function conteudo() {
+        if (loading) return (<IonProgressBar type="indeterminate" />); 
+        return (
+            <IonFab className="login-btn" vertical="center" > {/*horizontal="center" vertical="center"*/}
+                <IonFabButton id="google" onClick={(e) => login()}>
+                    <IonIcon icon={logoGoogle} color="white"></IonIcon>
+                </IonFabButton>
+            </IonFab>
+        );
+    }
 
     return (
         <IonPage>
@@ -56,11 +80,7 @@ const Login = (props: any) => {
                         </h4>
                     </IonCardHeader>
                     <IonCardContent className="pt-5 pt-sm-0">
-                        <IonFab className="login-btn" vertical="center" > {/*horizontal="center" vertical="center"*/}
-                            <IonFabButton id="google" onClick={(e) => login()}>
-                                <IonIcon icon={logoGoogle} color="white"></IonIcon>
-                            </IonFabButton>
-                        </IonFab>
+                        {conteudo()}
                     </IonCardContent>
                     {
                         /*

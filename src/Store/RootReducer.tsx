@@ -1,26 +1,24 @@
 import { combineReducers } from "@reduxjs/toolkit";
 import tabMenu from './Reducer/ReducerTabMenu';
-import pilhaJobs from './Reducer/ReducerPilhaJobs';
-import carregarJobs from "./Reducer/ReducerCarregarJobs";
-import escolherJobs from "./Reducer/ReducerEscolherJobs";
-import configurarJobs from "./Reducer/ReducerConfigurarJobs";
+import catalogoJobs from './Reducer/ReducerJobs';
 import relatorios from "./Reducer/ReducerRelatorios";
-import configPipelines  from './Reducer/ReducerPipelines';
+import catalogoPipelines  from './Reducer/ReducerPipelines';
+import configAtividade  from './Reducer/ReducerAtividade';
 import projetos from './Reducer/ReducerProjetos';
 import evidencia from './Reducer/ReducerEvidencia';
 import login from './Reducer/ReducerUser';
+import buttons from './Reducer/ReducerButtons';
 
 const rootReducer = combineReducers({
-    pilhaJobs: pilhaJobs,
     tabMenu: tabMenu,
-    carregarJobs: carregarJobs,
-    escolherJobs: escolherJobs,
-    configurarJobs: configurarJobs,
+    login: login,
+    buttons: buttons,
+    pilhaJobs: catalogoJobs,
+    catalogoPipelines: catalogoPipelines,
     evidencia: evidencia,
     relatorios: relatorios,
-    configPipelines: configPipelines,
+    configAtividade: configAtividade,
     configProjeto: projetos,
-    login: login,
 });
   
 export default rootReducer;

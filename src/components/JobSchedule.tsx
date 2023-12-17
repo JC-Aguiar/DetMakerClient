@@ -1,7 +1,6 @@
 import { IonCheckbox, useIonViewDidEnter } from "@ionic/react";
 import { useDispatch } from "react-redux";
 import { JobInfoDTO } from "../data/JobInfoDTO";
-import { checkItemPilha } from "../Store/Reducer/ReducerPilhaJobs";
 import { validarExibirData } from "../App";
 
 export interface JobScheduleProps {
@@ -12,16 +11,16 @@ export interface JobScheduleProps {
 
 const JobSchedule: React.FC<JobScheduleProps> = ({ job, indexId, ordem }) => {
     const dispatch = useDispatch();
-    var color = job.checked ? "bg-warning" : "";
+    var color = ""; //job.checked ? "bg-warning" : "";
 
-    function handlerCheckJob() {
-        const checked = job.checked ? false : true;
-        dispatch(checkItemPilha({
-            id: job.id, 
-            checked: checked,
-            ordem: ordem
-        }));
-    }
+    //function handlerCheckJob() {
+    //    const checked = job.checked ? false : true;
+    //    dispatch(checkItemPilha({
+    //        id: job.id, 
+    //        checked: checked,
+    //        ordem: ordem
+    //    }));
+    //}
 
     useIonViewDidEnter(() => {
         console.debug(`[JOB-SCHEDULE] job: ${job}, indexId: ${indexId}.`);
@@ -30,11 +29,9 @@ const JobSchedule: React.FC<JobScheduleProps> = ({ job, indexId, ordem }) => {
     return (
         <tr className={`font-monospace ${color} align-items-center align-middle`} id={indexId}>
             <td>
-                <IonCheckbox
-                    className="check-box"
-                    checked={job.checked}
-                    onClick={() => handlerCheckJob()}
-                />
+                {/*
+                <IonCheckbox className="check-box" checked={job.checked} onClick={() => handlerCheckJob()}/>
+                */}
             </td>
             <td className='bg-transparent border border-1'> {job.id} </td>
             <td className='bg-transparent border border-1'> {job.executarAposJob.join(", ")} </td>

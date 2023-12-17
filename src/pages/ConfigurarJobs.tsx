@@ -1,4 +1,4 @@
-import { InputChangeEventDetail, IonButton, IonIcon, IonInput, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, IonTextarea, ItemReorderEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from '@ionic/react';
+import { InputChangeEventDetail, IonButton, IonCard, IonCardHeader, IonCardTitle, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, IonTextarea, IonTitle, ItemReorderEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import JobCard from '../components/JobCard';
 //import { Swiper, SwiperSlide } from 'swiper/react';
@@ -6,15 +6,14 @@ import JobCard from '../components/JobCard';
 //import 'swiper/css/pagination';
 //import 'swiper/css/navigation';
 //import { Pagination, Navigation } from 'swiper/modules';
-import { flash, reorderFour } from 'ionicons/icons';
+import { flash } from 'ionicons/icons';
 import blueThunder from '../resources/thunder spark gif blue.gif';
 import darkThunder from '../resources/thunder spark gif dark.gif';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
-import { setItemPilhaStatus } from "../Store/Reducer/ReducerPilhaJobs";
 import * as axiosRequest from "../data/AxiosRequest";
-import { JobConfigDTO, JobExecuteDTO, configToExecuteDto } from '../data/JobExecute';
+import { JobConfigDTO, JobConfig, } from '../data/JobConfigDTO';
 import { useDispatch } from 'react-redux';
 import DynamicModal from '../components/DynamicModal';
 import { ReducerProjetoTYPE, setDadosProjeto } from '../Store/Reducer/ReducerProjetos';
@@ -25,18 +24,22 @@ import { RelatorioInfoDTO } from '../data/RelatorioInfoDTO';
 import { UserInfoDTO } from '../data/UserInfoDTO';
 import { RelatorioHistoricoDTO } from '../data/RelatorioHistoricoDTO';
 import { Noticacao } from '../components/Noticacao';
+import { reorderMainJobs, setMainJobs } from '../Store/Reducer/ReducerAtividade';
+import { UserDTO } from '../data/UserDTO';
 
 
 const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Propriedades do <ConfigurarJobs>
     const dispatch = useDispatch();
-    const pilhaExec = useSelector((state: RootState) => state.store.pilhaJobs.value);
-    const pilhaChecked = pilhaExec.filter((itemPilha) => itemPilha.job.checked);
-    const numPilhaConfig = pilhaChecked.length;
-    const numPilhaPronta = pilhaChecked.filter((itemPilha) => itemPilha.pronto).length;
+    const reorderGroupRef = useRef<HTMLIonReorderGroupElement>(null);
+    const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
+    const pilhaExec: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
+    //const pilhaChecked = pilhaExec.filter((itemPilha) => itemPilha.job.checked);
+    //const numPilhaConfig = pilhaChecked.length;
+    //const numPilhaPronta = pilhaChecked.filter((itemPilha) => itemPilha.pronto).length;
     const history = useHistory();
     const [thunderGif, setThunderGif] = useState(blueThunder);
-    const executarStatus = (numPilhaPronta > 0 ? "session-buttons" : "disabled");
+    //const executarStatus = (numPilhaPronta > 0 ? "session-buttons" : "disabled");
     const gif = true; //(pilhaPronta > 0);
     const [pipelineNome, setPipelineNome] = useState<string>(
         useSelector((state: RootState) => state.store.configProjeto.pipelineNome)
@@ -56,7 +59,8 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
     const [configuracao, setConfiguracao] = useState<string>(
         useSelector((state: RootState) => state.store.configProjeto.configuracao)
     );
-    const [modalConfigPipelineOn, modalConfigPipelineOff] = useIonModal(DynamicModal,
+    const [modalConfigPipelineOn, modalConfigPipelineOff] = useIonModal(
+        DynamicModal,
         {
             titulo: "Executar Pipeline",
             elemento: conteudoConfigPipeline(),
@@ -70,7 +74,7 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
         //console.log(`[CONFIGURAR-JOBS] Jobs: ${pilhaExec.map((itemPilha) => itemPilha.job.nome).join(", ")}`);
         if (pilhaExec.length === 0) {
             console.log(`[CONFIGURAR-JOBS] A pilha de jobs está vazia. Retornando página.`);
-            history.push('/det-maker/open/');
+            //history.push(axiosRequest.URL_PIPELINES);
         }
         else {
             console.log(`[CONFIGURAR-JOBS] Carregando cards da pilha dos jobs selecionados.`);
@@ -78,16 +82,22 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
     }, []);
 
     //Acionamento sempre que esta página tiver algum dos seus componentes atualizados
-    //useEffect(() => {
+    useEffect(() => {
         //itensParaExecutar();
-    //}, [pilhaExec]);
+        const reordenador = reorderGroupRef.current;
+        if (reordenador) {
+            console.log(`[CONFIGURAR-JOBS] Reordenando a pilha de Jobs na página.`);
+            //const fakeEvent
+            reordenador.complete();
+        }
+    }, [pilhaExec]);
 
     //Mensagem em log e em Tost da quantidade de Job na Pipeline para executar
-    const itensParaExecutar = () => {
-        const mensagem = `Temos ${numPilhaPronta} de ${numPilhaConfig} jobs prontos para executar.`;
-        console.log(`[CONFIGURAR-JOBS] ${mensagem}`);
-        toastOk(mensagem, []);
-    }
+    //const itensParaExecutar = () => {
+    //    const mensagem = `Temos ${numPilhaPronta} de ${numPilhaConfig} jobs prontos para executar.`;
+    //    console.log(`[CONFIGURAR-JOBS] ${mensagem}`);
+    //    toastOk(mensagem, []);
+    //}
 
     function camposPipelineProntos(): boolean {
         return pipelineNome.trim().length > 0 && pipelineDescricao.trim().length > 0;
@@ -115,13 +125,13 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
         toastInfo("EXECUTAR PIPELINE: Em execução...", []);
 
         try {
-            const pilhaJobs: JobExecuteDTO[] = pilhaChecked
-                .filter((itemPilha) => itemPilha.pronto)
-                .map((itemPilha) => configToExecuteDto(itemPilha)); //TODO: melhorar?
+            //const pilhaJobs: JobConfig[] = pilhaChecked
+            //    .filter((itemPilha) => itemPilha.pronto)
+            //    .map((itemPilha) => configToExecuteDto(itemPilha)); //TODO: melhorar?
             const pipelineDto: PipelineInfoDTO = {
                 nome: pipelineNome,
                 descricao: pipelineDescricao,
-                jobs: pilhaJobs.map((item) => item.nome),
+                jobs: pilhaExec.map((item) => item.nome),
                 checked: true,
             };
             const relatorioDto: RelatorioInfoDTO = {
@@ -134,12 +144,12 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
                 //ambiente: "",
             };
             const body: PipelineNovaExecDTO = {
-                pipeline: pipelineDto,
+                pipeline: pipelineDto,              //TODO: informação repetida aqui
                 relatorio: relatorioDto,
-                jobs: pilhaJobs,
+                jobs: pilhaExec,
                 userInfo: {
-                    nome: "Autopilot DetMaker User",
-                    papel: "IA",
+                    nome: user ? user.name : "Anônimo",
+                    papel: "DEV",
                     empresa: "PPW",
                 } as UserInfoDTO,
             };
@@ -151,10 +161,10 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
             //      handler: () => abrirDet(arquivoDet),
             //    }
             //  ]
-            //toastOff().then(() => acionarToast("EXECUTAR PIPELINE: Realizada com sucesso.", 5000, 'primary', buttons));
             const relatorio: RelatorioHistoricoDTO = await axiosRequest.executarPilha(body);
             dispatch(addRelatorio({ value: relatorio }));
-            history.push('/det-maker/evidence/');
+            console.log(`[APP] Navegando para: ${axiosRequest.URL_DET}`);
+            history.push(axiosRequest.URL_DET);
 
             toastOk("EXECUTAR PIPELINE: Realizada com sucesso.", []);
             console.log(`[CONFIGURAR-JOBS]: Requisição 'Executar Pipeline' funcionou.`);
@@ -335,41 +345,36 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
     }
 
     function reordenar(event: CustomEvent<ItemReorderEventDetail>) {
+        //Valida se a referência ao IonReorderGroup existe
         const itens = reorderGroupRef?.current?.children;
-        //reorderGroupRef.current.
-        //Métodos `from` e `to` contêm os índices do item
+        if (!itens) return;
+
+        //Métodos `from` e `to` contêm os índices (antes e depois) do item movido
         const ordemAntiga = event.detail.from;
         const ordemNova = event.detail.to;
-        let jobDto: JobConfigDTO = pilhaChecked.filter((itemPilha) => itemPilha.ordem === ordemAntiga)[0];
-        console.log(`[CONFIG-JOBS]: Movendo job ${jobDto.job.nome} do index ${ordemAntiga} para ${ordemNova}.`);
+        let jobDto: JobConfig | undefined = pilhaExec.find((item) => item.ordem === ordemAntiga);
+        if (!jobDto) return;
+        console.log(`[CONFIG-JOBS]: Movendo job ${jobDto.nome} do index ${ordemAntiga} para ${ordemNova}.`);
 
-        //Método 'complete' finaliza a reordenação e o posicionamento do item dentro do DOM. 
-        event.detail.complete();
-
-        if (!itens) return;
+        //Coleta no DOM do html o elemento interno com a informação do Job.id
+        const ordemIds: number[] = [];
         Array.from(itens).map((item, ordem) => {
-            const spanElement = item.querySelector('ion-row ion-item ion-label ion-item ion-card span span span');
-            console.log(`spanElement: ${spanElement?.innerHTML}`);
-            if (!spanElement) return
-            
-            const id = spanElement.textContent ? Number.parseInt(spanElement.textContent) : -999;
-            if (id === -999 || Number.isNaN(id)) return;
-            console.log(`ID: ${id}`);
+            //Expressão XPath para realizar a coleta
+            const elementoAlvo = item.querySelector('ion-row ion-item ion-label ion-reorder ion-item ion-card span span span');
+            if (!elementoAlvo) return
+            //console.log(`elementoAlvo: ${elementoAlvo.textContent}`);
 
-            //Alterando estado no Redux
-            jobDto = pilhaChecked.filter((itemPilha) => itemPilha.job.id === id)[0];
-            dispatch(setItemPilhaStatus(
-                {
-                    id: jobDto.job.id,
-                    argumentos: jobDto.argumentos,
-                    queries: jobDto.queries,
-                    cargas: jobDto.cargas,
-                    pronto: jobDto.pronto,
-                    ordem: ordem,
-                }
-            ));
+            const id = elementoAlvo.textContent ? Number.parseInt(elementoAlvo.textContent) : -999;
+            if (id === -999 || Number.isNaN(id)) return;
+            //console.log(`ID: ${id}`);
+            ordemIds.push(id);
         });
-      }
+
+        console.log(`[CONFIG-JOBS]: IDS nova ordem: ${ordemIds}`);
+
+        //Atualizando estado no Redux
+        dispatch(reorderMainJobs({ ids: ordemIds }));
+    }
 
     //Renderização principal desta página
     /*
@@ -383,27 +388,33 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
                 height={300}
             >
     */
-    const reorderGroupRef = useRef<HTMLIonReorderGroupElement>(null);
+
+    //Renderização do componente
     return (
-        <div>
-            <h3 className="card-text text-primary m-0 text-center">
-                Configure os Jobs clicando nos cards para {textoBotao('EXECUTAR PIPELINE')}
-            </h3>
-                <IonRow className='ion-justify-content-center p-0 m-0'>
-                    <IonList className='w-75 mt-3 py-2'>
-                        <IonReorderGroup disabled={false} onIonItemReorder={reordenar} ref={reorderGroupRef} >
-                        {
-                            pilhaChecked.map((itemPilha, index) => 
+        <div className='container'>
+            <IonCard>
+                <IonCardTitle className='p-0 py-1 m-0 banner text-white text-center'>
+                    <span className='h6'>
+                        Ordene os Jobs e configure suas propriedades no ícone da engrenagem. <br/>
+                        Quando estive pronto:{textoBotao('EXECUTAR A PIPELINE')}
+                    </span>
+                </IonCardTitle>
+            </IonCard>
+            <IonRow className=' ion-justify-content-center p-0 m-0 w-100'>
+                <IonList className='w-100 py-2 px-2'>
+                    <IonReorderGroup disabled={false} onIonItemReorder={reordenar} ref={reorderGroupRef} className='p-0 m-0' >
+                    {
+                        pilhaExec.map((item, index) => 
                                 <JobCard key={index}
-                                    id={itemPilha.job.id}
+                                    id={item.id}
                                     notificacao={{ toastInfo, toastOk, toastErro } as Noticacao}
                                     callback={() => null}
                                 />
-                            )
-                        }
-                        </IonReorderGroup>
-                    </IonList>
-                </IonRow>
+                        )
+                    }
+                    </IonReorderGroup>
+                </IonList>
+            </IonRow>
         </div>
     );
 };

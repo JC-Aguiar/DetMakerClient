@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RelatorioHistoricoDTO } from '../../data/RelatorioHistoricoDTO';
-import { DetStatusTYPE } from '../../pages/Det';
+import { DetStatusTYPE } from '../../pages/RevisarRelatorio';
 
 //Valores iniciais do recuder
 const initialState = { 

@@ -6,7 +6,7 @@ export interface JwtDTO {
     id_token: string
 }
 
-export function validarJwt(jwt: JwtDTO | null):boolean {
+export function validarJwt(jwt: JwtDTO | null): boolean {
     if (jwt == null) return false;
     return jwt.access_token !== null 
         && jwt.expires_in !== null 

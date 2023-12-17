@@ -1,5 +1,6 @@
-import { IonPage, IonContent, useIonToast, ToastButton } from "@ionic/react";
-
+import { IonPage, IonContent, IonCard, IonCardContent, IonCardSubtitle, useIonViewWillEnter } from "@ionic/react";
+import { useDispatch } from 'react-redux';
+import { setButtons } from '../Store/Reducer/ReducerButtons';
 
 export interface DynamicPageProps {
     titulo: string,
@@ -8,27 +9,33 @@ export interface DynamicPageProps {
 }
 
 const DynamicPage: React.FC<DynamicPageProps> = ({ titulo, subtitulo, elemento }) => {  
+    //Atributos gerais
+    const dispatch = useDispatch();
+    const recuo = <div className='py-1 py-md-2' />;
     const subtituloTag = () => {
         if (subtitulo.length === 0) return <></>;
-        return <h3 className="card-text text-primary m-0 text-center">
+        return <IonCardSubtitle className="card-text text-primary m-0 text-center">
             {subtitulo}
-        </h3> 
+        </IonCardSubtitle> 
     }
 
+    //Ações ao carregar esta página
+    useIonViewWillEnter(() => {  
+        dispatch(setButtons([]));
+    }, []);
+
+    //Renderização da página
     return (
         <IonPage>
-            <IonContent fullscreen={true} scrollEvents={true} >
-                <div className='pt-3 pt-md-4' />
-                <div className="card border border-2 pt-2 px-5 mx-0 mx-md-5">
-                    <h1 className="card-title destaque-low m-0 text-center">
-                        {titulo}
-                    </h1>
-                    {subtituloTag()}
-                    {elemento}
-                    <div className='py-3 py-md-4' />
-                </div>
-                <div className='pt-3 pt-md-4' />
+            {recuo}
+            <IonContent fullscreen={true} scrollEvents={false}>
+                <IonCard className="card my-0 py-0 mx-0 mx-md-2 h-100" >
+                    <IonCardContent className="m-0 p-0">
+                        {elemento}
+                    </IonCardContent>
+                </IonCard>
             </IonContent>
+            {recuo}
         </IonPage>
     );
 }
