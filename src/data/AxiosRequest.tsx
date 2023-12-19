@@ -10,6 +10,7 @@ import { EvidenciaRevisadaDTO } from './EvidenciaRevisadaDTO';
 import { RelatorioRevisadoDTO } from './RelatorioRevisadoDTO';
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_PROFILE_INFO, GOOGLE_REDIRECT_URI, GOOGLE_TOKEN_URL } from '../config/OAuth2';
 import { JobInfoDTO } from './JobInfoDTO';
+import { RelatorioResumoDTO } from './RelatorioResumoDTO';
 
 const EM_TESTE = true;
 
@@ -26,9 +27,9 @@ export const REQUEST_URL = EM_TESTE ?
 export const CLIENT_URL = 'localhost:8080'; //'172.31.10.17';
 export const CLIENT_URL_DEV = 'localhost:3000';
 //export const CLIENT_CONTEXT_PATH = '/det-maker-client';
-export const URL_PIPELINES = `/open`;
-export const URL_JOBS = `/select`;
-export const URL_CONFIG = `/config`;
+export const URL_CLIENTES = `/clients`;
+export const URL_PIPELINES = `/pipelines`;
+export const URL_RELATORIOS = `/reports`;
 export const URL_DET = `/evidence`;
 export const URL_LOGIN = `/login`;
 
@@ -252,8 +253,60 @@ export async function getAllJobs(): Promise<JobInfoDTO[]> {
         });
 }
 
+//Requisição para obter todos os Jobs no banco
+export async function getAllRelatorios(): Promise<RelatorioResumoDTO[]> {
+    const titulo = "OBTENDO RELATORIOS";
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/relatorio/summary?itens=200`,
+        headers: headers,
+        timeout: 30000,
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            const json: RelatorioResumoDTO[] = response.data.content;
+            requestSucesso(titulo, json);
+            return json;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para salvar nova Pipeline no banco
+export async function salvarNovaPipeline(novaPipeline: PipelineInfoDTO): Promise<PipelineInfoDTO> {
+    const titulo = "SALVAR NOVA PIPELINE";
+    requestStart(titulo);
+
+    //Instanciando Axios
+    let config: AxiosRequestConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/pipeline/save`,
+        data: novaPipeline,
+        headers: headers,
+        timeout: 10000,
+    };
+    //Executando requisiçãao
+    return await axios.request(config)
+        .then((response) => {
+            const json: PipelineInfoDTO = response.data;
+            requestSucesso(titulo, json);
+            return json;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
 //Requisição para executar a Pipeline
-export async function executarPilha(body: PipelineNovaExecDTO): Promise<RelatorioHistoricoDTO> {
+export async function executarPipeline(body: PipelineNovaExecDTO): Promise<RelatorioHistoricoDTO> {
     const titulo = "EXECUTAR PIPELINE";
     requestStart(titulo);
 
@@ -281,7 +334,7 @@ export async function executarPilha(body: PipelineNovaExecDTO): Promise<Relatori
 
 //>>>>>>>>>>>>>>>> TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //Requisição para executar a Pipeline
-export async function getDet(relatorioId: number): Promise<Blob> {
+export async function getDet(relatorioId: number, nome: string, email: string): Promise<Blob> {
     const titulo = "OBTER DET";
     requestStart(titulo);
 
@@ -289,7 +342,7 @@ export async function getDet(relatorioId: number): Promise<Blob> {
     let config: AxiosRequestConfig = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/relatorio/det/${relatorioId}`,
+        url: `${REQUEST_URL}/relatorio/det/${relatorioId}?user=${nome}&email=${email}}`,
         headers: headers,
         timeout: 60000,
     };
@@ -369,7 +422,7 @@ export async function saveRevisaoEvidencia(evidencias: EvidenciaRevisadaDTO[]): 
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/evidencia/save/review`,
+        url: `${REQUEST_URL}/evidencia/review`,
         data: evidencias,
         headers: headers,
         timeout: 10000,
@@ -378,6 +431,31 @@ export async function saveRevisaoEvidencia(evidencias: EvidenciaRevisadaDTO[]): 
     return await axios.request(config)
         .then((response) => {
             const mensagem: EvidenciasRevisadasDTO = response.data;
+            requestSucesso(titulo, mensagem);
+            return mensagem;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para obter um Relatório para revisar
+export async function getUmaRevisao(id: number): Promise<RelatorioHistoricoDTO> {
+    const titulo = "OBTER UMA REVISÃO";
+    requestStart(titulo);
+
+    //Instanciando Axios
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/relatorio/review/${id}`,
+        headers: headers,
+        timeout: 10000,
+    };
+    //Executando requisiçãao
+    return await axios.request(config)
+        .then((response) => {
+            const mensagem: RelatorioHistoricoDTO = response.data;
             requestSucesso(titulo, mensagem);
             return mensagem;
         })
@@ -395,7 +473,7 @@ export async function saveRevisaoRelatorio(relatorio: RelatorioRevisadoDTO): Pro
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/relatorio/save/review`,
+        url: `${REQUEST_URL}/relatorio/review`,
         headers: headers,
         timeout: 10000,
     };

@@ -3,13 +3,13 @@ import { useDispatch } from "react-redux";
 import { JobInfoDTO } from "../data/JobInfoDTO";
 import { validarExibirData } from "../App";
 
-export interface JobScheduleProps {
+export interface ScheduleJobProps {
     job: JobInfoDTO, 
     indexId: string,
     ordem: number,
 }
 
-const JobSchedule: React.FC<JobScheduleProps> = ({ job, indexId, ordem }) => {
+const ScheduleJob: React.FC<ScheduleJobProps> = ({ job, indexId, ordem }) => {
     const dispatch = useDispatch();
     var color = ""; //job.checked ? "bg-warning" : "";
 
@@ -60,4 +60,4 @@ const JobSchedule: React.FC<JobScheduleProps> = ({ job, indexId, ordem }) => {
     );
 };
 
-export default JobSchedule;
+export default ScheduleJob;

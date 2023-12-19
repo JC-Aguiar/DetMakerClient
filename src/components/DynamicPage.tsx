@@ -1,6 +1,7 @@
-import { IonPage, IonContent, IonCard, IonCardContent, IonCardSubtitle, useIonViewWillEnter } from "@ionic/react";
+import { IonPage, IonContent, IonCard, IonCardContent, IonCardSubtitle, useIonViewWillEnter, IonBadge, IonIcon, IonHeader, IonTitle, IonToolbar } from "@ionic/react";
 import { useDispatch } from 'react-redux';
 import { setButtons } from '../Store/Reducer/ReducerButtons';
+import { radioButtonOn } from "ionicons/icons";
 
 export interface DynamicPageProps {
     titulo: string,
@@ -14,28 +15,30 @@ const DynamicPage: React.FC<DynamicPageProps> = ({ titulo, subtitulo, elemento }
     const recuo = <div className='py-1 py-md-2' />;
     const subtituloTag = () => {
         if (subtitulo.length === 0) return <></>;
-        return <IonCardSubtitle className="card-text text-primary m-0 text-center">
+        return <span className="mx-1 small">
             {subtitulo}
-        </IonCardSubtitle> 
+        </span> 
     }
 
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {  
-        dispatch(setButtons([]));
+        //dispatch(setButtons([]));
     }, []);
 
     //Renderização da página
     return (
         <IonPage>
-            {recuo}
-            <IonContent fullscreen={true} scrollEvents={false}>
-                <IonCard className="card my-0 py-0 mx-0 mx-md-2 h-100" >
-                    <IonCardContent className="m-0 p-0">
-                        {elemento}
-                    </IonCardContent>
-                </IonCard>
+            <IonContent fullscreen={true} scrollEvents={true} className="p-0 m-0">
+                <p className="text-start p-0 m-0 pt-2">
+                    <IonBadge color="#" className="bg-transparent text-secondary text-start px-0 p-0 mx-3 border-bottom rounded rounded-0">
+                        <span className="h6 lh-1">
+                            {titulo} - 
+                        </span>
+                        {subtituloTag()}
+                    </IonBadge>
+                </p>
+                <div className="pe-2 me-5">{elemento}</div>
             </IonContent>
-            {recuo}
         </IonPage>
     );
 }

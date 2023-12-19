@@ -3,13 +3,17 @@ import { ComandoSQL } from '../../data/ComandoSQL';
 import { JobConfig } from '../../data/JobConfigDTO';
 
 //Valores iniciais do recuder
-const initialState = { 
+const initialState = {
+    mainCliente: "", 
+    mainAmbiente: "",
     mainPipeline: "", 
     mainJobs: [],
 } as ReducerAtividadeProps;
 
 //Interface das propriedades deste reducer
 export interface ReducerAtividadeProps {
+    mainCliente: string;
+    mainAmbiente: string;
     mainPipeline: string;
     mainJobs: JobConfig[];
 }
@@ -19,21 +23,29 @@ const configAtividade = createSlice({
     name: 'configAtividade',
     initialState,
     reducers: {
+        setMainAmbiente: (state, action: PayloadAction<{ cliente: string, ambiente: string }>) => {
+            const {cliente, ambiente} = action.payload;
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.setMainAmbiente!');
+            console.log(`[ReducerAtividade]: Definindo Cliente: '${cliente}', Ambiente: '${ambiente}'.`);
+            state.mainCliente = cliente;
+            state.mainAmbiente = ambiente;
+        },
         setMainPipeline: (state, action: PayloadAction<{ nome: string, jobs: JobConfig[] }>) => {
-            console.log('[ReducerAtividade]: Acionado controlador configAtividade.setMainPipeline! \n');
-            console.log(`[ReducerAtividade]: Usuário informou Pipeline nome '${action.payload.nome}'.` + '\n');
-            console.log(`[ReducerAtividade]: Jobs informados para essa Pipeline: '${action.payload.jobs.join(", ")}'.` + '\n');
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.setMainPipeline!');
+            console.log(`[ReducerAtividade]: Definindo Pipeline: '${action.payload.nome}'.`);
+            console.log(`[ReducerAtividade]: Jobs inclusos: '${action.payload.jobs.join(", ")}'.`);
             state.mainPipeline = action.payload.nome;
             state.mainJobs = action.payload.jobs.sort((item1, item2) => item1.ordem - item2.ordem);
-            console.log(`[ReducerAtividade] Main-Pipeline em memória: ${state.mainPipeline}`);
         },
         setMainJobs: (state, action: PayloadAction<JobConfig[]>) => {
-            console.log('[ReducerAtividade] Acionado controlador pilhaJobs.setMainJobs: \n' + `${action.payload}.`);
+            console.log('[ReducerAtividade] Acionado controlador pilhaJobs.setMainJobs!');
             state.mainJobs = action.payload.sort((item1, item2) => item1.ordem - item2.ordem);
             logItemPilha(state.mainJobs);
         },
         reorderMainJobs: (state, action: PayloadAction<{ ids: number[]} >) => {
-            console.log('[ReducerAtividade] Acionado controlador pilhaJobs.reorderMainJobs: \n' + `${action.payload.ids}.`);
+            console.log('[ReducerAtividade] Acionado controlador pilhaJobs.reorderMainJobs! \n' 
+                + `IDs dos Jobs a definir: ${action.payload.ids.join(", ")}.`
+            );
             state.mainJobs = state.mainJobs.map((item) => {
                 const novaOrdem = action.payload.ids.findIndex((id) => id === item.id);
                 if (novaOrdem === -1) {
@@ -48,7 +60,7 @@ const configAtividade = createSlice({
             logItemPilha(state.mainJobs);
         },
         updateOneMainJob: (state, action: PayloadAction<JobConfig>) => {
-            console.log('[ReducerAtividade] Acionado controlador pilhaJobs.updateOneMainJob: \n' + `${action.payload}.`);
+            console.log('[ReducerAtividade] Acionado controlador pilhaJobs.updateOneMainJob!');
             const novoJob = action.payload;
             state.mainJobs = state.mainJobs.map((item) => {
                 if (item.id === novoJob.id) return novoJob;
@@ -73,4 +85,4 @@ function logItemPilha(jobs: JobConfig[]) {
 }
 
 export default configAtividade.reducer;
-export const { setMainPipeline, setMainJobs, updateOneMainJob, reorderMainJobs } = configAtividade.actions;
+export const { setMainAmbiente, setMainPipeline, setMainJobs, updateOneMainJob, reorderMainJobs } = configAtividade.actions;

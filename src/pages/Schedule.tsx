@@ -4,14 +4,13 @@ import { useHistory } from 'react-router';
 import { checkmarkCircle, closeCircle } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
-import JobSchedule from '../components/JobSchedule';
+import ScheduleJob from '../components/ScheduleJob';
 import { Noticacao } from '../components/Noticacao';
-import { URL_PIPELINES } from '../data/AxiosRequest';
+import { URL_CLIENTES } from '../data/AxiosRequest';
 import { JobInfoDTO } from '../data/JobInfoDTO';
 
-const EscolherJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
-    const dispatch = useDispatch();
-    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.catalago);
+const Schedule: React.FC = () => {
+    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalago);
     const [checks, setChecks] = useState<boolean>(true);
     const history = useHistory();
 
@@ -19,8 +18,8 @@ const EscolherJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) =>
         //dispatch(show());
         if (catalogoJobs.length === 0) {
             console.log(`[ESCOLHER-JOBS] A pilha de jobs está vazia. Retornando página.`);
-            console.log(`[APP] Navegando para: ${URL_PIPELINES}`);
-            history.push(URL_PIPELINES);
+            console.log(`[APP] Navegando para: ${URL_CLIENTES}`);
+            history.push(URL_CLIENTES);
         }
         else {
             console.log(`[ESCOLHER-JOBS] Carregando tabela com base na pilha de jobs disponíveis.`);
@@ -79,7 +78,7 @@ const EscolherJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) =>
                     {
                         catalogoJobs.map((item, index) => {
                             const indexId: string = `job-index-${item.id}`;
-                            return <JobSchedule job={item} indexId={indexId} ordem={index} key={index} />
+                            return <ScheduleJob job={item} indexId={indexId} ordem={index} key={index} />
                         })
                     }
                     </tbody>
@@ -90,5 +89,5 @@ const EscolherJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) =>
     );
 };
 
-export default EscolherJobs;
+export default Schedule;
 

@@ -5,7 +5,7 @@ export interface RelatorioResumoDTO {
     idProjeto: string,
     nomeProjeto: string,
     nomeAtividade: string,
-    data: Date,
+    data: number,
     sucesso: boolean,
     evidencias: number,
     revisados: number

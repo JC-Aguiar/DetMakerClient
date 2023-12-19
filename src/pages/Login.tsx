@@ -39,7 +39,7 @@ const Login = (props: any) => {
             dispatch(show());
             dispatch(setJwt(jwt));
             dispatch(setUser(user));
-            history.push(axiosRequest.URL_PIPELINES);
+            history.push(axiosRequest.URL_CLIENTES);
         }
         catch (error) {
             dispatch(hide());

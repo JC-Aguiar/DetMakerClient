@@ -1,88 +1,55 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { RelatorioHistoricoDTO } from '../../data/RelatorioHistoricoDTO';
-import { DetStatusTYPE } from '../../pages/RevisarRelatorio';
+import { RelatorioResumoDTO } from '../../data/RelatorioResumoDTO';
 
-//Valores iniciais do recuder
 const initialState = { 
-    value: null,
-} as ReducerRelatorioTYPE;
+    catalogo: [],
+    loading: false,
+} as ReducerRelatoriosProps;
 
-//Interface das propriedades deste reducer
-export interface ReducerRelatorioTYPE {
-    //value: RelatorioHistoricoDTO[],
-    value: RelatorioHistoricoDTO | null,
+//Interface para definir o tipo de objeto do reducer
+interface ReducerRelatoriosProps {
+    catalogo: RelatorioResumoDTO[],
+    loading: boolean,
 }
 
-//Interface do acionador relatorios.setTestcaseExpectativa
-export interface SetTestcaseExpectativaTYPE {
-    index: number,
-    valor: string | null | undefined,
-}
-
-//Interface do acionador relatorios.setTestcaseResultado
-export interface SetTestcaseResultadoTYPE {
-    index: number,
-    valor: DetStatusTYPE,
-}
-
-//Interface do acionador relatorios.setTestcaseRevisor
-export interface SetTestcaseRevisorTYPE {
-    index: number,
-    valor: string | null | undefined,
-}
-
-
-const relatorios = createSlice({
-    name: 'relatorios',
+//Controlador reducer para os relatórios
+const catalogoRelatorios = createSlice({
+    name: 'catalogoRelatorios',
     initialState,
     reducers: {
-        addRelatorio: (state, action: PayloadAction<ReducerRelatorioTYPE>) => {
-            console.log('[ReducerRelatorios] Acionado controlador relatorios.addRelatorio! \n');
-            state.value = action.payload.value;
-            logRelatorio(state.value);
+        setRelatorios: (state, action: PayloadAction<RelatorioResumoDTO[]>) => {
+            if (!Array.isArray(action.payload)) {
+                console.log('[ReducerRelatorios] Erro: payload inválido, pois não é um array.');
+                return { ...state };
+            }
+            console.log('[ReducerRelatorios]: Acionado controlador catalogoRelatorios.setRelatorios!');
+            state.catalogo = action.payload;
+            logClientes(state.catalogo);
         },
-        removeRelatorio: (state) => {
-            console.log('[ReducerRelatorios] Acionado controlador relatorios.removeRelatorio! \n');
-            state.value = null;
-            logRelatorio(state.value);
+        addRelatorio: (state, action: PayloadAction<RelatorioResumoDTO>) => {
+            console.log('[ReducerRelatorios]: Acionado controlador catalogoRelatorios.addRelatorio!');
+            state.catalogo.push(action.payload);
+            logClientes(state.catalogo);
         },
-        setTestcaseExpectativa: (state, action: PayloadAction<SetTestcaseExpectativaTYPE>) => {
-            console.log('[ReducerRelatorios] Acionado controlador relatorios.setTestcaseExpectativa! \n');
-            let {index, valor} = action.payload;
-            valor = (valor === null || valor === undefined) ? "" : valor;
-            if (state.value) state.value.evidencias[index].comentario = valor;
-            logRelatorio(state.value);
-        },
-        setTestcaseResultado: (state, action: PayloadAction<SetTestcaseResultadoTYPE>) => {
-            console.log('[ReducerRelatorios] Acionado controlador relatorios.setTestcaseResultado! \n');
-            const {index, valor} = action.payload;
-            if (state.value) state.value.evidencias[index].resultado = valor;
-            logRelatorio(state.value);
-        },
-        setTestcaseRevisor: (state, action: PayloadAction<SetTestcaseRevisorTYPE>) => {
-            console.log('[ReducerRelatorios] Acionado controlador relatorios.setTestcaseRevisor! \n');
-            let {index, valor} = action.payload;
-            valor = (valor === null || valor === undefined) ? "" : valor;
-            if (state.value) state.value.evidencias[index].revisor = valor;
-            logRelatorio(state.value);
-        },
-        setTestcaseLock: (state, action: PayloadAction<number[]>) => {
-            console.log('[ReducerRelatorios] Acionado controlador relatorios.setTestcaseLock! \n');
-            action.payload.map((evId) => {
-                if (state.value && state.value.evidencias && state.value.evidencias.length > 0) {
-                    const index = state.value.evidencias.findIndex((ev) => ev.id === evId);
-                    console.log(`[ReducerRelatorios]: Travando evidência[${index}] ID ${evId}.`)
-                    state.value.evidencias[index].lock = true;
-                }
-            });
-            logRelatorio(state.value);
+        loadingRelatorios: (state, action: PayloadAction<boolean>) => {
+            console.log('[ReducerRelatorios]: Acionado controlador catalogoRelatorios.loadingRelatorios!');
+            state.loading = action.payload;
+            console.log(`[ReducerRelatorios]: Catalogo de Relatorios ${state.loading ? 'está carregando..' : 'pronto'}.`);
         },
     },
 });
 
-function logRelatorio(body: RelatorioHistoricoDTO | null) {
-    console.log('[ReducerRelatorios] Payload: ' + JSON.stringify(body));
+//Exibe informações da item-pilah pelos controladores
+function logClientes(clientes: RelatorioResumoDTO[]) {
+    console.log(`[ReducerRelatorios] Catálogo de Relatorios em memória:` + '\n' + clientes.map(
+        (item) => ` - ID: ${item.id}` + '\n' 
+                + ` - Projeto: ${item.idProjeto} - ${item.nomeProjeto}`
+                + ` - Atividade: ${item.nomeAtividade}`
+                + ` - Quantidade de Evidencias: ${item.evidencias}`
+                + ` - Evidências Revisadas: ${item.revisados}`
+                + ` - Sucesso: ${item.sucesso}`
+    ));
 }
 
-export default relatorios.reducer;
-export const { addRelatorio, removeRelatorio, setTestcaseExpectativa, setTestcaseResultado, setTestcaseRevisor, setTestcaseLock } = relatorios.actions;
+export default catalogoRelatorios.reducer;
+export const { setRelatorios, addRelatorio, loadingRelatorios } = catalogoRelatorios.actions;

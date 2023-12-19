@@ -163,8 +163,11 @@ ion-content#intro-bg {
 
 /* MENU --------------------------------------------------------------- */
 .border-gold {
-  border-bottom: 2px solid yellow;
-  background-clip: padding-box;
+  border-bottom: 4px solid var(--ion-color-warning);
+}
+
+.all-border-gold {
+  border: 4px solid var(--ion-color-warning);
 }
 
 #ppw-titulo {

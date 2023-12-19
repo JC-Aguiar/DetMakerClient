@@ -1,4 +1,4 @@
-import { IonAvatar, IonBadge, IonIcon } from "@ionic/react";
+import { IonAvatar, IonBadge, IonCol, IonGrid, IonIcon, IonRow } from "@ionic/react";
 import { close, } from "ionicons/icons";
 import { UserDTO } from "../data/UserDTO";
 import { useDispatch } from "react-redux";
@@ -21,24 +21,28 @@ const Avatar: React.FC<AvatarProps> = ({ user }) => {
     }
 
     return (
-        <div>         
-            {/*<div className="banner rounded rounded-circle p-1">*/}
-            <div className="d-flex justify-content-center">
-                <IonAvatar className="ms-0 border border-white">
-                    <img src={user.picture} alt="user avatar"  referrerPolicy="no-referrer"/>
-                    <IonBadge className="position-absolute bg-transparent" style={{top: '-3%', right: '-3%'}}>
-                        <IonIcon icon={close} 
-                            color="#"
-                            className="btn btn-info p-1 m-1 border rounded rounded-circle"
-                            onClick={logOff}
-                        />
+        <IonGrid className="p-0 m-0">
+            <IonRow className="p-0 m-0 ion-justify-content-center">
+                <IonCol size="12" className="p-0 m-0">
+                    <IonAvatar className="p-0 m-0 all-border-gold" style={{transform: 'scale(0.8)'}}>
+                        <img src={user.picture} alt="user avatar"  referrerPolicy="no-referrer" />
+                        <IonBadge className="position-absolute bg-transparent" style={{top: '-10%', right: '-33%'}}>
+                            <IonIcon icon={close} 
+                                color="#"
+                                className="btn p-1 m-1 border-0 rounded rounded-circle"
+                                style={{backgroundColor: 'var(--ion-color-warning)'}}
+                                onClick={logOff}
+                            />
+                        </IonBadge>
+                    </IonAvatar>
+                </IonCol>
+                <IonCol size="12" className="p-0 m-0">
+                    <IonBadge className="position-absolute bg-warning w-100 text-center lh-1 p-0 m-0 " style={{top: '-15px'}}>
+                        <small className="text-dark text-wrap">{user.name}</small>
                     </IonBadge>
-                </IonAvatar>
-            {/*</div>*/}
-            </div>
-            <p className="text-center text-primary fw-bold lh-1"><small>{user.name}</small></p>
-            
-        </div>
+                </IonCol>
+            </IonRow>
+        </IonGrid>
     );
 }
 

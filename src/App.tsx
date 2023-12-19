@@ -1,4 +1,4 @@
-import { IonApp, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs, ToastButton, setupIonicReact, useIonToast } from '@ionic/react';
+import { IonApp, IonCol, IonGrid, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonRow, IonTabBar, IonTabButton, IonTabs, ToastButton, setupIonicReact, useIonToast } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Redirect, Route } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -29,7 +29,7 @@ import { useState } from 'react';
 import { document, checkbox, settings, documentText, cube, layers, receipt, checkmarkCircle, cogOutline, logoGoogle, closeCircleOutline } from 'ionicons/icons';
 import Login from './pages/Login';
 import EscolherPipelines from './pages/EscolherPipelines';
-import EscolherJobs from './pages/EscolherJobs';
+import Schedule from './pages/Schedule';
 import ConfigurarJobs from './pages/ConfigurarJobs';
 import { JobConfigDTO } from './data/JobConfigDTO';
 import { RootState } from './Store/ReduxStore';
@@ -39,10 +39,12 @@ import { validarUser } from './data/UserDTO';
 import Avatar from './components/Avatar';
 import DynamicPage from './components/DynamicPage';
 import { Noticacao } from './components/Noticacao';
-import { URL_PIPELINES, URL_JOBS, URL_CONFIG, URL_DET, URL_LOGIN } from './data/AxiosRequest';
+import { URL_CLIENTES, URL_PIPELINES, URL_RELATORIOS, URL_DET, URL_LOGIN } from './data/AxiosRequest';
 import { createBrowserHistory } from "history";
 import DynamicButtons from './components/DynamicButtons';
 import { JobInfoDTO } from './data/JobInfoDTO';
+import EscolherClientes from './pages/EscolherClientes';
+import EscolherRelatorios from './pages/EscolherRelatorios';
 
 /* Recursos de uso comum */
 
@@ -73,6 +75,10 @@ export function dataParaString(data: Date): string {
     return dayjs(data).format('DD/MM/YYYY HH:mm:ss');
 }
 
+export function offsetDateTimeParaString(data: number): string {
+    return dayjs.unix(data).format('DD/MM/YYYY HH:mm:ss');
+}
+
 /* Componente <App> */
 const App = () => {
     const dispatch = useDispatch();
@@ -83,12 +89,17 @@ const App = () => {
     //setMenuOn(hideTabBarRoutes.some(route => location.pathname.includes(route)));
     const {jwt, user} = useSelector((state: RootState) => state.store.login);
     //const showMenu: boolean = useSelector((state: RootState) => state.store.tabMenu);
-    const catalagoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.pilhaJobs.catalago);
+    const catalagoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalago);
+    const mainAmbiente: string = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
     const escolherJobsOpt: boolean = catalagoJobs.length > 0;
     //const jobsCount: number = catalagoJobs.filter((item) => item.job.checked).length;
     //const configurarJobsOpt: boolean = jobsCount > 0;
     //const executarJobsOpt: boolean = false;
-    const evidenciaPag: boolean = useSelector((state: RootState) => state.store.relatorios.value) !== null;
+    const docParaRevisar: boolean = useSelector((state: RootState) => state.store.docRevisao.value) !== null;
+
+    const isLoadingJobs: boolean = useSelector((state: RootState) => state.store.catalogoJobs.loading);
+    const isLoadingPipelines: boolean = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
+    const isLoadingRelatorios: boolean = useSelector((state: RootState) => state.store.catalogoRelatorios.loading);
 
     const [toast, toastOff] = useIonToast();
     const closeToast = {
@@ -136,33 +147,33 @@ const App = () => {
 
     const rotas: rotaTYPE[] = [
         {
+            path: URL_CLIENTES,
+            exact: true,
+            titulo: "Clientes", 
+            subtitulo: "Escolha ou crie perfis de Clientes para acessar os recursos", 
+            conteudo: <EscolherClientes />,
+            icone: layers,
+            desativado: false,
+            efeito: null,
+        },
+        {
             path: URL_PIPELINES,
             exact: true,
             titulo: "Pipelines", 
             subtitulo: "Escolha ou crie uma Pipeline para iniciar um fluxo de execução", 
             conteudo: <EscolherPipelines {...notificacao} />,
             icone: layers,
-            desativado: false,
-            efeito: null,
-        },
-        {
-            path: URL_JOBS,
-            exact: true,
-            titulo: "Jobs", 
-            subtitulo: "Documentação detalhada dos Jobs disponíveis", 
-            conteudo: <EscolherJobs {...notificacao} />,
-            icone: cube,
-            desativado: !escolherJobsOpt,
+            desativado: mainAmbiente.length < 1 || isLoadingJobs || isLoadingPipelines,
             efeito: null, 
         },
         {
-            path: URL_CONFIG,
+            path: URL_RELATORIOS,
             exact: true,
-            titulo: "Configurar Jobs", //"Relatórios", 
-            subtitulo: "", //"Lista dos relatórios prontos ou a revisar", 
-            conteudo: <ConfigurarJobs {...notificacao} />,
-            icone: cogOutline, //receipt,
-            desativado: false, //!configurarJobsOpt,
+            titulo: "Relatórios", 
+            subtitulo: "Lista dos relatórios prontos ou a revisar", 
+            conteudo: <EscolherRelatorios {...notificacao} />,
+            icone: receipt,
+            desativado: mainAmbiente.length < 1 || isLoadingRelatorios,
             efeito: null, //contadorConfigJobs(),
         },
         {
@@ -172,7 +183,7 @@ const App = () => {
             subtitulo: "Analise e preencha os campos obrigatórios das evidências", 
             conteudo: <RevisarRelatorio {...notificacao} />,
             icone: checkmarkCircle,
-            desativado: !evidenciaPag,
+            desativado: !docParaRevisar,
             efeito: null,
         },
     ];
@@ -211,12 +222,10 @@ const App = () => {
 
     function menuVisitante() {
         return (
-            <IonTabBar slot="top" className='pt-4 mt-2 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' >
-                <IonTabButton tab='Login' href={URL_LOGIN} className='pt-1 bg-transparent fw-bold' >
-                    <IonIcon icon={logoGoogle} />
-                    <IonLabel>Login</IonLabel>
-                </IonTabButton>
-            </IonTabBar>
+            <IonTabButton tab='Login' href={URL_LOGIN} className='bg-transparent fw-bold p-0' disabled>
+                <IonIcon icon={logoGoogle} hidden/>
+                <IonLabel hidden>Login</IonLabel>
+            </IonTabButton>
         );
     }
 
@@ -231,27 +240,21 @@ const App = () => {
                     )
                 }
                 <Route>
-                    <Redirect from='/*' to={URL_PIPELINES} />
+                    <Redirect from='/*' to={URL_CLIENTES} />
                 </Route>
             </IonRouterOutlet>
         );
     }
 
     function menuAutenticado() {
-        return (
-            <IonTabBar slot="top" className='pt-4 mt-2 pb-1 mx-0 mx-md-1 bg-transparent mt-1 border-gold' >
-                {
-                    rotas.map((r, index) =>
-                        <IonTabButton key={index} tab={r.titulo} href={r.path}
-                            className='pt-1 bg-transparent fw-bold'
-                            disabled={r.desativado}
-                        >
-                            <IonIcon icon={r.icone} />
-                            <IonLabel>{r.titulo}{r.efeito}</IonLabel>
-                        </IonTabButton>
-                    )
-                }
-            </IonTabBar>
+        return rotas.map((r, index) =>
+            <IonTabButton key={index} tab={r.titulo} href={r.path}
+                className='pt-1 bg-transparent fw-bold'
+                disabled={r.desativado}
+            >
+                <IonIcon icon={r.icone} />
+                <IonLabel>{r.titulo}{r.efeito}</IonLabel>
+            </IonTabButton>
         );
     }
 
@@ -272,15 +275,29 @@ const App = () => {
         <IonApp>
             <IonReactRouter basename={process.env.PUBLIC_URL}>
                 <div className='banner h-100'>
-                    <IonHeader id='ppw-titulo' className='text-center'>
-                        <div className="navbar-brand disabled text-white fs-1 m-0 lh-1" >
-                            Peopleware
-                        </div>
-                    </IonHeader>
-                    <IonTabs>
-                        {mapaDeRotas()}
-                        {mapaDeMenus()}
-                    </IonTabs>
+                    <IonGrid>
+                        <IonRow>
+                            <IonCol>
+                            </IonCol>
+                                <IonTabs >
+                                    {mapaDeRotas()}
+                                    <IonTabBar slot="top"
+                                        className='bg-transparent border-gold'
+                                        style={{ justifyContent: 'flex-start'}}
+                                    >
+                                        <IonTabButton tab='Titulo' href={URL_LOGIN} disabled className='bg-transparent fw-bold m-1' >
+                                            <IonHeader id='ppw-titulo' className='text-center text-white border border-3 border-white rounded rounded-3 pt-1 pb-0'>
+                                                <h3 className="m-0 lh-1" >
+                                                    DET-MAKER
+                                                </h3>
+                                                <small className='small m-0 lh-1'>Peopleware</small>
+                                            </IonHeader>
+                                        </IonTabButton>
+                                        {mapaDeMenus()}
+                                    </IonTabBar>
+                                </IonTabs>
+                        </IonRow>
+                    </IonGrid>
                     <DynamicButtons avatar={ <Avatar user={user}/> } />
                 </div>
             </IonReactRouter>

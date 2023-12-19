@@ -1,20 +1,25 @@
-import { InputChangeEventDetail, IonButton, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonIcon, IonInput, IonItem, IonLabel, IonPage, IonRadio, IonRadioGroup, IonRow, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, ToastButton, useIonToast, useIonViewDidEnter } from '@ionic/react';
+import { InputChangeEventDetail, IonButton, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonIcon, IonInput, IonItem, IonLabel, IonPage, IonRadio, IonRadioGroup, IonRow, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, ToastButton, useIonToast, useIonViewDidEnter, useIonViewWillEnter } from '@ionic/react';
 import capaDet from '../resources/VIVO_DET_PAGE_BACKGROUND_3.png';
 //import { Page, View, Document, PDFDownloadLink } from '@react-pdf/renderer';
 //import { PDFExport, savePDF } from '@progress/kendo-react-pdf';
 import { useDispatch, useSelector } from 'react-redux';
 import { RelatorioHistoricoDTO } from '../data/RelatorioHistoricoDTO';
 import { RootState } from '../Store/ReduxStore';
-import { setTestcaseExpectativa, setTestcaseResultado, setTestcaseRevisor, setTestcaseLock } from '../Store/Reducer/ReducerRelatorios';
+import { setTestcaseExpectativa, setTestcaseResultado, setTestcaseRevisor, setTestcaseLock } from '../Store/Reducer/ReducerRevisao';
 import { EvidenciaInfoDTO } from '../data/EvidenciaInfoDTO';
 import './template/template.css';
-import { alertCircle, checkmarkCircle, closeCircle, document, helpCircle, save } from 'ionicons/icons';
+import { alertCircle, checkmarkCircle, closeCircle, document, helpCircle, refresh, save } from 'ionicons/icons';
 import { UserDTO } from '../data/UserDTO';
 import { EvidenciaRevisadaDTO } from '../data/EvidenciaRevisadaDTO';
 import * as axiosRequest from '../data/AxiosRequest';
 import { EvidenciasRevisadasDTO } from '../data/AxiosRequest';
 import { Noticacao } from '../components/Noticacao';
 import dayjs from 'dayjs';
+import { offsetDateTimeParaString } from '../App';
+import { setButtons } from '../Store/Reducer/ReducerButtons';
+import { useHistory } from 'react-router';
+import { DynamicButtonsAddsOn } from '../components/DynamicButtons';
+import { useEffect } from 'react';
 
 
 //Interface das tabelas da sessão 'Evolução dos Testes' no DET
@@ -48,37 +53,56 @@ export type DetStatusTYPE = "Aprovado" | "Reprovado" | "Parcial";
 
 const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
     const dispatch = useDispatch();
+    const history = useHistory();
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
-    const relatorio: RelatorioHistoricoDTO | null = useSelector((state: RootState) => state.store.relatorios.value);
-    if (relatorio === null) {
-        throw "O RelatorioHistoricoDTO no ReducerRelatorio está nulo. A página Evidência não poderá ser gerada.";
-    };
+    const relatorio: RelatorioHistoricoDTO | null = useSelector((state: RootState) => state.store.docRevisao.value);
 
-    function offsetDateTimeParaString(data: number): string {
-        return dayjs.unix(data).format('DD/MM/YYYY HH:mm:ss');
-    }
+    
+    //Ações ao carregar esta página
+    useIonViewWillEnter(() => {
+        //Atributos de botões
+        const botaoSalvar = {
+            title: 'Salvar',
+            icon: save,
+            trigger: () => salvarRevisao(),
+            disable: () => false, //isLoading(),
+        } as DynamicButtonsAddsOn;
+
+        const botaoDET = {
+            title: 'DET',
+            icon: document,
+            trigger: () => gerarDet(),
+            disable: () => false, //!podeGerarDet(), //isLoading(),
+        } as DynamicButtonsAddsOn;
+
+        dispatch(setButtons( [botaoSalvar, botaoDET] ));
+        if (relatorio === null) {
+            console.log("O RelatorioHistoricoDTO no ReducerRelatorio está nulo. A página Evidência não poderá ser gerada.");
+            history.push(axiosRequest.URL_PIPELINES);
+        }
+    }, []);
 
     const resultadoStatus: DetStatusTYPE[] = ["Aprovado", "Reprovado", "Parcial"];
 
     //campos da sessão 'identificação' no DET
-    const idProjeto = relatorio.idProjeto;
-    const nomeProjeto = relatorio.nomeProjeto;
-    const nomeAtividade = relatorio.nomeAtividade;
-    const testeTipo = relatorio.testeTipo;
-    const sistema = relatorio.sistema;
-    const nome = "Autopilot DetMaker User";
-    const cargo = "IA";
+    const idProjeto = relatorio?.idProjeto;
+    const nomeProjeto = relatorio?.nomeProjeto;
+    const nomeAtividade = relatorio?.nomeAtividade;
+    const testeTipo = relatorio?.testeTipo;
+    const sistema = relatorio?.sistema;
+    const nome = user?.name;
+    const cargo = user ? "DEV" : "";
     const empresa = "PPW";
-    const email = "";
+    const email = user?.email;
     const phone = "";
 
     //campos da sessão 'detalhamento' no DET
-    const modulos = relatorio.pipeline;
-    const parametros = relatorio.parametros;
-    const dados = relatorio.dados;
-    const config = relatorio.configuracao;
-    const ambiente = relatorio.ambiente;
-    const testcases: DetTestcase[] = relatorio.evidencias.map((evidencia: EvidenciaInfoDTO) => {
+    const modulos = relatorio?.pipeline;
+    const parametros = relatorio?.parametros;
+    const dados = relatorio?.dados;
+    const config = relatorio?.configuracao;
+    const ambiente = relatorio?.ambiente;
+    const testcases: DetTestcase[] | undefined = relatorio?.evidencias.map((evidencia: EvidenciaInfoDTO) => {
         const logsConteudo: string[] = [];
         const logsNome: string[] = [];
         const cargasConteudo: string[] = [];
@@ -130,7 +154,7 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
 
 
     //Montando as tabelas Testcase 
-    testcases.forEach((teste) => {
+    testcases?.forEach((teste) => {
         //Preenchendo anexos de tabelas por query
         teste.queries.forEach((query, index) => {
             const nomePreJob = `Tabela ${teste.tabelasNome[index]} antes` + '\n';
@@ -198,15 +222,11 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
     })
 
     //Definindo o id do elemento de cada tabela testecase com base no índice dela na lista
-    //testcases.map((tabela, index) => {
+    //testcases?.map((tabela, index) => {
     //    const idString = tabela.titulo.replaceAll(" ", "-").toLocaleLowerCase();
     //    tabela.id = `teste-${index}-${idString}`;
     //    return tabela;
     //});
-
-    useIonViewDidEnter(() => {
-        //dispatch(hide());
-    }, []);
 
     const iconCampoObrigatorio = (texto: string) => {
         const valido = (texto && texto.length > 0);
@@ -332,6 +352,8 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
     </div>
 
     const gerarEstatisticas = () => {
+        if (!testcases) return <></>;
+
         let aprovados = 0;
         let reprovados = 0;
         let parciais = 0;
@@ -381,14 +403,20 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
     }
 
     const podeSalvarRevisao = (): boolean => {
+        if (!testcases || !relatorio) return false;
         const totalPronto = testcases.filter((teste) => teste.pronto).length;
         const totalLock = relatorio.evidencias.filter((ev) => !ev.lock).length;
-        return totalLock > 0 && totalPronto > testcases.length;
+        return totalLock > 0 && totalPronto > testcases?.length;
     }
 
     const salvarRevisao = async () => {
+        if (!testcases) {
+            toastInfo("Nenhuma tabela de Evidência disponível para salvar", []);
+            return;
+        };
+
         const data = new Date();
-        const evidencias: EvidenciaRevisadaDTO[] = testcases.filter((item) => item.pronto)
+        const evidenciasProntas: EvidenciaRevisadaDTO[] = testcases.filter((item) => item.pronto)
             .filter((item) => !item.lock)
             .map((item) => {
                 return {
@@ -399,29 +427,46 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
                     resultado: item.resultado,
                 } as EvidenciaRevisadaDTO;
             });
-        console.log(`[DET]: Total de Evidências revisadas para salvar: ` + evidencias.length);
-        if (evidencias.length < 1) return;
+        if (evidenciasProntas.length < 1) {
+            toastInfo("Relatório já revisado. Sem necessidade de atualizar o banco.", []);
+            return;
+        }
 
-        console.log(`[DET]: Iniciando requisição 'Salvar Revisoão'.`);
-        console.log(`[DET]: IDs das Evidências revisadas para salvar: ` + evidencias.map((item) => item.evidenciaId));
+        console.log(`[REVISAR-RELATORIO]: Iniciando requisição 'Salvar Revisoão'.`);
+        console.log(`[REVISAR-RELATORIO]: IDs das Evidências revisadas para salvar: ` + evidenciasProntas.map((item) => item.evidenciaId));
+        console.log(`[REVISAR-RELATORIO]: Total de Evidências revisadas para salvar: ` + evidenciasProntas.length);
         toastInfo("SALVAR REVISÃO: Em execução...", []);
         try {
-            const evidenciasSalvas: EvidenciasRevisadasDTO = await axiosRequest.saveRevisaoEvidencia(evidencias);
+            const evidenciasSalvas: EvidenciasRevisadasDTO = await axiosRequest.saveRevisaoEvidencia(evidenciasProntas);
             dispatch(setTestcaseLock(evidenciasSalvas.saved))
             toastOk("SALVAR REVISÃO: Realizada com sucesso.", []);
-            console.log(`[DET]: Requisição 'Salvar Revisoão' funcionou.`);
+            console.log(`[REVISAR-RELATORIO]: Requisição 'Salvar Revisoão' funcionou.`);
         }
         catch (error) {
             toastErro(`SALVAR REVISÃO: ${error}`, []);
-            console.error(`[DET]: Requisição 'Salvar Revisoão' falhou.`);
+            console.error(`[REVISAR-RELATORIO]: Requisição 'Salvar Revisoão' falhou.`);
         }
     };
 
     const gerarDet = async () => {
-        console.log(`[DET]: Iniciando requisição 'Obter Det'.`);
+        //TODO: melhorar!
+        if (!relatorio) {
+            toastErro("ERRO: Nenhum Relatório para Revisão selecionado!", []);
+            return;
+        }
+        if (!podeGerarDet()) {
+            toastErro("É obrigatório preencher todos os campos de revisão antes de gerar o DET", []);
+            return;
+        }
+        if (!user) {
+            toastErro("ERRO: Usuário não definido!", []);
+            return;
+        };
+
+        console.log(`[REVISAR-RELATORIO]: Iniciando requisição 'Obter Det'.`);
         toastInfo("OBTER DET: Em execução...", []);
         try {
-            const fileBlob: Blob = await axiosRequest.getDet(relatorio.id);
+            const fileBlob: Blob = await axiosRequest.getDet(relatorio.id, user.name, user.email);
             const buttons = [
                 {
                   text: 'Abrir',
@@ -430,11 +475,11 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
                 }
             ];
             toastOk("OBTER DET: Realizada com sucesso.", buttons);
-            console.log(`[DET]: Requisição 'Obter Det' funcionou.`);
+            console.log(`[REVISAR-RELATORIO]: Requisição 'Obter Det' funcionou.`);
         }
         catch (error) {
             toastErro(`OBTER DET: ${error}`, []);
-            console.error(`[DET]: Requisição 'Obter Det' falhou.`);
+            console.error(`[REVISAR-RELATORIO]: Requisição 'Obter Det' falhou.`);
         }
     }
 
@@ -445,37 +490,14 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
     }
 
     const podeGerarDet = (): boolean => {
-        const totalPronto = testcases.filter((teste) => teste.pronto).length;
-        const totalLock = relatorio.evidencias.filter((ev) => !ev.lock).length;
-        return totalLock === 0 && totalPronto === testcases.length;
+        const totalPronto = testcases?.filter((teste) => teste.pronto).length;
+        const totalLock = relatorio?.evidencias.filter((ev) => !ev.lock).length;
+        return totalLock === 0 && totalPronto === testcases?.length;
     }
 
     //Renderização do componente
     return (
         <>
-            <IonFab slot="fixed" vertical="bottom" horizontal="end" className='pe-5'>
-                <IonGrid className='py-0 my-0 position-fixed bottom-0 end-0' style={{transform: `translate(-25%, -10%)`}}> 
-                    <IonRow className="ion-justify-content-center ">
-                        <IonLabel color='#' className="ion-justify-content-center">
-                            <IonFabButton className='ms-3 mb-1' onClick={(e) => salvarRevisao()} >
-                                <IonIcon icon={save}></IonIcon>
-                            </IonFabButton>
-                            <small className="text-center text-primary fw-bold me-3">
-                                Salvar Revisão
-                            </small>
-                        </IonLabel>
-                        <IonLabel color='#' className="ion-justify-content-center">
-                            <IonFabButton className='mb-1' onClick={(e) => gerarDet()} disabled={!podeGerarDet()}>
-                                <IonIcon icon={document}></IonIcon>
-                            </IonFabButton>
-                            <small className="text-center text-primary fw-bold me-5">
-                                Gerar DET
-                            </small>
-                        </IonLabel>
-                    </IonRow>
-                </IonGrid>
-            </IonFab>
-
             {/* Corpo principal */}
             <div className="container justify-content-center bg-white px-0 pb-5 my-5">
                 {/*-----[PARTE 1: CAPA]--------------------------------------------------------------*/}
@@ -564,22 +586,22 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
                             <table className="table table-light table-striped text-start">
                                 <tbody>
                                     <tr>
-                                        <th>Módulos Necessários</th>
+                                        <th>Nome da Pipeline</th>
                                         <td id="modulos">{modulos}</td>
                                     </tr>
                                     <tr>
-                                        <th>Parâmetros da Execução do Sistema</th>
+                                        <th>Descrição da Pipeline</th>
+                                        <td id="dados">{dados}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Sequência de Jobs Executados</th>
                                         <td id="parametros">
                                             {
-                                                parametros.split(" ").map((item, index) =>
+                                                parametros?.split(" ").map((item, index) =>
                                                     <p key={index} className='my-0' >{item}</p>
                                                 )
                                             }
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Dados de Teste</th>
-                                        <td id="dados">{dados}</td>
                                     </tr>
                                     <tr>
                                         <th>Configuração</th>
@@ -625,7 +647,7 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
                         <div className="table-responsive m-0 text-start">
                             <div className=" table-light table-striped px-3">
                                 {
-                                    testcases.map((tabela, index) => gerarTabelaTeste(tabela, index))
+                                    testcases?.map((tabela, index) => gerarTabelaTeste(tabela, index))
                                 }
                             </div>
                         </div>
