@@ -48,6 +48,7 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
     const [projetoNome, setProjetoNome] = useState<string>("");
     const [atividadeNome, setAtividadeNome] = useState<string>("");
     const [configuracao, setConfiguracao] = useState<string>("");
+    //const [JobConfigUserInput, setJobConfigUserInput] = useState<JobConfig[]>({...mainJobs});
     const [modalConfigPipelineOn, modalConfigPipelineOff] = useIonModal(
         DynamicModal,
         {
@@ -56,6 +57,7 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
             onDismiss: () => modalConfigPipelineOff(),
         }
     );
+
 
     //Acionamento assim que esta página for montada
     useIonViewDidEnter(() => {
@@ -97,9 +99,9 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
 
     //Botão customizado com efeitos visuais
     function textoBotao(texto: string) {
-        const ativo = mainPipeline !== "" ?  "banner-gold session-buttons" : "disabled border-2 border-white text-white";
+        const ativo = mainPipeline !== "" ?  "bg-white banner-gold" : "disabled border-white text-white";
         return (
-            <span className={`btn btn-outline-primary border ${ativo} ps-2 pe-1 py-0 mx-1`}
+            <span className={`btn btn-outline-primary border border-2 ${ativo} ps-2 pe-1 py-0 mx-1`}
                 onMouseOver={() => setThunderGif(darkThunder)}
                 onMouseLeave={() => setThunderGif(blueThunder)}
                 onClick={() => modalConfigPipelineOn()}
@@ -162,23 +164,15 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
                     empresa: "PPW",
                 } as UserInfoDTO,
             };
-            //const arquivoDet: Blob = await axiosRequest.executarPilha(body);
-            //const buttons = [
-            //    {
-            //      text: 'Abrir',
-            //      role: 'Abrir DET',
-            //      handler: () => abrirDet(arquivoDet),
-            //    }
-            //  ]
-            console.log(`JSON de envio: ${JSON.stringify(body)}`);
+            //console.log(`JSON de envio: ${JSON.stringify(body)}`);
 
             dispatch(removeRevisao());
-            dispatch(loadingRelatorios(true));
+            //dispatch(loadingRelatorios(true));
             const relatorioParaRevisar: RelatorioHistoricoDTO = await axiosRequest.executarPipeline(body);
             //dispatch(addRevisao({ value: relatorio }));
             dispatch(setRelatorios([]));
-            dispatch(addRevisao({ value: relatorioParaRevisar }));
-            dispatch(loadingRelatorios(false));
+            dispatch(addRevisao(relatorioParaRevisar));
+            //dispatch(loadingRelatorios(false));
             toastOk("EXECUTAR PIPELINE: Realizada com sucesso.", []);
             console.log(`[CONFIGURAR-JOBS]: Requisição 'Executar Pipeline' funcionou.`);
             console.log(`[CONFIGURAR-JOBS] Navegando para: ${axiosRequest.URL_DET}`);
@@ -334,7 +328,7 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
         const ordemAntiga = event.detail.from;
         const ordemNova = event.detail.to;
         event.detail.complete();
-        
+
         let jobDto: JobConfig | undefined = mainJobs.find((item) => item.ordem === ordemAntiga);
         if (!jobDto) return;
         console.log(`[CONFIG-JOBS]: Movendo job ${jobDto.nome} do index ${ordemAntiga} para ${ordemNova}.`);
@@ -374,30 +368,33 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
 
     //Renderização do componente
     return (
-        <div className='container'>
-            <IonCard>
-                <IonCardTitle className='p-0 py-1 m-0 banner text-white text-center'>
-                    <span className='h6'>
-                        Ordene os Jobs e configure suas propriedades no ícone da engrenagem. <br/>
-                        Quando estive pronto:{textoBotao('EXECUTAR A PIPELINE')}
-                    </span>
-                </IonCardTitle>
-            </IonCard>
-            <IonRow className=' ion-justify-content-center p-0 m-0 w-100'>
-                <IonList className='w-100 py-2 px-2'>
-                    <IonReorderGroup disabled={false} onIonItemReorder={reordenar} ref={reorderGroupRef} className='p-0 m-0' >
-                    {
-                        mainJobs.map((item, index) => 
-                            <JobCard key={index}
-                                id={item.id}
-                                notificacao={{ toastInfo, toastOk, toastErro } as Noticacao}
-                                callback={() => null}
-                            />
-                        )
-                    }
-                    </IonReorderGroup>
-                </IonList>
-            </IonRow>
+        <div className='container glass'>
+            <div className='glass-content'>
+                <IonCard className='m-1 glass text-white'>
+                    <IonCardTitle className='m-1 text-center'>
+                        <span className='h6'>
+                            Ordene os Jobs e configure suas propriedades no ícone da engrenagem. <br/>
+                            Quando estive pronto:{textoBotao('EXECUTAR A PIPELINE')}
+                        </span>
+                    </IonCardTitle>
+                </IonCard>
+                <IonRow className=' ion-justify-content-center p-0 m-0 w-100'>
+                    <IonList className='w-100 py-2 px-2'>
+                        <IonReorderGroup disabled={false} onIonItemReorder={reordenar} ref={reorderGroupRef} className='p-0 m-0' >
+                        {
+                            mainJobs.map((item, index) => 
+                                <JobCard key={index} 
+                                    jobExec={item}
+                                    //jobUserInput={JobConfigUserInput[index]}
+                                    notificacao={{ toastInfo, toastOk, toastErro } as Noticacao}
+                                    callback={() => null}
+                                />
+                            )
+                        }
+                        </IonReorderGroup>
+                    </IonList>
+                </IonRow>
+            </div>
         </div>
     );
 };

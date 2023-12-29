@@ -14,18 +14,6 @@ const Schedule: React.FC = () => {
     const [checks, setChecks] = useState<boolean>(true);
     const history = useHistory();
 
-    useIonViewDidEnter(() => {
-        //dispatch(show());
-        if (catalogoJobs.length === 0) {
-            console.log(`[ESCOLHER-JOBS] A pilha de jobs está vazia. Retornando página.`);
-            console.log(`[APP] Navegando para: ${URL_CLIENTES}`);
-            history.push(URL_CLIENTES);
-        }
-        else {
-            console.log(`[ESCOLHER-JOBS] Carregando tabela com base na pilha de jobs disponíveis.`);
-        }
-    }, []);
-
     //async function handlerCheckAll() {
     //    console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para 'false'`);
     //    catalogoJobs.forEach((item) => dispatch( 
@@ -37,55 +25,69 @@ const Schedule: React.FC = () => {
     //    ));
     //}
 
+    interface HeaderTYPE {
+        colunas: ColunaTYPE[];
+    }
+
+    interface ColunaTYPE {
+        largura: number, 
+        nome: string,
+    }
+
+    const header: HeaderTYPE = {
+        colunas: [
+            { largura: 20, nome: "ID" },
+            { largura: 20, nome: "JOB" },
+            { largura: 50, nome: "EXECUTAR APÓS" },
+            { largura: 20, nome: "GRUPO" },
+            { largura: 20, nome: "FASE" },
+            { largura: 900, nome: "DESCRIÇÃO" },
+            { largura: 20, nome: "UDA" },
+            { largura: 20, nome: "PROGRAMA" },
+            { largura: 20, nome: "TABELAS" },
+            { largura: 20, nome: "SERVIDOR" },
+            { largura: 20, nome: "JOB PATH" },
+            { largura: 20, nome: "PARÂMETROS" },
+            { largura: 900, nome: "DESCRIÇÕES PARÂMETROS" },
+            { largura: 20, nome: "CARGAS PATH" },
+            { largura: 20, nome: "CARGAS MÁSCARA" },
+            { largura: 20, nome: "PRODUTOS PATH" },
+            { largura: 20, nome: "PRODUTOS MÁSCARA" },
+            { largura: 20, nome: "LOGS PATH" },
+            { largura: 20, nome: "LOGS MÁSCARA" },
+            { largura: 20, nome: "TRATAMENTO" },
+            { largura: 20, nome: "ESCALATION" },
+            { largura: 90, nome: "DATA" },
+            { largura: 50, nome: "ATUALZIADO POR" }
+        ]
+    };
+
+    const renderizarColunas = header.colunas.map((item, index) => 
+        <th className='bg-primary' style={{minWidth: `${item.largura}px`}}>
+            {item.nome}
+        </th>
+    );
+        // min-width: 12vw;
+        // max-width: 28vw;
+
     return (
-        <div className="schedule-tabela px-1">
-            <div className="my-3"></div>
-            <section className="schedule-tabela scroll text-center">
+            <div className="schedule-tabela scroll text-center p-0 m-0">
                 <table className="table p-0 m-0"> {/* table-light table-striped */}
-                    <thead className='sticky-top align-items-center align-middle '>
-                        <tr className='text-white fs-6'>
-                            <th className='bg-primary'>
-                                <button className='btn btn-outline-light bg-transparent border-0 p-1 pb-0 m-0' > {/* onClick={handlerCheckAll} */}
-                                    <IonIcon icon={checks ? closeCircle : checkmarkCircle} size='large' />
-                                </button>
-                            </th>
-                            <th className='bg-primary'>JOB ID</th>
-                            <th className='bg-primary'>EXECUTA APÓS ID</th>
-                            <th className='bg-primary'>GRUPO CONCORRÊNCIA</th>
-                            <th className='bg-primary'>FASE</th>
-                            <th className='bg-primary'>JOB NOME</th>
-                            <th className='bg-primary td-long'>JOB DESCRIÇÃO</th>
-                            <th className='bg-primary'>GRUPO UDA</th>
-                            <th className='bg-primary'>PROGRAMA</th>
-                            <th className='bg-primary'>TABELAS ATUALIZADAS</th>
-                            <th className='bg-primary'>SERVIDOR</th>
-                            <th className='bg-primary'>CAMINHO JOB</th>
-                            <th className='bg-primary'>PARÂMETROS</th>
-                            <th className='bg-primary td-long'>DESCRIÇÕES PARÂMETROS</th>
-                            <th className='bg-primary'>ARQUIVO ENTRADA (CAMINHO)</th>
-                            <th className='bg-primary td-long'>ARQUIVO ENTRADA (MÁSCARA)</th>
-                            <th className='bg-primary'>ARQUIVO SAÍDA (CAMINHO)</th>
-                            <th className='bg-primary'>ARQUIVO SAÍDA (MÁSCARA)</th>
-                            <th className='bg-primary'>LOG (CAMINHO)</th>
-                            <th className='bg-primary td-long'>LOG (MÁSCARA)</th>
-                            <th className='bg-primary'>TRATAMENTO</th>
-                            <th className='bg-primary'>ESCALATION</th>
-                            <th className='bg-primary'>DATA ATUALIZAÇÃO</th>
-                            <th className='bg-primary'>ATUALZIADO POR</th>
+                    <thead className='sticky-top align-items-center align-middle small'>
+                        <tr className='text-white '>
+                            {renderizarColunas}
                         </tr>
                     </thead>
                     <tbody>
                     {
                         catalogoJobs.map((item, index) => {
                             const indexId: string = `job-index-${item.id}`;
-                            return <ScheduleJob job={item} indexId={indexId} ordem={index} key={index} />
+                            return <ScheduleJob key={index} job={item} indexId={indexId} cor={index % 2 ? "" : "bg-white"} />
                         })
                     }
                     </tbody>
                 </table>
-            </section>
-            <div className='mb-5'></div>
-        </div>
+            </div>
     );
 };
 

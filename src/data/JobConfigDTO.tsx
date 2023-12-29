@@ -24,17 +24,24 @@ export function parseJobInfo(infoDto: JobInfoDTO, ordem : number = -1): JobConfi
         ordem: ordem,
         id: infoDto.id,
         nome: infoDto.nome,
-        argumentos: infoDto.parametros.map((item) => ""),
-        queries: infoDto.tabelas.map((item) => {
-            return {
-                campos: [],
-                tabela: item,
-                filtros: [],
-                sql: "",
-                descricao: "",
-                dinamico: false,
-            } as ComandoSQL;
+        argumentos: infoDto.parametros
+            .filter((item) => item)
+            .map(() => "")
+        ,
+        queries: infoDto.tabelas
+            .filter((item) => item)
+            .map((item) => {
+                return {
+                    campos: [],
+                    tabela: item,
+                    filtros: [],
+                    sql: "",
+                    descricao: "",
+                    dinamico: false,
+                } as ComandoSQL;
         }),
-        cargas: infoDto.mascaraEntrada.map((item) => ""),
-    } as JobConfig;
+        cargas: infoDto.mascaraEntrada
+            .filter((item) => item)
+            .map(() => "")
+    }
 }

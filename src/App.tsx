@@ -6,6 +6,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import dayjs from 'dayjs';
 import Intro from './pages/Intro';
 import "./App.css";
+import miniLogo from './resources/det-maker-logo-v3-mini.png';
+import iconUserTie from './resources/user-tie.svg';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -45,6 +47,7 @@ import DynamicButtons from './components/DynamicButtons';
 import { JobInfoDTO } from './data/JobInfoDTO';
 import EscolherClientes from './pages/EscolherClientes';
 import EscolherRelatorios from './pages/EscolherRelatorios';
+import Fundo from './components/Fundo';
 
 /* Recursos de uso comum */
 
@@ -152,7 +155,7 @@ const App = () => {
             titulo: "Clientes", 
             subtitulo: "Escolha ou crie perfis de Clientes para acessar os recursos", 
             conteudo: <EscolherClientes />,
-            icone: layers,
+            icone: iconUserTie,
             desativado: false,
             efeito: null,
         },
@@ -249,7 +252,7 @@ const App = () => {
     function menuAutenticado() {
         return rotas.map((r, index) =>
             <IonTabButton key={index} tab={r.titulo} href={r.path}
-                className='pt-1 bg-transparent fw-bold'
+                className='pt-1 p-0 m-0 bg-transparent fw-bold'
                 disabled={r.desativado}
             >
                 <IonIcon icon={r.icone} />
@@ -272,30 +275,35 @@ const App = () => {
     }
 
     return (
-        <IonApp>
+        <IonApp className=''>
+            <Fundo />
             <IonReactRouter basename={process.env.PUBLIC_URL}>
-                <div className='banner h-100'>
+                <div className='h-100'>
                     <IonGrid>
                         <IonRow>
-                            <IonCol>
-                            </IonCol>
-                                <IonTabs >
-                                    {mapaDeRotas()}
-                                    <IonTabBar slot="top"
-                                        className='bg-transparent border-gold'
-                                        style={{ justifyContent: 'flex-start'}}
+                            <IonTabs >
+                                {mapaDeRotas()}
+                                <IonTabBar slot="top"
+                                    className='bg-transparent border-bottom-0'
+                                    style={{ justifyContent: 'flex-start'}}
+                                >
+                                    <IonTabButton 
+                                        tab='Titulo' 
+                                        href={URL_LOGIN}
+                                        disabled
+                                        className='bg-transparent fw-bold' 
+                                        style={{minWidth: '92px', maxWidth: '92px'}}
                                     >
-                                        <IonTabButton tab='Titulo' href={URL_LOGIN} disabled className='bg-transparent fw-bold m-1' >
-                                            <IonHeader id='ppw-titulo' className='text-center text-white border border-3 border-white rounded rounded-3 pt-1 pb-0'>
-                                                <h3 className="m-0 lh-1" >
-                                                    DET-MAKER
-                                                </h3>
-                                                <small className='small m-0 lh-1'>Peopleware</small>
-                                            </IonHeader>
-                                        </IonTabButton>
-                                        {mapaDeMenus()}
-                                    </IonTabBar>
-                                </IonTabs>
+                                        <img src={miniLogo} className='fixed-top ms-2' style={{ top: '2px', width: '88px', height: 'auto' }} />
+                                        <IonHeader id='ppw-titulo' className='fixed-top text-start text-white pt-1 pb-0'>
+                                            <small className='small m-0 lh-1 fixed-top' style={{ top: '44px', left: '18px' }}>
+                                                Ⓡ Peopleware
+                                            </small>
+                                        </IonHeader>
+                                    </IonTabButton>
+                                    {mapaDeMenus()}
+                                </IonTabBar>
+                            </IonTabs>
                         </IonRow>
                     </IonGrid>
                     <DynamicButtons avatar={ <Avatar user={user}/> } />
@@ -306,3 +314,40 @@ const App = () => {
 };
 
 export default App;
+
+/*
+<IonApp className='bg-transparent'>
+            <IonReactRouter basename={process.env.PUBLIC_URL}>
+                <div className='h-100'>
+                    <IonGrid>
+                        <IonRow>
+                            <IonTabs >
+                                {mapaDeRotas()}
+                                <IonTabBar slot="top"
+                                    className='bg-transparent'
+                                    style={{ justifyContent: 'flex-start'}}
+                                >
+                                    <IonTabButton 
+                                        tab='Titulo' 
+                                        href={URL_LOGIN} 
+                                        disabled 
+                                        className='bg-transparent fw-bold' 
+                                        style={{minWidth: '12%', maxWidth: '12%'}}
+                                    >
+                                        <img src={minilogo} className='fixed-top ms-2' style={{ top: '2px', width: '150px', height: 'auto' }} />
+                                        <IonHeader id='ppw-titulo' className='fixed-top text-start text-dark pt-1 pb-0'>
+                                            <small className='small m-0 lh-1 fixed-top' style={{ top: '44px', left: '52px' }}>
+                                                Peopleware
+                                            </small>
+                                        </IonHeader>
+                                    </IonTabButton>
+                                    {mapaDeMenus()}
+                                </IonTabBar>
+                            </IonTabs>
+                        </IonRow>
+                    </IonGrid>
+                    <DynamicButtons avatar={ <Avatar user={user}/> } />
+                </div>
+            </IonReactRouter>
+        </IonApp>
+*/

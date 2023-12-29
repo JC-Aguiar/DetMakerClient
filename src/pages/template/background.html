@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0051c2, #87cefa, #dbe9f1, #1e90ff, #0f71d3);
+            background-size: 300% 500%;
+            animation: gradient 20s ease-in infinite;
+        }
+    
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+    
+            30% {
+                background-position: 100% 50%;
+            }
+    
+            50% {
+                background-position: 50% 0%;
+            }
+    
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        p, h1, h2, h3, h4, h5, h6 {
+            color: #ffffff;
+        } 
+        
+        
+        .glass {
+            padding: 0;
+            margin: 0;
+            background: #00000030;
+            box-shadow: 0 8px 16px 0 #00000030;
+            backdrop-filter: blur( 0px );
+            -webkit-backdrop-filter: blur( 0px );
+            border-radius: 10px;
+            border: 2px solid #ffffff60;
+        }
+
+        .glass-content {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(135deg,
+                #ffffff00, #ffffff00, #ffffff00, #ffffff15, #ffffff00, #ffffff30,
+                #ffffff00, #ffffff40, #ffffff00, #ffffff00, #ffffff00, #ffffff00);
+            /*#ffffff00, #ffffff30, #ffffff00, #ffffff10, #ffffff40, #ffffff10*/
+            background-size: 500% 200%;
+            animation: glass-light 8s ease-in infinite;
+            border-radius: 10px;
+        }
+
+        @keyframes glass-light {
+            0% {
+                background-position: 0% 0%;
+            }    
+            80% {
+                background-position: 100% 100%;
+            }    
+            100% {
+                background-position: 100% 100%;
+            }
+        }
+
+    </style>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container pt-5">
+        <div class="glass" style="min-height: 256px;">
+            <div class="glass-content m-0 p-0 px-5">
+                <h1 class="text-center">
+                    Teste
+                </h1>
+                <p class="m-0 p-0 pb-2">
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."<br/>
+                    "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
+                </p>
+            </div>
+        </div>
+    </div>
+    <div id="bg-wrap" class="svg-container">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+            <defs>
+                <radialGradient id="Gradient1" cx="50%" cy="50%" fx="0.441602%" fy="50%" r=".5">
+                    <animate attributeName="fx" dur="34s" values="0%;3%;0%" repeatCount="indefinite"></animate>
+                    <stop offset="0%" stop-color="rgba(0, 41, 93, 1)"></stop>
+                    <stop offset="100%" stop-color="rgba(93, 0, 56, 0)"></stop>
+                </radialGradient>
+                <radialGradient id="Gradient2" cx="50%" cy="50%" fx="2.68147%" fy="50%" r=".5">
+                    <animate attributeName="fx" dur="23.5s" values="0%;3%;0%" repeatCount="indefinite"></animate>
+                    <stop offset="0%" stop-color="rgba(210, 228, 241, 1)"></stop>
+                    <stop offset="100%" stop-color="rgba(126, 47, 176, 0)"></stop>
+                </radialGradient>
+                <radialGradient id="Gradient3" cx="50%" cy="50%" fx="0.836536%" fy="50%" r=".5">
+                    <animate attributeName="fx" dur="21.5s" values="0%;3%;0%" repeatCount="indefinite"></animate>
+                    <stop offset="0%" stop-color="rgba(82, 220, 119, 1)"></stop>
+                    <stop offset="100%" stop-color="rgba(15, 133, 177, 0)"></stop>
+                </radialGradient>
+                <radialGradient id="Gradient4" cx="50%" cy="50%" fx="4.56417%" fy="50%" r=".5">
+                    <animate attributeName="fx" dur="23s" values="0%;5%;0%" repeatCount="indefinite"></animate>
+                    <stop offset="0%" stop-color="rgba(245, 245, 106, 1)"></stop>
+                    <stop offset="100%" stop-color="rgba(210, 228, 241, 0)"></stop>
+                </radialGradient>
+                <radialGradient id="Gradient5" cx="50%" cy="50%" fx="2.65405%" fy="50%" r=".5">
+                    <animate attributeName="fx" dur="24.5s" values="0%;5%;0%" repeatCount="indefinite"></animate>
+                    <stop offset="0%" stop-color="rgba(49, 96, 104, 1)"></stop>
+                    <stop offset="100%" stop-color="rgba(49, 96, 104, 0)"></stop>
+                </radialGradient>
+                <!--
+                <radialGradient id="Gradient6" cx="50%" cy="50%" fx="0.981338%" fy="50%" r=".5">
+                    <animate attributeName="fx" dur="25.5s" values="0%;5%;0%" repeatCount="indefinite"></animate>
+                    <stop offset="0%" stop-color="rgba(48, 178, 138, 1)"></stop>
+                    <stop offset="100%" stop-color="rgba(48, 178, 138, 0)"></stop>
+                </radialGradient>
+                -->
+            </defs>
+            <!--<rect x="0" y="0" width="100%" height="100%" fill="url(#Gradient4)"><animate attributeName="x" dur="20s" values="25%;0%;25%" repeatCount="indefinite" /><animate attributeName="y" dur="21s" values="0%;25%;0%" repeatCount="indefinite" /><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="17s" repeatCount="indefinite"/></rect><rect x="0" y="0" width="100%" height="100%" fill="url(#Gradient5)"><animate attributeName="x" dur="23s" values="0%;-25%;0%" repeatCount="indefinite" /><animate attributeName="y" dur="24s" values="25%;-25%;25%" repeatCount="indefinite" /><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="18s" repeatCount="indefinite"/></rect><rect x="0" y="0" width="100%" height="100%" fill="url(#Gradient6)"><animate attributeName="x" dur="25s" values="-25%;0%;-25%" repeatCount="indefinite" /><animate attributeName="y" dur="26s" values="0%;-25%;0%" repeatCount="indefinite" /><animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="19s" repeatCount="indefinite"/></rect>-->
+            <rect x="13.744%" y="-5.18473%" width="100%" height="100%" fill="url(#Gradient1)" transform="rotate(334.41 50 50)">
+                <animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="16s" repeatCount="indefinite"></animateTransform>
+            </rect>
+            <rect x="-2.17916%" y="35.4267%" width="80%" height="80%" fill="url(#Gradient2)" transform="rotate(255.072 50 50)">
+                <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="32s" repeatCount="indefinite"></animateTransform>
+            </rect>
+            <rect x="9.00483%" y="14.5733%" width="60%" height="60%" fill="url(#Gradient3)" transform="rotate(139.903 50 50)">
+                <animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="22s" repeatCount="indefinite"></animateTransform>
+            </rect>
+            <rect x="16%" y="9.473%" width="140%" height="140%" fill="url(#Gradient4)" transform="rotate(128 50 50)">
+                <animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="12s" repeatCount="indefinite"></animateTransform>
+            </rect>
+            <rect x="4.17916%" y="22.4267%" width="60%" height="60%" fill="url(#Gradient5)" transform="rotate(255.072 50 50)">
+                <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="20s" repeatCount="indefinite"></animateTransform>
+            </rect>
+        </svg>
+    </div>
+</body>
+</html>

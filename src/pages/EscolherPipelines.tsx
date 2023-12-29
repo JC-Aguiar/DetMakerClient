@@ -1,7 +1,7 @@
 import { InputChangeEventDetail, IonAccordion, IonAccordionGroup, IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCol, IonContent, IonFabButton, IonGrid, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonMenu, IonPopover, IonProgressBar, IonRadio, IonRadioGroup, IonRow, IonSplitPane, IonText, IonTextarea, IonTitle, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewWillEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useState } from 'react';
-import { addCircle, arrowDownCircle, caretDownCircle, caretDownOutline, cloudUpload, folderOpen, layers, listOutline, refresh, save, server } from 'ionicons/icons';
+import { addCircle, arrowDownCircle, caretDownCircle, caretDownOutline, closeCircle, cloudUpload, cube, folderOpen, informationCircleOutline, layers, listOutline, refresh, save, server, toggle } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from '../Store/ReduxStore';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,6 +20,7 @@ import { setMainPipeline, setMainJobs } from '../Store/Reducer/ReducerAtividade'
 import { ComandoSQL } from '../data/ComandoSQL';
 import ListarJobs from '../components/ListarJobs';
 import Schedule from './Schedule';
+import iconPipeline from '../resources/pipeline.svg';
 
 
 const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
@@ -148,11 +149,26 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
     }
 
     const conteudoPainelPrincipal = () => {
-        if (jobsSelecionados.length < 1) {
-            //console.log(`Exibindo Pipeline: ${mainPipeline}.`);
-            return <ConfigurarJobs toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />;
-        }
-        return exibirJobsSelecionados();
+        if (jobsSelecionados.length > 0) return exibirJobsSelecionados();
+        if (mainPipeline !== "") return <ConfigurarJobs toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />;
+        const destaque = (texto: string) => 
+            <span className='m-0 px-1 border rounded rounded-3 h6 fw-bold'>{texto}</span>;
+        
+        return <div className='fixed-top mt-5'>
+            <IonRow className='ion-justify-content-center ion-align-items-center' >
+                <IonCol className='text-info text-center h5 opacity-50 lh-base fw-normal'>
+                    <IonIcon icon={informationCircleOutline} color='secondary' size='large' className='mb-3 opacity-75' style={{transform: 'scale(2.5)' }} />
+                    <div>Use o painel lateral para vizualizar {destaque('Jobs')} e {destaque('Pipelines')}.</div>
+                    <div>Selecone um {destaque('Job')} sem nenhuma {destaque('Pipeline')} marcada para analisá-lo.</div>
+                    <div>Selecione uma {destaque('Pipeline')} para configurar suas etapas, podendo inserir <br/>
+                        os {destaque('Jobs')} ao selecioná-los.</div>
+                </IonCol>
+            </IonRow>
+        </div>;
+    }
+
+    const cancelarMainPipeline = () => {
+        if (mainPipeline !== "") dispatch(setMainPipeline({ nome: "", jobs: [] }));
     }
 
     const listarPipelines = (
@@ -161,20 +177,31 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
             onIonChange={(e) => selecionarMainPipeline(e)}
         >
             <IonList className='m-0 p-0'>
+                <IonItem lines='none'
+                    className={`p-0 m-0 ion-align-items-top text-primary small`}
+                    style={{ '--min-height': '32px' }}
+                >
+                    <IonLabel className='btn bg-transparent border-0 p-0 m-0 text-start' onClick={cancelarMainPipeline}>
+                        <IonBadge color="#" className="me-1 bg-transparent">
+                            <IonIcon icon={closeCircle} color="primary" className='pe-1' style={{ transform: 'scale(1.4)' }} />
+                            <span className='text-white'>Desselecionar Pipeline</span>
+                        </IonBadge>
+                    </IonLabel>
+                </IonItem>
                 {
                     catalagoPipelines.map((item, index) => {
-                        const color = index % 2 === 0 ? 'bg-white' : 'bg-light';
+                        const color = index % 2 === 0 ? 'medium' : 'none';
                         const jobTag = item.jobs.length > 1 ? 'Jobs' : 'Job';
                         return (
                             <IonItem key={index} lines='none'
-                                className={`p-0 m-0 ${color} ion-align-items-top text-primary small`}
+                                color={color}
+                                className='p-0 m-0 ion-align-items-top text-white small'
                                 style={{ '--min-height': '32px' }}
-
                             >
                                 <IonLabel className='p-0 m-0'>
-                                    <span className='text-primary'>{item.nome}</span>
+                                    <span className='text-white font-monospace'>{item.nome}</span>
                                     <IonBadge color='secondary'
-                                        className='ms-1 small fw-normal text-dark'
+                                        className='ms-1 small fw-normal opacity-25'
                                     >
                                         {item.jobs.length}
                                     </IonBadge>
@@ -195,52 +222,58 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
 
     //Conteúdo da modal 'Carregar Pipeline'
     const painelDeControle = (
-        <IonLabel className='p-0 m-0 h-100' >
-            <IonSplitPane when="xs" contentId="main">
-                <IonMenu contentId="main" className='border-end border-2 ' >
-                    <IonAccordionGroup multiple={true}>
+        <IonLabel className='pt-0 m-0 h-100' >
+            <IonSplitPane when="xs" contentId="main" className='pt-5 mt-1 px-5'>
+                <IonMenu contentId="main" className='glass' color='#' style={{height: '96%'}}>
+                    <IonContent className='glass-content p-0 m-0'>
 
-                        <IonAccordion value="jobs" className='lista-navegacao'>
-                            <IonItem slot="header" color="primary" className='rounded rounded-0'>
-                                <IonFabButton className="p-2 m-0" size='small' color='dark'>
-                                    <IonIcon icon={caretDownOutline} size='small' color="primary" className="ion-accordion-toggle-icon" />
-                                </IonFabButton>
-                                <IonLabel className='d-flex py-0 my-0 ion-align-items-center ion-justify-content-between p-0 m-0'>
-                                    <span className='ms-1'>Jobs</span>
-                                </IonLabel>
-                            </IonItem>
-                            <div className="p-0 m-0" slot="content">
-                                <div className='p-0 m-0'>
-                                    <IonContent fullscreen={false} scrollEvents={true} style={{ height: '270px' }}>
-                                        <ListarJobs />
-                                    </IonContent>
-                                </div>
-                            </div>
-                        </IonAccordion>
+                            <IonAccordionGroup multiple={true}>
+                                <IonAccordion value="jobs" className='lista-navegacao glass mb-1'>
+                                    <IonItem slot="header" color="#" className='rounded rounded-0'>
+                                        <IonFabButton className="p-2 m-0" size='small' color='#'>
+                                            <IonIcon icon={caretDownOutline} size='small' color="light" className="ion-accordion-toggle-icon" />
+                                        </IonFabButton>
+                                        <IonLabel className='d-flex py-0 my-0 ion-align-items-center ion-justify-content-between p-0 m-0'>
+                                            <span className='ms-1 text-white'>
+                                                Jobs
+                                                <IonIcon icon={cube} color='light' className='ms-1' style={{transform: 'translate(0, 3px)'}}/>
+                                            </span>
+                                        </IonLabel>
+                                    </IonItem>
+                                    <div className="p-0 m-0" slot="content">
+                                        <div className='p-0 m-0'>
+                                            <ListarJobs />
+                                        </div>
+                                    </div>
+                                </IonAccordion>
 
-                        <IonAccordion value="pipelines" className='lista-navegacao'>
-                            <IonItem slot="header" color="primary" className='rounded rounded-0'>
-                                <IonFabButton className="p-2 m-0" size='small' color='dark'>
-                                    <IonIcon icon={caretDownOutline} size='small' color="primary" className="ion-accordion-toggle-icon" />
-                                </IonFabButton>
-                                <IonLabel className='d-flex ion-align-items-center ion-justify-content-between py-0 my-0'>
-                                    <span className='ms-1'>Pipelines</span>
-                                </IonLabel>
-                            </IonItem>
-                            <div className="p-0 m-0" slot="content">
-                                <div className='p-0 m-0'>
-                                    <IonContent fullscreen={false} scrollEvents={true} style={{ height: '225px' }}>
-                                        {listarPipelines}
-                                    </IonContent>
-                                </div>
-                            </div>
-                        </IonAccordion>
+                                <IonAccordion value="pipelines" className='lista-navegacao glass'>
+                                    <IonItem slot="header" color="#" className='rounded rounded-0'>
+                                        <IonFabButton className="p-2 m-0" size='small' color='#'>
+                                            <IonIcon icon={caretDownOutline} size='small' color="light" className="ion-accordion-toggle-icon" />
+                                        </IonFabButton>
+                                        <IonLabel className='d-flex ion-align-items-center ion-justify-content-between py-0 my-0'>
+                                            <span className='ms-1 text-white'>
+                                                Pipelines
+                                                <IonIcon icon={iconPipeline} className='ms-1' style={{fill: 'white', transform: 'translate(0, 3px)'}}/>
+                                            </span>
+                                        </IonLabel>
+                                    </IonItem>
+                                    <div className="p-0 m-0" slot="content">
+                                        <div className='p-0 m-0'>
+                                            {listarPipelines}
+                                        </div>
+                                    </div>
+                                </IonAccordion>
 
-                    </IonAccordionGroup>
+                            </IonAccordionGroup>
+                    </IonContent>
                 </IonMenu>
                 <div className="ion-page" id="main">
                     <IonContent fullscreen={true} scrollEvents={true}>
-                        <div className='container px-5'> {conteudoPainelPrincipal()} </div>
+                        <div className='container pe-5'> 
+                            {conteudoPainelPrincipal()}
+                        </div>
                     </IonContent>
                     <div className='py-5' />
                 </div>
@@ -328,6 +361,7 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
             titulo: "Schedule Completa",
             elemento: <Schedule />,
             onDismiss: () => modalScheduleOff(),
+            padding: false,
         }
     );
 
@@ -409,7 +443,7 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
             const atividadeJobs = catalogoJobs.find((jobDto) => jobDto.nome === pipelineJob);
             if (!atividadeJobs) {
                 console.log(`[ESCOLHER-PIPELINES]: Nenhum dos Jobs informados na Pipeline selecionada '
-                    + '(${userPipeline.nome}') foram identificados no catálogo de Jobs.`);
+                    + ('${userPipeline.nome}') foram identificados no catálogo de Jobs.`);
                 return;
             }
             const configJob: JobConfig = parseJobInfo(atividadeJobs, index);

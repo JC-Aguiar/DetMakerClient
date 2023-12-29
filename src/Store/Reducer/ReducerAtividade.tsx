@@ -33,7 +33,7 @@ const configAtividade = createSlice({
         setMainPipeline: (state, action: PayloadAction<{ nome: string, jobs: JobConfig[] }>) => {
             console.log('[ReducerAtividade]: Acionado controlador configAtividade.setMainPipeline!');
             console.log(`[ReducerAtividade]: Definindo Pipeline: '${action.payload.nome}'.`);
-            console.log(`[ReducerAtividade]: Jobs inclusos: '${action.payload.jobs.join(", ")}'.`);
+            console.log(`[ReducerAtividade]: Jobs inclusos: '${action.payload.jobs.map((item) => item.nome).join(", ")}'.`);
             state.mainPipeline = action.payload.nome;
             state.mainJobs = action.payload.jobs.sort((item1, item2) => item1.ordem - item2.ordem);
         },

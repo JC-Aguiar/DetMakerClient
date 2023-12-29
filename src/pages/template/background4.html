@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            /*
+            background: radial-gradient(circle, #2a126d, #4c3494, #a48fdf, #1e90ff, #54418e);
+            */
+            background: radial-gradient(circle, #1e0d4c, #352466, #8574b5, #186fc7, #3a2d62);
+            background-size: 500% 500%;
+            animation: gradient 120s ease infinite;
+            padding: 0;
+            margin: 0;
+        }
+            
+        @keyframes gradient {
+            0% {
+                background-position: 0% 0%;
+            }
+            25% {
+                background-position: 100% 0%;
+            }
+            50% {
+                background-position: 100% 100%;
+            }
+            75% {
+                background-position: 0% 100%;
+            }
+            100% {
+                background-position: 0% 0%;
+            }
+        }
+
+        p, h1, h2, h3, h4, h5, h6 {
+            color: #ffffff;
+        } 
+        
+        .glass {
+            padding: 0;
+            margin: 0;
+            background: radial-gradient(ellipse, #ffffff00, #ffffff00, #22228080); /*#00006050;*/
+            box-shadow: 4px 4px 16px #00006090, -4px -4px 8px #ffffff50;
+            backdrop-filter: blur( 0px );
+            -webkit-backdrop-filter: blur( 0px );
+            border-radius: 10px;    
+            border: 0.25px solid #ffffff60;
+        }
+
+        .glass-content {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(135deg,
+                #9999ff00, #9999ff00, #9999ff00, #9999ff15, #9999ff00, #9999ff30,
+                #9999ff00, #9999ff40, #9999ff00, #9999ff00, #9999ff00, #9999ff00);
+            /*#ffffff00, #ffffff30, #ffffff00, #ffffff10, #ffffff40, #ffffff10*/
+            background-size: 500% 200%;
+            animation: glass-light 8s ease-in infinite;
+            border-radius: 10px;
+        }
+
+        @keyframes glass-light {
+            0% {
+                background-position: 0% 0%;
+            }    
+            80% {
+                background-position: 100% 100%;
+            }    
+            100% {
+                background-position: 100% 100%;
+            }
+        }
+
+        #inner-orbit {
+            position: fixed;
+            top: calc(50% - 8vw);
+            left: calc(50% - 8vw);
+            width: 16vw;
+            height: 16vw;
+            border: 0px #4A437F dashed;
+            border-radius: 100%;
+            -webkit-animation: spin-right z0s linear infinite;
+            animation: spin-right 40s linear infinite;
+        }
+
+        .orbit-cirlce1 {
+            position: fixed;
+            transform: translate(-67vw, -69vw);
+        }
+
+        .orbit-cirlce2 {
+            position: fixed;
+            transform: translate(-6vw, -69vw);
+        }
+
+        .orbit-cirlce3 {
+            position: fixed;
+            transform: translate(-34vw, 8vw);
+        }
+
+        @-webkit-keyframes spin-right {
+            100% {
+                -webkit-transform: rotate(360deg);
+                -moz-transform: rotate(360deg);
+                -ms-transform: rotate(360deg);
+                -o-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+
+        .blurry-sphere {
+            position: fixed;
+            opacity: 100%;
+            width: 89vw;;
+            height: 89vw;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            border: 0px #4A437F dashed;
+            border-radius: 100%;
+            user-select: none;
+        }
+        
+        .bg-sky {
+            /*  bbackground: linear-gradient(90deg, #42378f, #f53844); */
+            filter: hue-rotate(80deg) brightness(0.4) contrast(2.5);
+
+        }
+        
+        .bg-night {
+            filter: hue-rotate(60deg) brightness(0.25) contrast(1.2);
+        }
+
+        .bg-twilight {
+            /*filter: hue-rotate(340deg) contrast(2.8) saturate(0.55) brightness(0.3);*/
+            
+            filter: hue-rotate(20deg) saturate(1.15) brightness(2.1) contrast(1.2) invert(0.9) opacity(0.85);
+            mix-blend-mode: color-dodge; /*color-burn overlay*/
+        }
+
+        .rotate {
+            animation: rotateAnimation 18s linear infinite;
+        }
+
+        @keyframes rotateAnimation {
+            0% {
+                transform: rotate(0deg) ;
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes orbitAnimation {
+            0% {
+                transform: translateX(0) rotate(0deg);
+            }
+            100% {
+                transform: translateX(200px) rotate(360deg);
+            }
+        }
+
+    </style>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+</head>
+<body>
+
+    <div id="circle-orbit-container" class="opacity-100">
+        <div id="inner-orbit">
+            <div class="orbit-cirlce1">
+                <img src="../../resources/blurry-sphere7.png" class="blurry-sphere bg-night rotate" >
+            </div>
+            <div class="orbit-cirlce2">
+                <img src="../../resources/blurry-sphere7.png" class="blurry-sphere bg-twilight rotate" >
+            </div>
+            <div class="orbit-cirlce3">
+                <img src="../../resources/blurry-sphere7.png" class="blurry-sphere bg-sky rotate" >
+            </div>
+        </div>
+    </div>
+    
+    <!--
+    <img src="./blurry-sphere7.png" class="xy-3 blurry-sphere bg-sky rotate" >
+    <img src="./blurry-sphere7.png" class="xy-4 blurry-sphere bg-sky rotate" >
+    -->
+    <div class="py-3">
+        <img src='../../resources/minilogo-v2.png' class='fixed-top ms-2 opacity-50' style='top: 2px; width: 150px; height: auto;' />
+    </div>
+    <div class="container pt-5">
+        <div class="glass" style="min-height: 256px;">
+            <div class="glass-content m-0 p-0 px-5">
+                <h1 class="text-center">
+                    Teste
+                </h1>
+                <p class="m-0 p-0 pb-2">
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."<br/>
+                    "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

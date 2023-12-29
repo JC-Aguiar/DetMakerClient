@@ -68,41 +68,39 @@ const EscolherClientes: React.FC = () => {
     }
 
     const cardsDeClientes = () => clientes.map((cliente, indexCliente) =>
-        <IonCard key={indexCliente} className='card shadow'>
-            <IonCardHeader className='p-0 m-0'>
-                <IonCardTitle color='#' className='bg-primary text-white m-0 p-0 text-center w-100'>
-                    <span className='fs-6 align-middle p-1 border border-2 rounded rounded-circle' hidden>
-                        <small className='text-secondary'>Nº{indexCliente+1}</small>
-                    </span>
-                    <span className='h4 px-1 align-middle'>{cliente.nome}</span>
-                </IonCardTitle>
-                <img alt="Logo do cliente" src={`data:image/png;base64,${cliente.imagem}`} className='card m-3'/>
-            </IonCardHeader>
-            <IonCardContent className='w-100 d-flex'>
-                <IonRadioGroup value={mainAmbiente}
-                    className='border-0 h-100 w-100'
-                    onIonChange={(e) => setClienteAmbiente(cliente.nome, e.detail.value)}
-                >
-                    <IonList className='m-0 p-0'>
+        <IonCard key={indexCliente} className='glass'>
+            <div className='glass-content'>
+                <IonCardHeader className='p-0 m-0'>
+                    <IonCardTitle color='#' className='text-white m-0 p-0 text-center w-100'>
+                        <span className='h4 pt-1 px-1 align-middle'>{cliente.nome}</span>
+                    </IonCardTitle>
+                    <img alt="Logo do cliente" src={`data:image/png;base64,${cliente.imagem}`} className='card m-3'/>
+                </IonCardHeader>
+                <IonCardContent className='w-100 d-flex'>
+                    <IonRadioGroup value={mainAmbiente}
+                        className='border-0 h-100 w-100'
+                        onIonChange={(e) => setClienteAmbiente(cliente.nome, e.detail.value)}
+                    >
+                        <IonList className='m-0 p-0'>
                         {
                             cliente.ambientes.map((ambiente, indexAmbiente) => {
-                                const color = indexAmbiente % 2 === 0 ? 'bg-white' : 'bg-light';
+                                const color = indexAmbiente % 2 === 0 ? 'medium' : 'none';
                                 return (
                                     <IonItem key={indexAmbiente} lines='none'
-                                        color='#'
-                                        className={`p-0 m-0 ${color} align-items-center text-primary small p-0`}
+                                        color={color}
+                                        className='p-0 m-0 align-items-center text-white small p-0 rounded rounded-3'
                                         style={{ '--min-height': '32px' }}
                                     >
                                         <IonLabel className='px-1 p1-2 m-0 rounded rounded-3'>
-                                            <p className='lh-1 p-0 m-0 mt-1 fw-bold text-primary p-0 mx-1'>
+                                            <p className='lh-1 p-0 m-0 mt-1 fw-bold text-white p-0 mx-1'>
                                                 Ambiente {ambiente.nome}
                                             </p>
                                             <p className='lh-1 p-0 m-0'>
-                                                <div className='badge text-primary p-0 mx-1'>
+                                                <div className='badge text-white p-0 mx-1'>
                                                     STP: <span className='font-monospace'>{ambiente.conexaoSftp}</span>
                                                 </div>
                                             </p>
-                                            <p className='lh-1 p-0 m-0'><div className='badge text-primary p-0 mx-1'>
+                                            <p className='lh-1 p-0 m-0'><div className='badge text-white p-0 mx-1'>
                                                 BANCO: <span className='font-monospace'>{ambiente.conexaoBanco}</span>
                                             </div></p>
                                         </IonLabel>
@@ -110,28 +108,27 @@ const EscolherClientes: React.FC = () => {
                                             slot="start"
                                             value={ambiente.nome}
                                             className='p-0 m-0'
-                                            style={{ height: '24px', width: '25px'}}
+                                            style={{ height: '24px', width: '26px'}}
                                         />
                                     </IonItem>
                                 );
                             })
                         }
-                    </IonList>
-                </IonRadioGroup>
-                <IonButton onClick={(e) => dispatch(setMainAmbiente({ cliente: "", ambiente: "" }))} hidden>
-                    Desfazer Opções
-                </IonButton>
-            </IonCardContent>
+                        </IonList>
+                    </IonRadioGroup>
+                    <IonButton onClick={(e) => dispatch(setMainAmbiente({ cliente: "", ambiente: "" }))} hidden>
+                        Desfazer Opções
+                    </IonButton>
+                </IonCardContent>
+            </div>
         </IonCard>
     );
 
     return (
         <div className='container'>
-            <IonCard>
-                <IonCardTitle className='p-0 py-1 m-0 banner text-white text-center'>
-                    <span className='h6'>Lista de clientes disponíveis</span>
-                </IonCardTitle>
-            </IonCard>
+            <div className='p-0 py-1 m-0 text-white text-center'>
+                <span className='h5'>Lista de clientes disponíveis</span>
+            </div>
             <div className='d-flex justify-content-center'>
                 {cardsDeClientes()}
             </div>

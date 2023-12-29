@@ -6,12 +6,12 @@ import { validarExibirData } from "../App";
 export interface ScheduleJobProps {
     job: JobInfoDTO, 
     indexId: string,
-    ordem: number,
+    cor: string,
 }
 
-const ScheduleJob: React.FC<ScheduleJobProps> = ({ job, indexId, ordem }) => {
+const ScheduleJob: React.FC<ScheduleJobProps> = ({ job, indexId, cor }) => {
     const dispatch = useDispatch();
-    var color = ""; //job.checked ? "bg-warning" : "";
+    //var color = ""; //job.checked ? "bg-warning" : "";
 
     //function handlerCheckJob() {
     //    const checked = job.checked ? false : true;
@@ -22,22 +22,16 @@ const ScheduleJob: React.FC<ScheduleJobProps> = ({ job, indexId, ordem }) => {
     //    }));
     //}
 
-    useIonViewDidEnter(() => {
-        console.debug(`[JOB-SCHEDULE] job: ${job}, indexId: ${indexId}.`);
-    }, []);
-
     return (
-        <tr className={`font-monospace ${color} align-items-center align-middle`} id={indexId}>
-            <td>
-                {/*
-                <IonCheckbox className="check-box" checked={job.checked} onClick={() => handlerCheckJob()}/>
-                */}
-            </td>
+        <tr className={`font-monospace ${cor} align-items-center align-middle small`} id={indexId}>
+            {/*
+            <IonCheckbox className="check-box" checked={job.checked} onClick={() => handlerCheckJob()}/>
+            */}
             <td className='bg-transparent border border-1'> {job.id} </td>
+            <td className='bg-transparent border border-1'> {job.nome} </td>
             <td className='bg-transparent border border-1'> {job.executarAposJob.join(", ")} </td>
             <td className='bg-transparent border border-1'> {job.grupoConcorrencia} </td>
             <td className='bg-transparent border border-1'> {job.fase} </td>
-            <td className='bg-transparent border border-1'> {job.nome} </td>
             <td className='bg-transparent border border-1'> {job.descricao} </td>
             <td className='bg-transparent border border-1'> {job.grupoUda} </td>
             <td className='bg-transparent border border-1'> {job.programa.join(", ")} </td>

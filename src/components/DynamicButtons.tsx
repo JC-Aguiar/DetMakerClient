@@ -19,12 +19,12 @@ export function renderizarBotoes(botoes: DynamicButtonsAddsOn[]) {
             <IonGrid key={index} className="fixed-top p-0 m-0">
                 <IonRow className="ion-justify-content-center ion-align-items-start">
                     <IonCol size='12' className="p-0 m-0">
-                        <IonFabButton className="p-0 ms-1 all-border-gold rounded rounded-circle" color="dark" style={{ transform: 'scale(0.8)' }} onClick={item.trigger} disabled={item.disable()}>
-                            <IonIcon icon={item.icon} color="light" size='large' />
+                        <IonFabButton className="p-0 ms-1 rounded rounded-circle" color="primary" style={{ transform: 'scale(0.8)' }} onClick={item.trigger} disabled={item.disable()}>
+                            <IonIcon icon={item.icon} color="dark" size='large' />
                         </IonFabButton>
                     </IonCol>
                     <IonCol size="12" className="p-0 m-0">
-                        <IonBadge color='' className="position-absolute bg-warning w-100 text-center lh-1 p-0 m-0 " style={{ top: '-15px' }}>
+                        <IonBadge color='primary' className="position-absolute w-100 text-center lh-1 p-0 m-0 " style={{ top: '-15px' }}>
                             <small className="text-dark text-wrap">{item.title}</small>
                         </IonBadge>
                     </IonCol>
@@ -48,12 +48,12 @@ const DynamicButtons: React.FC<DynamicButtonsProps> = ({ avatar }) => {
             <IonGrid key={index} className="p-0 m-0">
                 <IonRow className="ion-justify-content-center ion-align-items-start">
                     <IonCol size='12' className="p-0 m-0">
-                        <IonFabButton className="p-0 ms-1 all-border-gold rounded rounded-circle" color="dark" style={{ transform: 'scale(0.8)' }} onClick={item.trigger} disabled={item.disable()}>
-                            <IonIcon icon={item.icon} color="light" size='large' />
+                        <IonFabButton className="p-0 ms-1 rounded rounded-circle" color="primary" style={{ transform: 'scale(0.8)' }} onClick={item.trigger} disabled={item.disable()}>
+                            <IonIcon icon={item.icon} color="dark" size='large' />
                         </IonFabButton>
                     </IonCol>
                     <IonCol size="12" className="p-0 m-0">
-                        <IonBadge color='' className="position-absolute bg-warning w-100 text-center lh-1 p-0 m-0 " style={{ top: '-15px' }}>
+                        <IonBadge color='primary' className="position-absolute w-100 text-center lh-1 p-0 m-0 " style={{ top: '-15px' }}>
                             <small className="text-dark text-wrap">{item.title}</small>
                         </IonBadge>
                     </IonCol>

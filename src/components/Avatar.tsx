@@ -24,20 +24,19 @@ const Avatar: React.FC<AvatarProps> = ({ user }) => {
         <IonGrid className="p-0 m-0">
             <IonRow className="p-0 m-0 ion-justify-content-center">
                 <IonCol size="12" className="p-0 m-0">
-                    <IonAvatar className="p-0 m-0 all-border-gold" style={{transform: 'scale(0.8)'}}>
+                    <IonAvatar className="p-0 m-0 border border-4 border-primary" style={{transform: 'scale(0.8)'}}>
                         <img src={user.picture} alt="user avatar"  referrerPolicy="no-referrer" />
-                        <IonBadge className="position-absolute bg-transparent" style={{top: '-10%', right: '-33%'}}>
+                        <IonBadge color='#' className="position-absolute bg-transparent" style={{top: '-10%', right: '-33%'}}>
                             <IonIcon icon={close} 
-                                color="#"
-                                className="btn p-1 m-1 border-0 rounded rounded-circle"
-                                style={{backgroundColor: 'var(--ion-color-warning)'}}
+                                color="dark"
+                                className="btn p-1 m-1 bg-primary border-0 rounded rounded-circle"
                                 onClick={logOff}
                             />
                         </IonBadge>
                     </IonAvatar>
                 </IonCol>
                 <IonCol size="12" className="p-0 m-0">
-                    <IonBadge className="position-absolute bg-warning w-100 text-center lh-1 p-0 m-0 " style={{top: '-15px'}}>
+                    <IonBadge color="primary" className="position-absolute w-100 text-center lh-1 p-0 m-0 " style={{top: '-15px'}}>
                         <small className="text-dark text-wrap">{user.name}</small>
                     </IonBadge>
                 </IonCol>

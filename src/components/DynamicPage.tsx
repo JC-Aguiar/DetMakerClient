@@ -2,6 +2,7 @@ import { IonPage, IonContent, IonCard, IonCardContent, IonCardSubtitle, useIonVi
 import { useDispatch } from 'react-redux';
 import { setButtons } from '../Store/Reducer/ReducerButtons';
 import { radioButtonOn } from "ionicons/icons";
+import Fundo from "./Fundo";
 
 export interface DynamicPageProps {
     titulo: string,
@@ -15,7 +16,7 @@ const DynamicPage: React.FC<DynamicPageProps> = ({ titulo, subtitulo, elemento }
     const recuo = <div className='py-1 py-md-2' />;
     const subtituloTag = () => {
         if (subtitulo.length === 0) return <></>;
-        return <span className="mx-1 small">
+        return <span className="mx-1 small fw-normal">
             {subtitulo}
         </span> 
     }
@@ -30,7 +31,7 @@ const DynamicPage: React.FC<DynamicPageProps> = ({ titulo, subtitulo, elemento }
         <IonPage>
             <IonContent fullscreen={true} scrollEvents={true} className="p-0 m-0">
                 <p className="text-start p-0 m-0 pt-2">
-                    <IonBadge color="#" className="bg-transparent text-secondary text-start px-0 p-0 mx-3 border-bottom rounded rounded-0">
+                    <IonBadge color="#" className="bg-transparent text-light text-start px-0 p-0 mx-3 border-bottom rounded rounded-0">
                         <span className="h6 lh-1">
                             {titulo} - 
                         </span>

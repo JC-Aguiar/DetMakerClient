@@ -5,8 +5,8 @@ import capaDet from '../resources/VIVO_DET_PAGE_BACKGROUND_3.png';
 import { useDispatch, useSelector } from 'react-redux';
 import { RelatorioHistoricoDTO } from '../data/RelatorioHistoricoDTO';
 import { RootState } from '../Store/ReduxStore';
-import { setTestcaseExpectativa, setTestcaseResultado, setTestcaseRevisor, setTestcaseLock } from '../Store/Reducer/ReducerRevisao';
-import { EvidenciaInfoDTO } from '../data/EvidenciaInfoDTO';
+import { setTestcaseExpectativa, setTestcaseResultado, setTestcaseLock } from '../Store/Reducer/ReducerRevisao';
+import { EvidenciaInfoDTO, checkEvidenciaPronta } from '../data/EvidenciaInfoDTO';
 import './template/template.css';
 import { alertCircle, checkmarkCircle, closeCircle, document, helpCircle, refresh, save } from 'ionicons/icons';
 import { UserDTO } from '../data/UserDTO';
@@ -56,7 +56,7 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
     const history = useHistory();
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
     const relatorio: RelatorioHistoricoDTO | null = useSelector((state: RootState) => state.store.docRevisao.value);
-
+    const IdsLocked: number[] = useSelector((state: RootState) => state.store.docRevisao.idsLocked);
     
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {
@@ -84,142 +84,253 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
 
     const resultadoStatus: DetStatusTYPE[] = ["Aprovado", "Reprovado", "Parcial"];
 
+    if (!relatorio || !user) return <></>;
+
     //campos da sessão 'identificação' no DET
-    const idProjeto = relatorio?.idProjeto;
-    const nomeProjeto = relatorio?.nomeProjeto;
-    const nomeAtividade = relatorio?.nomeAtividade;
-    const testeTipo = relatorio?.testeTipo;
-    const sistema = relatorio?.sistema;
-    const nome = user?.name;
-    const cargo = user ? "DEV" : "";
+    const idProjeto = relatorio.idProjeto;
+    const nomeProjeto = relatorio.nomeProjeto;
+    const nomeAtividade = relatorio.nomeAtividade;
+    const testeTipo = relatorio.testeTipo;
+    const sistema = relatorio.sistema;
+    const nome = user.name;
+    const cargo = "DEV";
     const empresa = "PPW";
-    const email = user?.email;
+    const email = user.email;
     const phone = "";
 
     //campos da sessão 'detalhamento' no DET
-    const modulos = relatorio?.pipeline;
-    const parametros = relatorio?.parametros;
-    const dados = relatorio?.dados;
-    const config = relatorio?.configuracao;
-    const ambiente = relatorio?.ambiente;
-    const testcases: DetTestcase[] | undefined = relatorio?.evidencias.map((evidencia: EvidenciaInfoDTO) => {
-        const logsConteudo: string[] = [];
-        const logsNome: string[] = [];
-        const cargasConteudo: string[] = [];
-        const cargasNome: string[] = [];
-        const saidasConteudo: string[] = [];
-        const saidasNome: string[] = [];
+    const modulos = relatorio.pipeline;
+    const parametros = relatorio.parametros;
+    const dados = relatorio.dados;
+    const config = relatorio.configuracao;
+    const ambiente = relatorio.ambiente;
 
-        evidencia.logs.forEach((anexo) => {
-            logsConteudo.push(anexo.conteudo);
-            logsNome.push(anexo.nome);
-        });
-        evidencia.cargas.forEach((anexo) => {
-            cargasConteudo.push(anexo.conteudo);
-            cargasNome.push(anexo.nome);
-        });
-        evidencia.saidas.forEach((anexo) => {
-            saidasConteudo.push(anexo.conteudo);
-            saidasNome.push(anexo.nome);
-        });
-        const pronto: boolean = evidencia.resultado !== null
-            && evidencia.revisor !== null
-            && evidencia.resultado.length > 0
-            && evidencia.revisor.length > 0;
-        return ({
-            evidenciaId: evidencia.id,
-            nome: evidencia.job,
-            descricao: evidencia.jobDescricao,
-            requisitos: "(TODO)",
-            comentario: evidencia.comentario,
-            resultado: evidencia.resultado,
-            parametros: evidencia.argumentos,
-            revisor: evidencia.revisor,
-            data: offsetDateTimeParaString(evidencia.dataFim),
-            queries: evidencia.queries,
-            tabelasNome: evidencia.tabelasNome,
-            tabelasPreJob: evidencia.tabelasPreJob,
-            tabelasPosJob: evidencia.tabelasPosJob,
-            logsConteudo: logsConteudo,
-            logsNome: logsNome,
-            cargasConteudo: cargasConteudo,
-            cargasNome: cargasNome,
-            saidasConteudo: saidasConteudo,
-            saidasNome: saidasNome,
-            anexosTotais: [],
-            pronto: pronto,
-            lock: evidencia.lock,
-        } as DetTestcase);
-    });
+    const testcases = () => {
+        if (!relatorio || !user) return <></>;
 
+        return relatorio.evidencias.map((evidencia, evIndex) => {
+            const logsConteudo: string[] = [];
+            const logsNome: string[] = [];
+            const cargasConteudo: string[] = [];
+            const cargasNome: string[] = [];
+            const saidasConteudo: string[] = [];
+            const saidasNome: string[] = [];
 
-    //Montando as tabelas Testcase 
-    testcases?.forEach((teste) => {
-        //Preenchendo anexos de tabelas por query
-        teste.queries.forEach((query, index) => {
-            const nomePreJob = `Tabela ${teste.tabelasNome[index]} antes` + '\n';
-            const nomePosJob = `Tabela ${teste.tabelasNome[index]} depois` + '\n';
-            const bancoInfo = <div>
-                <h5 className='fw-bold mt-3'>{teste.tabelasNome[index]}</h5>
-                <p className='my-0 px-2 py-0 small font-monospace bg-light'>{query + '\n'}</p>
-                <div id='list-group-item'
-                    className='btn btn-outline-primary py-0 px-1 me-2'
-                    onClick={() => abrirAnexo(nomePreJob, teste.tabelasPreJob[index])}
-                >
-                    {nomePreJob}
+            evidencia.logs.forEach((anexo) => {
+                logsConteudo.push(anexo.conteudo);
+                logsNome.push(anexo.nome);
+            });
+            evidencia.cargas.forEach((anexo) => {
+                cargasConteudo.push(anexo.conteudo);
+                cargasNome.push(anexo.nome); 
+            });
+            evidencia.saidas.forEach((anexo) => {
+                saidasConteudo.push(anexo.conteudo);
+                saidasNome.push(anexo.nome);
+            });
+            
+            //console.log(`Testcase ID ${evidencia.id} - Pronto: ${pronto}.`);
+            const evidenciaId = evidencia.id;
+            const nome = evidencia.job;
+            const descricao = evidencia.jobDescricao;
+            const comentario = evidencia.comentario;
+            const resultado = evidencia.resultado;
+            const parametros = evidencia.argumentos;
+            const revisor = evidencia.revisor;
+            const data = offsetDateTimeParaString(evidencia.dataFim);
+            const queries = evidencia.queries;
+            const tabelasNome = evidencia.tabelasNome;
+            const tabelasPreJob = evidencia.tabelasPreJob;
+            const tabelasPosJob = evidencia.tabelasPosJob;
+            const anexosTotais: JSX.Element[] = [];
+            const pronto = checkEvidenciaPronta(evidencia);
+            const lock = IdsLocked.findIndex((item) => item === evidencia.id) !== -1;
+
+            //Preenchendo anexos de tabelas por query
+            queries.forEach((query, index) => {
+                const nomePreJob = `Tabela ${tabelasNome[index]} antes` + '\n';
+                const nomePosJob = `Tabela ${tabelasNome[index]} depois` + '\n';
+                const bancoInfo = <div>
+                    <h5 className='fw-bold mt-3'>{tabelasNome[index]}</h5>
+                    <p className='my-0 px-2 py-0 small font-monospace bg-light'>{query + '\n'}</p>
+                    <div id='list-group-item'
+                        className='btn btn-outline-primary py-0 px-1 me-2'
+                        onClick={() => abrirAnexo(nomePreJob, tabelasPreJob[index])}
+                    >
+                        {nomePreJob}
+                    </div>
+                    <div id='list-group-item'
+                        className='btn btn-outline-primary py-0 px-1 me-2'
+                        onClick={() => abrirAnexo(nomePosJob, tabelasPosJob[index])}
+                    >
+                        {nomePosJob}
+                    </div>
+                </div>;
+                anexosTotais.push(bancoInfo);
+            });
+            //Preenchendo anexos de logs
+            logsNome.forEach((nome, index) => {
+                const sessao = (index === 0) ? (<h5 className='fw-bold mt-3'>LOGS</h5>) : (null);
+                const logInfo = <div>
+                    {sessao}
+                    <div id='list-group-item'
+                        className='btn btn-outline-primary py-0 px-1 me-2 '
+                        onClick={() => abrirAnexo(nome, logsConteudo[index])}
+                    >
+                        {nome + "\n"}
+                    </div>
                 </div>
-                <div id='list-group-item'
-                    className='btn btn-outline-primary py-0 px-1 me-2'
-                    onClick={() => abrirAnexo(nomePosJob, teste.tabelasPosJob[index])}
-                >
-                    {nomePosJob}
+                anexosTotais.push(logInfo);
+            });
+            //Preenchendo anexos de cargas
+            cargasNome.forEach((nome, index) => {
+                const sessao = (index === 0) ? (<h5 className='fw-bold mt-3'>CARGAS</h5>) : (null);
+                const cargaInfo = <div>
+                    {sessao}
+                    <div id='list-group-item'
+                        className='btn btn-outline-primary py-0 px-1 me-2'
+                        onClick={() => abrirAnexo(nome, cargasConteudo[index])}
+                    >
+                        {nome + "\n"}
+                    </div>
                 </div>
-            </div>
-            teste.anexosTotais.push(bancoInfo);
-        });
-        //Preenchendo anexos de logs
-        teste.logsNome.forEach((nome, index) => {
-            const sessao = (index === 0) ? (<h5 className='fw-bold mt-3'>LOGS</h5>) : (null);
-            const logInfo = <div>
-                {sessao}
-                <div id='list-group-item'
-                    className='btn btn-outline-primary py-0 px-1 me-2 '
-                    onClick={() => abrirAnexo(nome, teste.logsConteudo[index])}
-                >
-                    {nome + "\n"}
+                anexosTotais.push(cargaInfo);
+            })
+            //Preenchendo anexos de saídas
+            saidasNome.forEach((nome, index) => {
+                const sessao = (index === 0) ? (<h5 className='fw-bold mt-3'>SAÍDAS</h5>) : (null);
+                const saidaInfo = <div>
+                    {sessao}
+                    <div id='list-group-item'
+                        className='btn btn-outline-primary py-0 px-1 me-2'
+                        onClick={() => abrirAnexo(nome, saidasConteudo[index])}
+                    >
+                        {nome + "\n"}
+                    </div>
                 </div>
-            </div>
-            teste.anexosTotais.push(logInfo);
-        });
-        //Preenchendo anexos de cargas
-        teste.cargasNome.forEach((nome, index) => {
-            const sessao = (index === 0) ? (<h5 className='fw-bold mt-3'>CARGAS</h5>) : (null);
-            const cargaInfo = <div>
-                {sessao}
-                <div id='list-group-item'
-                    className='btn btn-outline-primary py-0 px-1 me-2'
-                    onClick={() => abrirAnexo(nome, teste.cargasConteudo[index])}
-                >
-                    {nome + "\n"}
+                anexosTotais.push(saidaInfo);
+            });
+
+            const setResultado = (e: CustomEvent<RadioGroupChangeEventDetail<any>>) => { 
+                const revisao = {
+                    index: evIndex,
+                    resultado: e.detail.value,
+                    revisor: user.name,
+                }
+                dispatch(setTestcaseResultado(revisao));
+            };
+
+            const setComentario = (e: CustomEvent<TextareaChangeEventDetail>) => { 
+                if (!e.detail.value) return;
+                setTestcaseExpectativa({ index: evIndex, valor: e.detail.value })
+            };
+
+            return (
+                <div className='table-responsive' key={evIndex}>
+                    <IonGrid className='ion-align-items-center pt-3 pb-0'>
+                        <IonRow>
+                            {iconCampoObrigatorio(pronto ? "sim" : "")}
+                            <span id={`${evidenciaId}`} className='h3'>{nome}</span>
+                        </IonRow>
+                    </IonGrid>
+                    <table className='table table-light table-striped m-0 mb-5 text-start'>
+                        <tbody>
+                            <tr>
+                                <th>Evidência ID</th>
+                                <td>EVIDÊNCIA ID {evidenciaId}</td>
+                            </tr>
+                            <tr>
+                                <th>Descrição do Job</th>
+                                <td>{descricao}</td>
+                            </tr>
+                            <tr>
+                                <th>Parâmetros do Job</th>
+                                <td>{parametros}</td>
+                            </tr>
+                            { /*
+                            <tr>
+                                <th>Requisitos</th>
+                                <td>{requisitos}</td>
+                            </tr>
+                            */}
+                            <tr>
+                                <th>Data do Teste</th>
+                                <td>{data}</td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <IonGrid>
+                                        <IonRow className='ion-align-items-center'>
+                                            <IonCol className='p-0 m-0'>Resultado Obtido</IonCol>
+                                            <IonCol className='p-0 m-0' size='auto'>
+                                                {iconCampoObrigatorio(resultado)}
+                                            </IonCol>
+                                        </IonRow>
+                                    </IonGrid>
+                                </th>
+                                <td>
+                                    <IonRadioGroup value={resultado} onIonChange={setResultado} >
+                                        <div className='d-flex justify-items-center'>
+                                        {
+                                            resultadoStatus.map((item, index) => {
+                                                return ( 
+                                                    <IonItem key={index} 
+                                                        lines='none' 
+                                                        disabled={lock}
+                                                        className='bg-info bg-opacity-25 rounded rounded-4 m-1 my-2'
+                                                    >
+                                                        <IonLabel color='primary' className='p-0 m-0'>{item}</IonLabel>
+                                                        <IonRadio color='primary' className='p-0 m-1' slot="start" value={item} />
+                                                    </IonItem>
+                                                );
+                                            })
+                                        }
+                                        </div>
+                                    </IonRadioGroup>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <IonGrid>
+                                        <IonRow className='ion-align-items-center'>
+                                            <IonCol className='p-0 m-0'>Revisor</IonCol>
+                                            <IonCol className='p-0 m-0' size='auto'>{iconCampoObrigatorio(revisor)}</IonCol>
+                                        </IonRow>
+                                    </IonGrid>
+                                </th>
+                                <td className='align-middle'>
+                                    <span className='text-primary h6'>{revisor}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <IonGrid>
+                                        <IonRow className='ion-align-items-center'>
+                                            <IonCol className='p-0 m-0'>Notas do Revisor</IonCol>
+                                            <IonCol className='p-0 m-0' size='auto'>{iconCampoFacultativo(comentario)}</IonCol>
+                                        </IonRow>
+                                    </IonGrid>
+                                </th>
+                                <td>
+                                    <IonTextarea inputmode='text'
+                                        maxlength={280}
+                                        className='text-dark bg-white bg-opacity-50 ps-2 mb-2 rounded rounded-3 border'
+                                        value={comentario}
+                                        disabled={lock}
+                                        onIonChange={setComentario}
+                                    />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Anexos de Evidência</th>
+                                <td>{anexosTotais}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-            teste.anexosTotais.push(cargaInfo);
+            );
         })
-        //Preenchendo anexos de saídas
-        teste.saidasNome.forEach((nome, index) => {
-            const sessao = (index === 0) ? (<h5 className='fw-bold mt-3'>SAÍDAS</h5>) : (null);
-            const saidaInfo = <div>
-                {sessao}
-                <div id='list-group-item'
-                    className='btn btn-outline-primary py-0 px-1 me-2'
-                    onClick={() => abrirAnexo(nome, teste.saidasConteudo[index])}
-                >
-                    {nome + "\n"}
-                </div>
-            </div>
-            teste.anexosTotais.push(saidaInfo);
-        });
-    })
+    };
 
     //Definindo o id do elemento de cada tabela testecase com base no índice dela na lista
     //testcases?.map((tabela, index) => {
@@ -240,131 +351,20 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
         return <IonIcon icon={status} size='large' color='primary' className='opacity-50' />
     }
 
-    const gerarTabelaTeste = (teste: DetTestcase, index: number) => <div className='table-responsive' key={index}>
-        <IonGrid className='ion-align-items-center pt-3 pb-0'>
-            <IonRow>
-                {iconCampoObrigatorio(teste.pronto ? "sim" : "")}
-                <span id={`${teste.evidenciaId}`} className='h3'>{teste.nome}</span>
-            </IonRow>
-        </IonGrid>
-        <table className='table table-light table-striped m-0 mb-5 text-start'>
-            <tbody>
-                <tr>
-                    <th>Evidência ID</th>
-                    <td>EVIDÊNCIA ID {teste.evidenciaId}</td>
-                </tr>
-                <tr>
-                    <th>Descrição do Job</th>
-                    <td>{teste.descricao}</td>
-                </tr>
-                <tr>
-                    <th>Parâmetros do Job</th>
-                    <td>{teste.parametros}</td>
-                </tr>
-                { /*
-                <tr>
-                    <th>Requisitos</th>
-                    <td>{teste.requisitos}</td>
-                </tr>
-                */}
-                <tr>
-                    <th>Data do Teste</th>
-                    <td>{teste.data}</td>
-                </tr>
-                <tr>
-                    <th>
-                        <IonGrid>
-                            <IonRow className='ion-align-items-center'>
-                                <IonCol className='p-0 m-0'>Resultado Obtido</IonCol>
-                                <IonCol className='p-0 m-0' size='auto'>{iconCampoObrigatorio(teste.resultado)}</IonCol>
-                            </IonRow>
-                        </IonGrid>
-                    </th>
-                    <td>
-                        <IonRadioGroup
-                            value={teste.resultado}
-                            onIonChange={(e) => {
-                                dispatch(
-                                    setTestcaseResultado({ index: index, valor: e.detail.value }));
-                                dispatch(
-                                    setTestcaseRevisor({ index: index, valor: user!.name }));
-                            }}
-                        >
-                            <div className='d-flex justify-items-center'>
-                            {
-                                resultadoStatus.map((item, index) => {
-                                    return (
-                                        <IonItem key={index} 
-                                            lines='none' 
-                                            className='bg-info bg-opacity-25 rounded rounded-4 m-1 my-2'
-                                            disabled={teste.lock}
-                                        >
-                                            <IonLabel color='primary' className='p-0 m-0'>{item}</IonLabel>
-                                            <IonRadio color='primary' className='p-0 m-1' slot="start" value={item} />
-                                        </IonItem>
-                                    );
-                                })
-                            }
-                            </div>
-                        </IonRadioGroup>
-                    </td>
-                </tr>
-                <tr>
-                    <th>
-                        <IonGrid>
-                            <IonRow className='ion-align-items-center'>
-                                <IonCol className='p-0 m-0'>Revisor</IonCol>
-                                <IonCol className='p-0 m-0' size='auto'>{iconCampoObrigatorio(teste.revisor)}</IonCol>
-                            </IonRow>
-                        </IonGrid>
-                    </th>
-                    <td className='align-middle'>
-                        <span className='text-primary h6'>{teste.revisor}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <th>
-                        <IonGrid>
-                            <IonRow className='ion-align-items-center'>
-                                <IonCol className='p-0 m-0'>Notas do Revisor</IonCol>
-                                <IonCol className='p-0 m-0' size='auto'>{iconCampoFacultativo(teste.comentario)}</IonCol>
-                            </IonRow>
-                        </IonGrid>
-                    </th>
-                    <td>
-                        <IonTextarea inputmode='text'
-                            maxlength={280}
-                            className='text-dark bg-white bg-opacity-50 ps-2 mb-2 rounded rounded-3 border'
-                            value={teste.comentario}
-                            disabled={teste.lock}
-                            onIonChange={
-                                (e) => dispatch(setTestcaseExpectativa({ index: index, valor: e.detail.value }))
-                            }
-                        />
-                    </td>
-                </tr>
-                <tr>
-                    <th>Anexos de Evidência</th>
-                    <td>{teste.anexosTotais}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    const gerarEstatisticas = () => {
-        if (!testcases) return <></>;
+    const gerarEstatisticas = (): JSX.Element => {
+        if (!relatorio) return <></>;
 
         let aprovados = 0;
         let reprovados = 0;
         let parciais = 0;
-        testcases.forEach((teste, index) => {
+        relatorio.evidencias.forEach((teste, index) => {
             if (teste.resultado === "Reprovado") reprovados++;
             else if (teste.resultado === "Parcial") parciais++;
             else if (teste.resultado === "Aprovado") aprovados++;
         });
-        let aprovadosPorcent = Math.round((aprovados * 100) / testcases.length);
-        let reprovadosPorcent = Math.round((reprovados * 100) / testcases.length);
-        let parciaisPorcent = Math.round((parciais * 100) / testcases.length);
+        let aprovadosPorcent = Math.round((aprovados * 100) / relatorio.evidencias.length);
+        let reprovadosPorcent = Math.round((reprovados * 100) / relatorio.evidencias.length);
+        let parciaisPorcent = Math.round((parciais * 100) / relatorio.evidencias.length);
 
         const elementos: { valor: string, cor: string }[] = [];
         if (aprovados > 0)
@@ -402,42 +402,41 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
         newWindow?.document.close();
     }
 
-    const podeSalvarRevisao = (): boolean => {
-        if (!testcases || !relatorio) return false;
-        const totalPronto = testcases.filter((teste) => teste.pronto).length;
-        const totalLock = relatorio.evidencias.filter((ev) => !ev.lock).length;
-        return totalLock > 0 && totalPronto > testcases?.length;
-    }
-
     const salvarRevisao = async () => {
-        if (!testcases) {
-            toastInfo("Nenhuma tabela de Evidência disponível para salvar", []);
+        if (!relatorio) {
+            toastErro("ERRO: Nenhum relatório para Revisão disponível", []);
             return;
         };
-
+        let itensLocked = 0; //FIX01
+        console.log(`Revisoeres: ${relatorio.evidencias.map((item) => item.revisor).join(", ")}`);
+        if (IdsLocked.length === relatorio.evidencias.length) {
+            toastInfo("Relatório já revisado. Sem necessidade de atualizar o banco.", []);
+            return;
+        }
+        
         const data = new Date();
-        const evidenciasProntas: EvidenciaRevisadaDTO[] = testcases.filter((item) => item.pronto)
-            .filter((item) => !item.lock)
+        const evidenciasParaSalvar: EvidenciaRevisadaDTO[] = relatorio.evidencias
+            //.filter((item) => checkEvidenciaPronta(item))
+            //.filter((item) => IdsLocked.findIndex((idLocked) => idLocked !== item.id) === -1)
             .map((item) => {
                 return {
-                    evidenciaId: item.evidenciaId,
+                    evidenciaId: item.id,
                     resivor: item.revisor,
                     dataRevisao: data,
                     comentario: item.comentario,
                     resultado: item.resultado,
                 } as EvidenciaRevisadaDTO;
             });
-        if (evidenciasProntas.length < 1) {
-            toastInfo("Relatório já revisado. Sem necessidade de atualizar o banco.", []);
+        console.log(`[REVISAR-RELATORIO]: IDs das Evidências revisadas para salvar: ` + evidenciasParaSalvar.map((item) => item.evidenciaId));
+        console.log(`[REVISAR-RELATORIO]: Total de Evidências revisadas para salvar: ` + evidenciasParaSalvar.length);
+        if (evidenciasParaSalvar.length === 0) {
+            toastInfo("Revise ao menos uma Evidência pendente para poder ataulizar o banco.", []);
             return;
         }
-
         console.log(`[REVISAR-RELATORIO]: Iniciando requisição 'Salvar Revisoão'.`);
-        console.log(`[REVISAR-RELATORIO]: IDs das Evidências revisadas para salvar: ` + evidenciasProntas.map((item) => item.evidenciaId));
-        console.log(`[REVISAR-RELATORIO]: Total de Evidências revisadas para salvar: ` + evidenciasProntas.length);
         toastInfo("SALVAR REVISÃO: Em execução...", []);
         try {
-            const evidenciasSalvas: EvidenciasRevisadasDTO = await axiosRequest.saveRevisaoEvidencia(evidenciasProntas);
+            const evidenciasSalvas: EvidenciasRevisadasDTO = await axiosRequest.saveRevisaoEvidencia(evidenciasParaSalvar);
             dispatch(setTestcaseLock(evidenciasSalvas.saved))
             toastOk("SALVAR REVISÃO: Realizada com sucesso.", []);
             console.log(`[REVISAR-RELATORIO]: Requisição 'Salvar Revisoão' funcionou.`);
@@ -446,6 +445,7 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
             toastErro(`SALVAR REVISÃO: ${error}`, []);
             console.error(`[REVISAR-RELATORIO]: Requisição 'Salvar Revisoão' falhou.`);
         }
+        
     };
 
     const gerarDet = async () => {
@@ -454,10 +454,10 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
             toastErro("ERRO: Nenhum Relatório para Revisão selecionado!", []);
             return;
         }
-        if (!podeGerarDet()) {
-            toastErro("É obrigatório preencher todos os campos de revisão antes de gerar o DET", []);
-            return;
-        }
+        //if (!podeGerarDet()) {
+        //    toastErro("É obrigatório preencher todos os campos de revisão antes de gerar o DET", []);
+        //    return;
+        //}
         if (!user) {
             toastErro("ERRO: Usuário não definido!", []);
             return;
@@ -484,15 +484,16 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
     }
 
     function abrirDet(fileBlob: Blob) {
+        //TODO: >>> MOVER PARA UM OUTRO ESCOPO/CLASSE  <<<
         //TODO: >>> OBTER O ARQUIVO E O CAMINHO DO ARQUIVO (PARA IFNORMAR O USUÁRIO) <<<
         const fileUrl = URL.createObjectURL(fileBlob);
         window.open(fileUrl, '_blank');
     }
 
     const podeGerarDet = (): boolean => {
-        const totalPronto = testcases?.filter((teste) => teste.pronto).length;
-        const totalLock = relatorio?.evidencias.filter((ev) => !ev.lock).length;
-        return totalLock === 0 && totalPronto === testcases?.length;
+        if (!relatorio) return false;
+        //const totalPronto = relatorio.evidencias.filter((item) => checkEvidenciaPronta(item)).length;
+        return IdsLocked.length === relatorio.evidencias.length;
     }
 
     //Renderização do componente
@@ -620,7 +621,7 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
                                             <IonGrid>
                                                 <IonRow className='ion-align-items-center'>
                                                     <IonCol className='p-0 m-0'>Considerações</IonCol>
-                                                    {/* <IonCol className='p-0 m-0' size='auto'>{iconCampoFacultativo(teste.expectativa)}</IonCol> */}
+                                                    {/* <IonCol className='p-0 m-0' size='auto'>{iconCampoFacultativo(expectativa)}</IonCol> */}
                                                 </IonRow>
                                             </IonGrid>
                                         </th>
@@ -646,9 +647,7 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
                         {/* Conteúdo */}
                         <div className="table-responsive m-0 text-start">
                             <div className=" table-light table-striped px-3">
-                                {
-                                    testcases?.map((tabela, index) => gerarTabelaTeste(tabela, index))
-                                }
+                                {testcases()}
                             </div>
                         </div>
                     </div>

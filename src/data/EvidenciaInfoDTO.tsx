@@ -22,7 +22,13 @@ export interface EvidenciaInfoDTO {
     requisitos: string, 
     comentario: string, 
     resultado: string, 
+}
 
-    //propriedade usada somente no front
-    lock: boolean,
+export function checkEvidenciaPronta(evidencia: EvidenciaInfoDTO): boolean {
+    return evidencia.resultado !== null
+    && evidencia.revisor !== null
+    && evidencia.resultado.trim().length > 0
+    && evidencia.revisor.trim().length > 0
+    && evidencia.resultado !== 'null'
+    && evidencia.revisor !== 'null';
 }

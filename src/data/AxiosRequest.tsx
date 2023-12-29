@@ -338,16 +338,19 @@ export async function getDet(relatorioId: number, nome: string, email: string): 
     const titulo = "OBTER DET";
     requestStart(titulo);
 
-    //Instanciando Axios
-    let config: AxiosRequestConfig = {
+    let config: AxiosRequestConfig<any> = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/relatorio/det/${relatorioId}?user=${nome}&email=${email}}`,
-        headers: headers,
-        timeout: 60000,
+        url: `${REQUEST_URL}/relatorio/det/${relatorioId}`,
+        headers: { },
+        params: {
+            user: nome,
+            email: email,
+        }
     };
+
     //Executando requisiçãao
-    return await axios.request(config)
+    return await axios.request(config, )
         .then((response) => {
             return new Blob([response.data], { type: 'text/html' });
         })
@@ -482,6 +485,32 @@ export async function saveRevisaoRelatorio(relatorio: RelatorioRevisadoDTO): Pro
         .then((response) => {
             requestSucesso(titulo, "Sucesso");
             return;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para obter todos os Jobs no banco
+export async function getJobConfigQueries(id: number): Promise<ComandoSQL[]> {
+    const titulo = `OBTENDO CONFIG QUERIES DO JOB ID ${id}`;
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/queries/job/${id}`,
+        headers: headers,
+        timeout: 30000,
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            const lista: ComandoSQL[] = response.data;
+            requestSucesso(titulo, lista);
+            return lista;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
