@@ -1,12 +1,10 @@
-import { InputChangeEventDetail, IonButton, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonIcon, IonInput, IonItem, IonLabel, IonPage, IonRadio, IonRadioGroup, IonRow, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, ToastButton, useIonToast, useIonViewDidEnter, useIonViewWillEnter } from '@ionic/react';
+import { IonCol, IonGrid, IonIcon, IonItem, IonLabel, IonRadio, IonRadioGroup, IonRow, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonViewWillEnter } from '@ionic/react';
 import capaDet from '../resources/VIVO_DET_PAGE_BACKGROUND_3.png';
-//import { Page, View, Document, PDFDownloadLink } from '@react-pdf/renderer';
-//import { PDFExport, savePDF } from '@progress/kendo-react-pdf';
 import { useDispatch, useSelector } from 'react-redux';
 import { RelatorioHistoricoDTO } from '../data/RelatorioHistoricoDTO';
 import { RootState } from '../Store/ReduxStore';
 import { setTestcaseExpectativa, setTestcaseResultado, setTestcaseLock } from '../Store/Reducer/ReducerRevisao';
-import { EvidenciaInfoDTO, checkEvidenciaPronta } from '../data/EvidenciaInfoDTO';
+import { checkEvidenciaPronta } from '../data/EvidenciaInfoDTO';
 import './template/template.css';
 import { alertCircle, checkmarkCircle, closeCircle, document, helpCircle, refresh, save } from 'ionicons/icons';
 import { UserDTO } from '../data/UserDTO';
@@ -16,10 +14,8 @@ import { EvidenciasRevisadasDTO } from '../data/AxiosRequest';
 import { Noticacao } from '../components/Noticacao';
 import dayjs from 'dayjs';
 import { offsetDateTimeParaString } from '../App';
-import { setButtons } from '../Store/Reducer/ReducerButtons';
 import { useHistory } from 'react-router';
-import { DynamicButtonsAddsOn } from '../components/DynamicButtons';
-import { useEffect } from 'react';
+import { layoutGrupoBotoes, ButtonLayoutProps } from '../components/ButtonLayout';
 
 
 //Interface das tabelas da sessão 'Evolução dos Testes' no DET
@@ -57,25 +53,25 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
     const relatorio: RelatorioHistoricoDTO | null = useSelector((state: RootState) => state.store.docRevisao.value);
     const IdsLocked: number[] = useSelector((state: RootState) => state.store.docRevisao.idsLocked);
+
+    //Atributos de botões
+    const botaoSalvar = {
+        title: 'Salvar',
+        icon: save,
+        trigger: () => salvarRevisao(),
+        disable: false,
+    } as ButtonLayoutProps;
+
+    const botaoDET = {
+        title: 'DET',
+        icon: document,
+        trigger: () => gerarDet(),
+        disable: !podeGerarDet(), //isLoading(),
+    } as ButtonLayoutProps;
     
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {
-        //Atributos de botões
-        const botaoSalvar = {
-            title: 'Salvar',
-            icon: save,
-            trigger: () => salvarRevisao(),
-            disable: () => false, //isLoading(),
-        } as DynamicButtonsAddsOn;
-
-        const botaoDET = {
-            title: 'DET',
-            icon: document,
-            trigger: () => gerarDet(),
-            disable: () => false, //!podeGerarDet(), //isLoading(),
-        } as DynamicButtonsAddsOn;
-
-        dispatch(setButtons( [botaoSalvar, botaoDET] ));
+        //dispatch(setButtons( [botaoSalvar, botaoDET] ));
         if (relatorio === null) {
             console.log("O RelatorioHistoricoDTO no ReducerRelatorio está nulo. A página Evidência não poderá ser gerada.");
             history.push(axiosRequest.URL_PIPELINES);
@@ -490,7 +486,7 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
         window.open(fileUrl, '_blank');
     }
 
-    const podeGerarDet = (): boolean => {
+    function podeGerarDet(): boolean {
         if (!relatorio) return false;
         //const totalPronto = relatorio.evidencias.filter((item) => checkEvidenciaPronta(item)).length;
         return IdsLocked.length === relatorio.evidencias.length;
@@ -499,8 +495,9 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
     //Renderização do componente
     return (
         <>
+            {layoutGrupoBotoes([ botaoSalvar, botaoDET ])};
             {/* Corpo principal */}
-            <div className="container justify-content-center bg-white px-0 pb-5 my-5">
+            <div className="container card justify-content-center bg-white px-0 pb-5">
                 {/*-----[PARTE 1: CAPA]--------------------------------------------------------------*/}
                 <div className="card border border-0 mb-5 px-3 mx-3" id="capa">
                     <img src={capaDet} id="capa-background" className="card-img opacity-25" alt="Imagem" />

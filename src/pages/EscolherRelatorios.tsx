@@ -1,18 +1,13 @@
-import { IonBadge, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCheckbox, IonCol, IonGrid, IonIcon, IonItem, IonLabel, IonList, IonProgressBar, IonRadio, IonRadioGroup, IonRow, useIonViewWillEnter, } from "@ionic/react";
+import { IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonList, IonProgressBar, IonRow, useIonViewWillEnter, } from "@ionic/react";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from "../Store/ReduxStore";
-import { addViewJobs, removeViewJobs, setJobs, setViewJobs } from "../Store/Reducer/ReducerJobs";
-import { setMainPipeline } from "../Store/Reducer/ReducerAtividade";
 import { Noticacao } from "../components/Noticacao";
 import { RelatorioResumoDTO } from "../data/RelatorioResumoDTO";
-import { PipelineInfoDTO } from "../data/PIpelineInfoDTO";
-import { setButtons } from "../Store/Reducer/ReducerButtons";
 import { loadingRelatorios, setRelatorios } from "../Store/Reducer/ReducerRelatorios";
-import { JobInfoDTO } from "../data/JobInfoDTO";
-import { alertCircleOutline, calendarOutline, chatboxEllipsesOutline, checkmarkCircleOutline, cubeOutline, document, documentText, eye, flag, newspaper, newspaperOutline, pricetagOutline, refresh, thumbsDownOutline, thumbsUpOutline, toggle } from "ionicons/icons";
-import { DynamicButtonsAddsOn } from "../components/DynamicButtons";
+import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, cubeOutline, document, eye, flag, newspaperOutline, pricetagOutline, refresh } from "ionicons/icons";
+import { layoutGrupoBotoes, ButtonLayoutProps } from "../components/ButtonLayout";
 import { offsetDateTimeParaString } from "../App";
 import { RelatorioHistoricoDTO } from "../data/RelatorioHistoricoDTO";
 import { addRevisao, removeRevisao } from "../Store/Reducer/ReducerRevisao";
@@ -32,11 +27,11 @@ const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro
     const isLoading: boolean = useSelector((state: RootState) => state.store.catalogoRelatorios.loading);
     const mainCliente: string = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
     const mainAmbiente: string = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
-    const fonteCodigo = 'font-monospace text-secondary fw-bold ';
+    const fonteCodigo = 'font-monospace text-white ';
 
     const tag = (icone: string | null, conteudo: string | number | null, alerta: boolean = false) => {
         const padding = conteudo === null ? "pe-0" : "me-1 pe-2";
-        const corFundo = alerta ? "warning" : "primary";
+        const corFundo = alerta ? "danger" : "primary";
         const corTexto = alerta ? "light" : "dark";
         const tagIcone = icone === null ? 
             null : <IonIcon icon={icone} color={corTexto} className="pe-1" style={{transform: 'translate(0px, 3px)'}} />
@@ -51,12 +46,12 @@ const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro
         title: 'Atualizar',
         icon: refresh,
         trigger: () => coletarRecursos(),
-        disable: () => false,
-    } as DynamicButtonsAddsOn;
+        disable: isLoading,
+    } as ButtonLayoutProps;
 
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {
-        dispatch(setButtons([botaoAtualizar]));
+        //dispatch(setButtons([botaoAtualizar]));
         if ((catalogoRelatorios.length < 1 || conectionsCount < 1) && !isLoading) coletarRecursos();
     }, []);
 
@@ -146,64 +141,73 @@ const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro
         }
     }
 
-    const listaDosRelatorios = <IonList className='m-0 p-0'>
+    const listaDosRelatorios = <IonList className='m-0 p-1'>
         {
             catalogoRelatorios//.filter((item) => jobsSelecionados.findIndex((id) => id === item.id) !== -1)
                 .map((item, index) => {
                     const tagSucesso = !item.sucesso ? tag(alertCircleOutline, null, true) : <></>;
                     const jaRevisado = item.revisados === item.evidencias;
                     return (
-                        <IonRow key={index} className="container ion-align-items-center">
-                            <div className="parallelogram bg-info"/>
-                            <div className="d-flex w-100 align-content-center ion-align-items-center p-0 m-0 normal-shape">
-                                <span className="pe-1">{tag(newspaperOutline, "ID " + item.id)}</span>
-                                <IonCard className="p-1 w-100 bg-transparent border-0" style={{boxShadow: '0 0 0 '}}>
-                                    <IonCardHeader className='m-0 p-0'>
-                                        <IonCardTitle className='text-white py-0 ion-align-items-center'>
-                                            <IonRow className="m-0 p-0 justify-content-between">
-                                            <IonCol className="m-0 p-0">
+                        <IonRow key={index} className="ion-align-items-center p-2 px-4 ">
+                            <div className="glass d-flex w-100 p-0 m-0">
+                                <div className="d-flex glass-content align-content-end ion-align-items-center">
+                                    <div className="ms-3">
+                                        <IonIcon icon={newspaperOutline} 
+                                            color='primary' 
+                                            size="large"
+                                            className="pe-1" 
+                                            style={{transform: 'translate(0px, 3px)'}} 
+                                        />
+                                        {item.id}
+                                    </div>
+                                    <IonCard className="ms-0 w-100 bg-transparent border-0" style={{boxShadow: '0 0 0 '}}>
+                                        <IonCardHeader className='m-0 p-0'>
+                                            <IonCardTitle className='text-white py-0 ion-align-items-center'>
                                                 {tag(calendarOutline, offsetDateTimeParaString(item.data))}
                                                 {tag(pricetagOutline, item.idProjeto +" - "+ item.nomeProjeto)}
                                                 {tag(cubeOutline, item.evidencias)}
                                                 {tag(checkmarkCircleOutline, item.revisados, !jaRevisado)}
                                                 {tagSucesso}
-                                            </IonCol>
-                                                <IonBadge color="#" className="m-0 p-0 pe-1">
-                                                    <IonButton size="small" 
-                                                        fill="outline"
-                                                        className='m-0 '
-                                                        onClick={() => obterUmaRevisao(item.id)}
-                                                    >
-                                                        <IonIcon icon={eye} color="primary" className="pe-1" style={{transform: 'translate(0px, -1px)'}} />
-                                                        Revisar
-                                                    </IonButton>
-                                                </IonBadge>
-                                                <IonBadge color="#" className="m-0 p-0 pe-1">
-                                                    <IonButton size="small" 
-                                                        fill="outline"
-                                                        className='m-0 '
-                                                        onClick={() => obterDet(item.id)}
-                                                    >
-                                                        <IonIcon icon={document} color="primary" className="pe-1" style={{transform: 'translate(0px, -1px)'}} />
-                                                        Gerar DET
-                                                    </IonButton>
-                                                </IonBadge>
-                                            </IonRow>
-                                        </IonCardTitle>
-                                    </IonCardHeader>
-                                    <IonCardContent className='text-primary p-0 m-0'>
-                                        <div className={fonteCodigo}>
-                                            <div className="">
-                                                <IonIcon icon={flag} color="medium" className="pe-1" style={{transform: 'translate(0px, 3px)'}} />
-                                                {item.nomeAtividade}
+                                            </IonCardTitle>
+                                        </IonCardHeader>
+                                        <IonCardContent className='p-0 m-0'>
+                                            <div className={fonteCodigo}>
+                                                <div className="">
+                                                    <IonIcon icon={flag} color="light" className="pe-1" style={{transform: 'translate(0px, 3px)'}} />
+                                                    {item.nomeAtividade}
+                                                </div>
+                                                <div className="">
+                                                    <IonIcon icon={iconPipeline} className='ms-1' style={{fill: 'var(--ion-color-light)', transform: 'translate(-3px, 3px)'}}/>
+                                                    {item.nomePipeline}
+                                                </div>
                                             </div>
-                                            <div className="">
-                                                <IonIcon icon={iconPipeline} className='ms-1' style={{fill: 'var(--ion-color-medium)', transform: 'translate(-3px, 3px)'}}/>
-                                                {item.nomePipeline}
-                                            </div>
-                                        </div>
-                                    </IonCardContent>
-                                </IonCard>
+                                        </IonCardContent>
+                                    </IonCard>
+                                    <div>
+                                        <IonBadge color="#" className="m-0 p-0 pe-2 w-100">
+                                            <IonButton size="small" 
+                                                expand="block"
+                                                fill="outline"
+                                                className='m-0'
+                                                onClick={() => obterUmaRevisao(item.id)}
+                                            >
+                                                <IonIcon icon={eye} className="pe-1" style={{transform: 'translate(0px, -1px)'}} />
+                                                Revisar
+                                            </IonButton>
+                                        </IonBadge>
+                                        <IonBadge color="#" className="m-0 p-0 pe-2 w-100">
+                                            <IonButton size="small" 
+                                                expand="block"
+                                                fill="outline"
+                                                className='m-0'
+                                                onClick={() => obterDet(item.id)}
+                                            >
+                                                <IonIcon icon={document} className="pe-1" style={{transform: 'translate(0px, -1px)'}} />
+                                                Gerar DET
+                                            </IonButton>
+                                        </IonBadge>
+                                    </div>
+                                </div>
                             </div>
                         </IonRow>
                     );

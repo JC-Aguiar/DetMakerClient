@@ -1,6 +1,5 @@
 import { combineReducers } from "@reduxjs/toolkit";
 import tabMenu from './Reducer/ReducerTabMenu';
-import buttons from './Reducer/ReducerButtons';
 import login from './Reducer/ReducerUser';
 import configAtividade  from './Reducer/ReducerAtividade';
 import catalogoClientes from './Reducer/ReducerClientes';
@@ -12,7 +11,6 @@ import projetos from './Reducer/ReducerProjetos';
 
 const rootReducer = combineReducers({
     tabMenu: tabMenu,
-    buttons: buttons,
     login: login,
     configAtividade: configAtividade,
     configProjeto: projetos,

@@ -1,4 +1,4 @@
-import { InputChangeEventDetail, IonButton, IonCard, IonCardHeader, IonCardTitle, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, IonTextarea, IonTitle, ItemReorderEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from '@ionic/react';
+import { InputChangeEventDetail, IonButton, IonCard, IonCardHeader, IonCardTitle, IonContent, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, IonTextarea, IonTitle, ItemReorderEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import JobCard from '../components/JobCard';
 //import { Swiper, SwiperSlide } from 'swiper/react';
@@ -368,9 +368,10 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
 
     //Renderização do componente
     return (
-        <div className='container glass'>
-            <div className='glass-content'>
-                <IonCard className='m-1 glass text-white'>
+        <IonContent className='glass'>
+            <div className='glass-content container'>
+                <div className='m-3'/>
+                <IonCard className='glass text-white'>
                     <IonCardTitle className='m-1 text-center'>
                         <span className='h6'>
                             Ordene os Jobs e configure suas propriedades no ícone da engrenagem. <br/>
@@ -378,24 +379,24 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
                         </span>
                     </IonCardTitle>
                 </IonCard>
-                <IonRow className=' ion-justify-content-center p-0 m-0 w-100'>
-                    <IonList className='w-100 py-2 px-2'>
-                        <IonReorderGroup disabled={false} onIonItemReorder={reordenar} ref={reorderGroupRef} className='p-0 m-0' >
-                        {
-                            mainJobs.map((item, index) => 
-                                <JobCard key={index} 
-                                    jobExec={item}
-                                    //jobUserInput={JobConfigUserInput[index]}
-                                    notificacao={{ toastInfo, toastOk, toastErro } as Noticacao}
-                                    callback={() => null}
-                                />
-                            )
-                        }
-                        </IonReorderGroup>
-                    </IonList>
-                </IonRow>
+                    <IonRow className='ion-justify-content-center p-0 m-0 w-100'>
+                        <IonList className='w-100 py-2 px-2'>
+                            <IonReorderGroup disabled={false} onIonItemReorder={reordenar} ref={reorderGroupRef} className='p-0 m-0' >
+                            {
+                                mainJobs.map((item, index) => 
+                                    <JobCard key={index} 
+                                        jobExec={item}
+                                        //jobUserInput={JobConfigUserInput[index]}
+                                        notificacao={{ toastInfo, toastOk, toastErro } as Noticacao}
+                                        callback={() => null}
+                                    />
+                                )
+                            }
+                            </IonReorderGroup>
+                        </IonList>
+                    </IonRow>
             </div>
-        </div>
+        </IonContent>
     );
 };
 

@@ -1,23 +1,20 @@
-import { InputChangeEventDetail, IonAccordion, IonAccordionGroup, IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCol, IonContent, IonFabButton, IonGrid, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonList, IonMenu, IonPopover, IonProgressBar, IonRadio, IonRadioGroup, IonRow, IonSplitPane, IonText, IonTextarea, IonTitle, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewWillEnter } from '@ionic/react';
+import { InputChangeEventDetail, IonAccordion, IonAccordionGroup, IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonIcon, IonInput, IonItem, IonLabel, IonList, IonMenu, IonProgressBar, IonRadio, IonRadioGroup, IonRow, IonSplitPane, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewWillEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useState } from 'react';
-import { addCircle, arrowDownCircle, caretDownCircle, caretDownOutline, closeCircle, cloudUpload, cube, folderOpen, informationCircleOutline, layers, listOutline, refresh, save, server, toggle } from 'ionicons/icons';
+import { caretDownOutline, closeCircle, cloudUpload, cube, informationCircleOutline, layers, listOutline, refresh, save } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from '../Store/ReduxStore';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadingJobs, setJobs, setViewJobs } from '../Store/Reducer/ReducerJobs';
 import DynamicModal from '../components/DynamicModal';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
-import { ReducerProjetoTYPE, setDadosProjeto } from '../Store/Reducer/ReducerProjetos';
 import { loadingPipelines, setPipelines } from '../Store/Reducer/ReducerPipelines';
 import { JobConfig, JobConfigDTO, parseJobInfo } from '../data/JobConfigDTO';
 import { Noticacao } from '../components/Noticacao';
-import { setButtons } from '../Store/Reducer/ReducerButtons';
-import { DynamicButtonsAddsOn } from '../components/DynamicButtons';
+import ButtonLayout, { ButtonLayoutProps, layoutGrupoBotoes } from '../components/ButtonLayout';
 import ConfigurarJobs from './ConfigurarJobs';
 import { JobInfoDTO } from '../data/JobInfoDTO';
 import { setMainPipeline, setMainJobs } from '../Store/Reducer/ReducerAtividade';
-import { ComandoSQL } from '../data/ComandoSQL';
 import ListarJobs from '../components/ListarJobs';
 import Schedule from './Schedule';
 import iconPipeline from '../resources/pipeline.svg';
@@ -57,30 +54,38 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
         title: 'Atualizar',
         icon: refresh,
         trigger: () => coletarRecursos(),
-        disable: () => false, //isLoading(),
-    } as DynamicButtonsAddsOn;
+        disable: isLoading(),
+    } as ButtonLayoutProps;
 
     const botaoNovaPipeline = {
         title: 'Nova Pipeline',
         icon: layers,
         trigger: () =>  modalNovaPipelineOn(),
-        disable: () => false, //isLoading(),
-    } as DynamicButtonsAddsOn;
+        disable: isLoading(),
+    } as ButtonLayoutProps;
 
     const botaoVerSchedule = {
         title: 'Ver Schedule',
         icon: listOutline,
         trigger: () => modalScheduleOn(),
-        disable: () => false, //isLoading(),
-    } as DynamicButtonsAddsOn;
+        disable: isLoading(),
+    } as ButtonLayoutProps;
 
     const botaoNovaSchedule = {
         title: 'Nova Schedule',
         icon: cloudUpload,
         trigger: () => uploadSchedule(),
-        disable: () => false, //isLoading(),
-    } as DynamicButtonsAddsOn;
+        disable: isLoading(),
+    } as ButtonLayoutProps;
 
+    /*
+    <ButtonLayout key={index} 
+        title={item.title} 
+        icon={item.icon} 
+        disable={item.disable} 
+        trigger={item.trigger} 
+    />
+    */
 
     //Conteúdo da modal 'Nova Pipeline'
     function conteudoNovaPipeline() {
@@ -154,17 +159,17 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
         const destaque = (texto: string) => 
             <span className='m-0 px-1 border rounded rounded-3 h6 fw-bold'>{texto}</span>;
         
-        return <div className='fixed-top mt-5'>
-            <IonRow className='ion-justify-content-center ion-align-items-center' >
-                <IonCol className='text-info text-center h5 opacity-50 lh-base fw-normal'>
-                    <IonIcon icon={informationCircleOutline} color='secondary' size='large' className='mb-3 opacity-75' style={{transform: 'scale(2.5)' }} />
-                    <div>Use o painel lateral para vizualizar {destaque('Jobs')} e {destaque('Pipelines')}.</div>
-                    <div>Selecone um {destaque('Job')} sem nenhuma {destaque('Pipeline')} marcada para analisá-lo.</div>
-                    <div>Selecione uma {destaque('Pipeline')} para configurar suas etapas, podendo inserir <br/>
-                        os {destaque('Jobs')} ao selecioná-los.</div>
-                </IonCol>
-            </IonRow>
-        </div>;
+        return (
+                <IonRow className='mt-5 ion-justify-content-center ion-align-items-center' >
+                    <IonCol className='text-info text-center h5 opacity-50 lh-base fw-normal'>
+                        <IonIcon icon={informationCircleOutline} color='secondary' size='large' className='mb-3 opacity-75' style={{transform: 'scale(2.5)' }} />
+                        <div>Use o painel lateral para vizualizar {destaque('Jobs')} e {destaque('Pipelines')}.</div>
+                        <div>Selecone um {destaque('Job')} sem nenhuma {destaque('Pipeline')} marcada para analisá-lo.</div>
+                        <div>Selecione uma {destaque('Pipeline')} para configurar suas etapas, podendo inserir <br/>
+                            os {destaque('Jobs')} ao selecioná-los.</div>
+                    </IonCol>
+                </IonRow>
+        );
     }
 
     const cancelarMainPipeline = () => {
@@ -222,10 +227,12 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
 
     //Conteúdo da modal 'Carregar Pipeline'
     const painelDeControle = (
-        <IonLabel className='pt-0 m-0 h-100' >
-            <IonSplitPane when="xs" contentId="main" className='pt-5 mt-1 px-5'>
-                <IonMenu contentId="main" className='glass' color='#' style={{height: '96%'}}>
-                    <IonContent className='glass-content p-0 m-0'>
+        <IonLabel className='m-0 p-0 h-100' >
+            {layoutGrupoBotoes([ botaoAtualizar, botaoNovaPipeline, botaoVerSchedule, botaoNovaSchedule ])}
+            
+            <IonSplitPane when="xs" contentId="main" className='px-5 mx-5 '>
+                <IonMenu contentId="main" className='glass' color='#'>
+                    <IonContent className='glass-content p-0 m-0 mx-5'>
 
                             <IonAccordionGroup multiple={true}>
                                 <IonAccordion value="jobs" className='lista-navegacao glass mb-1'>
@@ -269,13 +276,8 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
                             </IonAccordionGroup>
                     </IonContent>
                 </IonMenu>
-                <div className="ion-page" id="main">
-                    <IonContent fullscreen={true} scrollEvents={true}>
-                        <div className='container pe-5'> 
-                            {conteudoPainelPrincipal()}
-                        </div>
-                    </IonContent>
-                    <div className='py-5' />
+                <div className="container" id="main" >
+                    {conteudoPainelPrincipal()}
                 </div>
             </IonSplitPane>
         </IonLabel>
@@ -367,7 +369,6 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
 
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {
-        dispatch(setButtons( [botaoAtualizar, botaoNovaPipeline, botaoVerSchedule, botaoNovaSchedule] ));
         if ((catalogoJobs.length < 1 || conectionsCount < 1) && !isLoading()) coletarRecursos();
     }, []);
 
@@ -564,7 +565,11 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
         return painelDeControle;
     }
 
-    return conteudo();
+    return (
+        <div className='p-0 m-0'> 
+            {conteudo()}
+        </div>
+    );
 };
 
 export default EscolherPipelines;

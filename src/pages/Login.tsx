@@ -68,25 +68,20 @@ const Login = (props: any) => {
     }
 
     return (
-        <IonPage>
-            <IonContent fullscreen={true} scrollEvents={true}>
-                <div className='pt-3 pt-md-4' />
-                <div className="container mx-0 mx-md-5 px-5" >
-                        <IonTitle id="det-maker-big-logo border-0 shadow-0">
-                            <h1 className="d-flex ion-justify-content-center card-title destaque lh-1 m-0 text-start">
-                                <img src={logoGrande} className='' style={{width: '11vw', height: '11vw' }} />
-                                <div>DET<br/>MAKER</div>
-                            </h1>
-                        </IonTitle>
-                    <div className="mt-5 mx-5" style={{height: '32vh'}}>
-                        <h4 className="h4 text-white ms-2 text-center">
-                            Acesse sua conta Google para se logar na aplicação
-                        </h4>
-                        {conteudo()}
-                    </div>
-                </div>
-            </IonContent>
-        </IonPage>
+        <div className="container"  >
+                <IonTitle id="det-maker-big-logo border-0 shadow-0">
+                    <h1 className="d-flex ion-justify-content-center card-title destaque lh-1 m-0 text-start">
+                        <img src={logoGrande} className='' style={{width: '11vw', height: '11vw' }} />
+                        <div>DET<br/>MAKER</div>
+                    </h1>
+                </IonTitle>
+            <div className="mt-5">
+                <h4 className="h4 text-white text-center">
+                    Acesse sua conta Google para se logar na aplicação
+                </h4>
+                {conteudo()}
+            </div>
+        </div>
     );
 
 }

@@ -1,4 +1,4 @@
-import { IonApp, IonCol, IonGrid, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonRow, IonTabBar, IonTabButton, IonTabs, ToastButton, setupIonicReact, useIonToast } from '@ionic/react';
+import { IonApp, IonGrid, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonRow, IonTabBar, IonTabButton, IonTabs, ToastButton, setupIonicReact, useIonToast } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Redirect, Route } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -28,12 +28,9 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import { useState } from 'react';
-import { document, checkbox, settings, documentText, cube, layers, receipt, checkmarkCircle, cogOutline, logoGoogle, closeCircleOutline } from 'ionicons/icons';
+import { layers, receipt, checkmarkCircle, logoGoogle } from 'ionicons/icons';
 import Login from './pages/Login';
 import EscolherPipelines from './pages/EscolherPipelines';
-import Schedule from './pages/Schedule';
-import ConfigurarJobs from './pages/ConfigurarJobs';
-import { JobConfigDTO } from './data/JobConfigDTO';
 import { RootState } from './Store/ReduxStore';
 import RevisarRelatorio from './pages/RevisarRelatorio';
 import { validarJwt } from './data/JwtDTO';
@@ -43,7 +40,6 @@ import DynamicPage from './components/DynamicPage';
 import { Noticacao } from './components/Noticacao';
 import { URL_CLIENTES, URL_PIPELINES, URL_RELATORIOS, URL_DET, URL_LOGIN } from './data/AxiosRequest';
 import { createBrowserHistory } from "history";
-import DynamicButtons from './components/DynamicButtons';
 import { JobInfoDTO } from './data/JobInfoDTO';
 import EscolherClientes from './pages/EscolherClientes';
 import EscolherRelatorios from './pages/EscolherRelatorios';
@@ -217,7 +213,9 @@ const App = () => {
     function rotasVisitante() {
         return (
             <IonRouterOutlet>
-                <Route path={URL_LOGIN} exact> <Login /> </Route>
+                <Route path={URL_LOGIN} exact>
+                    <DynamicPage titulo='Login' subtitulo='' elemento={<Login />} />
+                </Route>
                 <Route> <Redirect from='/*' to={URL_LOGIN} /> </Route>
             </IonRouterOutlet>
         );
@@ -296,7 +294,7 @@ const App = () => {
                                     >
                                         <img src={miniLogo} className='fixed-top ms-2' style={{ top: '2px', width: '88px', height: 'auto' }} />
                                         <IonHeader id='ppw-titulo' className='fixed-top text-start text-white pt-1 pb-0'>
-                                            <small className='small m-0 lh-1 fixed-top' style={{ top: '44px', left: '18px' }}>
+                                            <small className='small m-0 lh-1 fixed-top' style={{ top: '44px', left: '16px' }}>
                                                 Ⓡ Peopleware
                                             </small>
                                         </IonHeader>
@@ -306,7 +304,7 @@ const App = () => {
                             </IonTabs>
                         </IonRow>
                     </IonGrid>
-                    <DynamicButtons avatar={ <Avatar user={user}/> } />
+                    <Avatar user={user} />
                 </div>
             </IonReactRouter>
         </IonApp>

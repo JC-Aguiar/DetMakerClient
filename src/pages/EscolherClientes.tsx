@@ -1,13 +1,12 @@
-import { IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCol, IonContent, IonGrid, IonItem, IonLabel, IonList, IonRadio, IonRadioGroup, IonThumbnail, RadioGroupChangeEventDetail, useIonViewWillEnter, } from '@ionic/react';
+import { IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonItem, IonLabel, IonList, IonRadio, IonRadioGroup, useIonViewWillEnter, } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useState } from 'react';
 import { personAdd, refresh, save, server } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { DynamicButtonsAddsOn } from '../components/DynamicButtons';
-import { setButtons } from '../Store/Reducer/ReducerButtons';
 import { loadingClientes, setClientes } from '../Store/Reducer/ReducerClientes';
 import { setMainAmbiente } from '../Store/Reducer/ReducerAtividade';
 import { RootState } from '../Store/ReduxStore';
+import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/ButtonLayout';
 
 export interface ClienteInfoDTO {
     nome: string,
@@ -37,20 +36,20 @@ const EscolherClientes: React.FC = () => {
     const botaoAtualizar = {
         title: 'Atualizar',
         icon: refresh,
-        trigger: () => coletarRecursos(),
-        disable: () => false, //isLoading(),
-    } as DynamicButtonsAddsOn;
+        trigger: () =>  coletarRecursos(),
+        disable: false, //isLoading(),
+    } as ButtonLayoutProps;
 
-    const botaoNovaPipeline = {
+    const botaoNovoCliente = {
         title: 'Novo Cliente',
         icon: personAdd,
         trigger: () =>  null,
-        disable: () => false, //isLoading(),
-    } as DynamicButtonsAddsOn;
+        disable: false, //isLoading(),
+    } as ButtonLayoutProps;
 
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {
-        dispatch(setButtons( [botaoAtualizar, botaoNovaPipeline] ));
+        //dispatch(setButtons( [botaoAtualizar, botaoNovaPipeline] ));
         coletarRecursos();
     }, []);
 
@@ -126,6 +125,7 @@ const EscolherClientes: React.FC = () => {
 
     return (
         <div className='container'>
+            {layoutGrupoBotoes([ botaoAtualizar, botaoNovoCliente ])}
             <div className='p-0 py-1 m-0 text-white text-center'>
                 <span className='h5'>Lista de clientes disponíveis</span>
             </div>

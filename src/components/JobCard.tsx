@@ -362,16 +362,16 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
             <IonItem className="w-100 border-bottom" lines="none">
                 <IonLabel className="p-0 m-0">
                     <IonReorder slot="start" className='w-100 ion-align-items-center'>
-                        <IonItem className='text-secondary container w-100 p-0 m-0' lines='none' >
+                        <IonItem className='container w-100 p-0 m-0' lines='none' >
                             <span><IonIcon icon={reorderFour} /></span>
-                            <span><small className="p-0 m-0">Nº{jobExec.ordem+1}</small></span>
+                            <span><small className="text-white p-0 m-0">Nº{jobExec.ordem+1}</small></span>
                             <span><IonIcon icon={reorderFour} /></span>
                             <IonCard target="_self" className="w-100 border border-2 px-1 py-1" color="tertiary">
                                 <span>
-                                    <span className="ms-1 badge bg-white me-1 text-primary">
+                                    <span className="ms-1 badge bg-white me-1 text-dark">
                                         ID <span>{id}</span>
                                     </span>
-                                    <span className="ms-1 font-monospace text-white fw-bold">
+                                    <span className="ms-1 font-monospace text-white ">
                                         {jobExec.nome}
                                     </span>
                                 </span>
@@ -380,7 +380,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
                     </IonReorder>
                 </IonLabel>
                 <IonButton fill="clear" shape="round" onClick={abrirModalInfo} >
-                    <IonIcon icon={settings} />
+                    <IonIcon icon={settings} color='light' />
                 </IonButton>
             </IonItem>
         </IonRow>
