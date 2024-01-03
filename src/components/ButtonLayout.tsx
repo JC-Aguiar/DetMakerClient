@@ -13,9 +13,9 @@ export const layoutGrupoBotoes = (grupo: ButtonLayoutProps[]) => {
             vertical="top" 
             horizontal="start" 
             className="ion-justify-content-center ion-align-items-center glass"
-            style={{ backgroundColor: 'var(--ion-color-tertiary)' }}
+            style={{ backgroundColor: 'var(--ion-color-tertiary)', position: 'fixed' }}
         >
-            <div className="glass-content">
+            <div className="glass-content" >
                 {
                     grupo.map((item, index) => 
                         <IonRow className="m-0 p-1 ion-justify-content-center ion-align-items-center">

@@ -1,4 +1,4 @@
-import { InputChangeEventDetail, IonButton, IonCard, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonReorder, IonRow, IonTextarea, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from "@ionic/react";
+import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonReorder, IonRow, IonTextarea, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from "@ionic/react";
 import React, { ChangeEvent, useEffect, useState } from "react";
 import { JobConfig, JobConfigDTO } from "../data/JobConfigDTO";
 import { ComandoSQL } from "../data/ComandoSQL";
@@ -103,6 +103,23 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
             `[CARD-JOB] ${jobConfigurado.nome} config-query[${queryIndex}]='${jobConfigurado.queries[queryIndex].tabela}', filtro[${filtroIndex}]='${jobConfigurado.queries[queryIndex].filtros[filtroIndex].valor}'.`
         );
     }
+
+    const textoCodigo = (texto: string) => <span className="mx-1 font-monospace">{texto}</span>;
+
+    const labelTitulo = (texto: string, htmlIdFor: string) => 
+        <label className="form-label fw-bold text-white pb-0 mb-0" htmlFor={htmlIdFor}>
+            {texto}
+        </label>;
+
+    const badgeInfo = (texto: string, x: number, y: number) => {
+        return <IonBadge color='tertiary' 
+            className="border m-1 sticky-top"
+            style={{position: 'absolute', top: '0%', left: `0%`, transform: `translate(${x}%, ${y}%)`}}
+        >
+            {texto}
+        </IonBadge>
+    };
+    
     
 
     //Exibindo dados do Job no card
@@ -112,7 +129,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
             sessaoExecutarApos = <div>Executar após Jobs:
                 {
                     jobInfo.programa.map((recursos, index) => 
-                        <span className="badge bg-info m-0" key={index}>{recursos}</span>
+                        <span key={index}> {textoCodigo(recursos)} </span>
                     )
                 }
             </div>
@@ -122,21 +139,19 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
             sessaoProgramas = <div>Programas:
                 {
                     jobInfo.executarAposJob.map((idPosJob, index) => 
-                        <span className="badge bg-info m-0" key={index}>{idPosJob}</span>
+                        <span key={index}> {textoCodigo(idPosJob)} </span>
                     )
                 }
             </div>
         }
         return (
             <>
-                <label className="form-label fw-bold text-primary" htmlFor={`job${id}-param`}>
-                    INFORMAÇÕES
-                </label>
-                <div className="text-dark card bg-white mx-4 mt-1 mb-4 pt-2 pb-4 px-2">
+                {labelTitulo('INFORMAÇÕES', `job${id}-param`)}
+                <div className="glass mx-4 mt-1 mb-4 pt-2 pb-4 px-2">
                     {sessaoExecutarApos}
                     {sessaoProgramas}
-                    <div className="d-flex">Grupo: <span className="badge bg-info mt-1">UDA{jobInfo.grupoUda}</span></div>
-                    <div className="d-flex">Descrição: {jobInfo.descricao}</div>
+                    <div className="d-flex lh-1">Grupo: {textoCodigo(`UDA${jobInfo.grupoUda}`)}</div>
+                    <div className="d-flex lh-1">Descrição: {textoCodigo(`${jobInfo.descricao}`)}</div>
                 </div>
             </>
         );
@@ -146,21 +161,15 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
         if (jobExec.argumentos.length < 1) return;
         return (
             <div className="px-1 mb-2">
-                <label className="form-label fw-bold text-primary pb-0 mb-0" htmlFor={`job${id}-param`}>
-                    PARÂMETROS
-                </label>
+                {labelTitulo('PARÂMETROS', `job${id}-param`)}
                 {
                     jobExec.argumentos.map((param, index) => {
                         return (
                             <div key={index} className="position-relative mx-3 mt-1 mb-4 pt-2 pb-4 px-2">
-                                <IonLabel className="badge bg-info mx-1 sticky-top"
-                                    style={{ position: 'absolute', top: '0%', rigth: `100%` }}
-                                >
-                                    {jobInfo.parametros[index]}
-                                </IonLabel>
+                                {badgeInfo(jobInfo.parametros[index], 10, -25)}
                                 <IonInput id={`job${id}-param`}
                                     type="text"
-                                    className="form-control w-100"
+                                    className="form-control text-white w-100 glass"
                                     aria-label="Sizing example input"
                                     aria-describedby="inputGroup-sizing-default"
                                     placeholder={jobInfo.descricaoParametros[index]}
@@ -176,27 +185,18 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
     }
     const inputQuerysManual = (cmdSql: ComandoSQL, index: number) => {
         return (
-            <div className="px-1 mb-2" key={index}>
+            <div className="px-1 mt-2 mb-2" key={index}>
                 <div className="position-relative text-center mx-3 mt-1 mb-4">
                     <IonIcon icon={shieldCheckmark}
-                        className="btn btn-light sticky-top border rounded rounded-circle p-2"
-                        color="primary" 
+                        className="btn btn-info sticky-top border rounded rounded-circle p-2"
+                        color="tertiary" 
                         title="Validar Query"
-                        style={{ position: 'absolute', top: '0%', left: `100%`, transform: `translate(-50%, -50%)` }}
+                        style={{ position: 'absolute', top: '0%', left: `100%`, transform: `translate(-55%, -45%)` }}
                         onClick={(e) => validarQuery(jobConfigurado.queries[index].sql)}
                     />
-                    <IonLabel className="badge bg-info mx-1 sticky-top"
-                        style={{
-                            position: 'absolute',
-                            top: '0%',
-                            left: `0%`,
-                            transform: `translate(0%, -50%)`,
-                        }}
-                    >
-                        {cmdSql.tabela}
-                    </IonLabel>
+                    { badgeInfo(cmdSql.tabela, 0, -50) }
                     <IonTextarea id={`job${id}-sql`}
-                        className="form-control text-start m-0 p-0"
+                        className="form-control text-white glass text-start m-0 p-0"
                         aria-label="With textarea"
                         autoGrow={true}
                         placeholder={`Insira o comando SQL aqui`}
@@ -218,36 +218,32 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
             .filter((cmdSql) => cmdSql.filtros.length > 0)
             .map((cmdSql, queryIndex) =>
                 <div key={queryIndex}
-                    className="position-relative text-dark card bg-white mx-3 mt-1 mb-4 pt-2 pb-4 px-2"
+                    className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2"
                 >
                     <IonIcon icon={shieldCheckmark}
-                        className="btn btn-light border rounded rounded-circle p-2"
-                        color="primary"
+                        className="btn btn-info border rounded rounded-circle p-2"
+                        color="tertiary"
                         title="Validar Query"
                         style={{ position: 'absolute', top: '0%', left: `100%`, transform: `translate(-50%, -50%)` }}
                         onClick={(e) => validarQuery(jobConfigurado.queries[queryIndex])}
                     />
-                    <IonLabel className="badge bg-info mx-1 sticky-top"
-                        key={queryIndex}
-                        style={{ position: 'absolute', top: '0%', left: `0%`, transform: `translate(0%, -50%)` }}
-                    >
-                        {cmdSql.tabela}
-                    </IonLabel>
-                    {cmdSql.descricao}<br />
-                    <div className="font-monospace small card text-secondary my-2 px-2 ">
+                    {badgeInfo(cmdSql.tabela, 0, -50)}
+                    {cmdSql.descricao}
+                    <br />
+                    <IonCard color="dark" className="font-monospace small opacity-75 mx-0 my-2 px-2 ">
                         {cmdSql.dinamico ? cmdSql.sql : null}
-                    </div>
-                        {
-                            cmdSql.filtros.map((filtro, filtroIndex) =>
-                                <IonItem className="text-primary card" key={queryIndex * filtroIndex}>
-                                    <IonLabel className="fw-bold">{filtro.coluna + ":"}</IonLabel>
-                                    <IonInput placeholder={filtro.tipo}
-                                        value={filtro.valor}
-                                        onIonChange={(e) => preencherConfigQueries(e, queryIndex, filtroIndex)}
-                                    />
-                                </IonItem>
-                            )
-                        }
+                    </IonCard>
+                    {
+                        cmdSql.filtros.map((filtro, filtroIndex) =>
+                            <IonItem className="text-primary glass" key={queryIndex * filtroIndex}>
+                                <IonLabel className="fw-bold">{filtro.coluna + ":"}</IonLabel>
+                                <IonInput placeholder={filtro.tipo}
+                                    value={filtro.valor}
+                                    onIonChange={(e) => preencherConfigQueries(e, queryIndex, filtroIndex)}
+                                />
+                            </IonItem>
+                        )
+                    }
                 </div>
             );
 
@@ -259,9 +255,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
         //Renderização da função
         return (
             <div className="px-1 mb-2">
-                <label className="form-label fw-bold text-primary" htmlFor={`job${id}-sql`}>
-                    QUERIES DE CONSULTA
-                </label>
+                {labelTitulo('QUERIES DE CONSULTA', `job${id}-sql`)}
                 {queriesDinamicas}
                 {queriesManuais}
             </div>
@@ -275,9 +269,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
 
 
             <div className="px-1 mb-2">
-                <label className="form-label fw-bold text-primary pb-0 mb-0" htmlFor={`job${id}-carga`}>
-                    CARGAS DE ENTRADA
-                </label>
+                {labelTitulo('CARGAS DE CONSUMO', `job${id}-carga`)}
                 {
                     jobExec.cargas.map((carga, index) => {
                         return (

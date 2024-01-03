@@ -41,6 +41,7 @@ const Login = (props: any) => {
             dispatch(setJwt(jwt));
             dispatch(setUser(user));
             history.push(axiosRequest.URL_CLIENTES);
+            setLoading(false);
         }
         catch (error) {
             dispatch(hide());
@@ -51,7 +52,10 @@ const Login = (props: any) => {
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const authorizationCode = urlParams.get('code');
-        if (!authorizationCode) return;
+        if (!authorizationCode) {
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         exchangeAuthorizationCodeForAccessToken(authorizationCode);
     }, []);
@@ -61,7 +65,7 @@ const Login = (props: any) => {
         return (
             <IonFab className="login-btn" vertical="center" >
                 <IonFabButton id="google" color="#" onClick={(e) => login()}>
-                    <IonIcon icon={logoGoogle} color="dark" className="glass-content"></IonIcon>
+                    <IonIcon icon={logoGoogle} color="light" className="glass-content"></IonIcon>
                 </IonFabButton>
             </IonFab>
         );

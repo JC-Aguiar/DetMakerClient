@@ -198,25 +198,6 @@ ion-row.container {
   text-shadow: 1px 0px 0.5em silver, -1px 0px 0.5em silver, 1px 0px 0.5em silver, -1px 0px 0.5em silver;
 }
 
-/* MODAL DE LOGIN */
-#modal-login::part(backdrop) {
-  background-color: #0c0c79;
-  --backdrop-opacity: 55%;
-}
-
-#modal-login::part(content) {
-  top: 0vh;
-  margin-top: 10vh;
-  margin-bottom: 30vh;
-  border: 0px;
-  height: 350px;
-  width: 46vw;
-  max-width: 46vw;
-  min-width: 300px;
-  border-radius: 20px;
-}
-
-/* MODALS EM GERAL */
 ion-modal::part(content) {
   top: 0vh;
   border: 0px;
@@ -225,25 +206,6 @@ ion-modal::part(content) {
   /*border-radius: 16px;*/
 }
 
-/* MODAL SCHEDULE */
-.modal-scheudle {
-  top: 0vh;
-  border: 0px;
-  height: 90vh;
-  width: 95vw;
-}
-
-.card-login {
-  height: 100%;
-}
-
-.login-title {
-  padding-top: 0;
-  margin-top: 0px;
-  font-size: calc(16px + 1.2vw);
-  font-family: 'Times New Roman', Times, serif;
-  text-shadow: 0 0 0.15em #c0c0c09c, 0 0 0.15em #c0c0c09c;
-}
 
 .close-icon {
   padding: 0;
@@ -258,93 +220,19 @@ ion-modal::part(content) {
   --box-shadow: 0px;
 }
 
-.login-item {
-  --highlight-background: blue;
-}
-
-.login-item::part(native) {}
-
-.login-input {
-  font-size: smaller;
-  padding-left: 0;
-}
-
-.login-input-field {
-  font-size: calc(16px + 30%);
-  margin-left: 10px;
-  width: 140%;
-}
-
-.login-button {
-  color: var(--ion-color-primary);
-  margin-top: 12px;
-  width: 100%;
-}
-
-.login-button:hover {
-  color: white;
-  background-color: blue;
-  border-radius: 4px;
-}
-
-.login-button:focus {
-  color: var(--ion-color-primary);
-  background-color: #b8d9ff;
-  border-radius: 4px;
-  box-shadow: 0 0 1em silver;
-}
-
-/* ??? */
-#ion-react-wrapper {
-  background-color: var(--ion-color-light);
-  border-color: var(--ion-color-light);
-  margin-top: -10px;
-  margin-left: -10px;
-  margin-right: -10px;
-  border-radius: 20px;
-}
-
-/* LOADING DO LOGIN */
-#login-loading ion-backdrop {
-  background-color: #0c0c79;
-  --backdrop-opacity: 55%;
-}
-
-#login-loading div {
-  --background: transparent;
-  box-shadow: none;
-  margin-top: -10vh;
-}
-
-#login-loading div.alert-head,
-#login-loading div.alert-button-group {
-  visibility: hidden;
-  padding: 0;
-  margin: 0;
-}
-
-#login-loading div.alert-message {
-  text-align: center;
-  font-size: xx-large;
-  margin: 0;
-}
-
 /* GALERIA FILMES --------------------------------------------------------------- */
 #card-filme {
-  border: 2px solid black;
-  width: 80vw;
-  height: 800px;
-  max-height: 95vh;
-  margin: auto;
-  margin-bottom: 32px;
-  background-color: black;
-  box-shadow: 0 0 0.5em black;
+  width: 100%;
+  height: 80vh;
+  padding: 0px;
   user-select: none;
 }
 
 #filme-texto {
-  position: absolute;
+  width: 100%;
   z-index: 50;
+  padding: 0;
+  margin: 0;
 }
 
 #filme-texto ion-card-title {
@@ -354,18 +242,16 @@ ion-modal::part(content) {
   text-align: center;
 }
 
-/* #filme-texto ion-card-subtitle {
-  position: absolute;
-  top: 100%;
-} */
-
 #filme-capa {
-  position: absolute;
+  z-index: -1;
+  top: 0;
+  border-radius: 12px;
+  position: fixed;
   object-fit: cover;
   user-select: none;
   pointer-events: none;
-  mask-image: linear-gradient(to left, rgb(0, 0, 0) 50%, rgba(0, 0, 0, 0) 75%);
   object-position: center center;
+  mask-image: linear-gradient(to right, rgb(0, 0, 0) 100%, rgba(0, 0, 0, 0) 100%);
 }
 
 #filme-capa-mask {
@@ -406,6 +292,13 @@ ion-menu {
   --side-max-width: 370px;
 }
 
+/*
+ion-accordion {
+  position: absolute;
+  max-width: 950px;
+}
+*/
+
 .item-native {
   padding-left: 0px;
   padding-right: 0px;
@@ -444,8 +337,8 @@ ion-menu {
 
 .config-job-count {
   position: absolute;
-  top: 0%;
-  right: calc(50% - 18px );
+  top: 8%;
+  right: calc(50% - 15px );
 }
 
 /* ESCOLHER JOBS */
@@ -455,21 +348,28 @@ ion-menu {
   
 }
 
-.schedule-tabela {
-  height: 60.5vh; /*300px  55vh*/
-}
-
 th, td {
   overflow: auto;
 }
 
-.td-long {
-  min-width: 60vw;
-  overflow: auto;
+tbody tr {
+  height: 3em;
+  max-height: auto;
 }
 
-table {
-  font-size: max(calc(0.75vw + 0.25vh), 14px);
+#tabela-schedule  {
+  overflow-x: auto;
+  max-width: 100%;
+  font-size: max(calc(0.8vw + 0.6vh), 14px);
+  /*table-layout: fixed;*/
+  table-layout: auto;
+}
+
+#tabela-schedule th:nth-child(1),
+#tabela-schedule td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 1;
 }
 
 .scroll {

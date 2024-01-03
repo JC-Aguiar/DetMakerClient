@@ -27,7 +27,7 @@ const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro
     const isLoading: boolean = useSelector((state: RootState) => state.store.catalogoRelatorios.loading);
     const mainCliente: string = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
     const mainAmbiente: string = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
-    const fonteCodigo = 'font-monospace text-white ';
+    const fonteCodigo = 'h6 lh-1 font-monospace text-white ';
 
     const tag = (icone: string | null, conteudo: string | number | null, alerta: boolean = false) => {
         const padding = conteudo === null ? "pe-0" : "me-1 pe-2";
@@ -160,7 +160,7 @@ const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro
                                         />
                                         {item.id}
                                     </div>
-                                    <IonCard className="ms-0 w-100 bg-transparent border-0" style={{boxShadow: '0 0 0 '}}>
+                                    <IonCard className="ms-0 mb-0 w-100 bg-transparent border-0" style={{boxShadow: '0 0 0 '}}>
                                         <IonCardHeader className='m-0 p-0'>
                                             <IonCardTitle className='text-white py-0 ion-align-items-center'>
                                                 {tag(calendarOutline, offsetDateTimeParaString(item.data))}

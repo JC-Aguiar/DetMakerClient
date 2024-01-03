@@ -153,7 +153,7 @@ const App = () => {
             conteudo: <EscolherClientes />,
             icone: iconUserTie,
             desativado: false,
-            efeito: null,
+            efeito: null, //perfilSelecionado(),
         },
         {
             path: URL_PIPELINES,
@@ -190,13 +190,6 @@ const App = () => {
 
     function animationEnd() {
         setBoasVindas(true);
-    }
-
-    function contadorConfigJobs() {
-        //if (jobsCount === 0) return null;
-        return (
-            <span className='badge bg-primary config-job-count'>??? {/*jobsCount*/}</span>
-        );
     }
 
     function intro() {

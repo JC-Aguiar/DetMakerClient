@@ -495,7 +495,7 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
     //Renderização do componente
     return (
         <>
-            {layoutGrupoBotoes([ botaoSalvar, botaoDET ])};
+            {layoutGrupoBotoes([ botaoSalvar, botaoDET ])}
             {/* Corpo principal */}
             <div className="container card justify-content-center bg-white px-0 pb-5">
                 {/*-----[PARTE 1: CAPA]--------------------------------------------------------------*/}

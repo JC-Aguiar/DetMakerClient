@@ -1,6 +1,6 @@
-import { InputChangeEventDetail, IonAccordion, IonAccordionGroup, IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonIcon, IonInput, IonItem, IonLabel, IonList, IonMenu, IonProgressBar, IonRadio, IonRadioGroup, IonRow, IonSplitPane, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewWillEnter } from '@ionic/react';
+import { InputChangeEventDetail, IonAccordion, IonAccordionGroup, IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonIcon, IonInput, IonItem, IonLabel, IonList, IonMenu, IonModal, IonProgressBar, IonRadio, IonRadioGroup, IonRow, IonSplitPane, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewWillEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { caretDownOutline, closeCircle, cloudUpload, cube, informationCircleOutline, layers, listOutline, refresh, save } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from '../Store/ReduxStore';
@@ -18,6 +18,8 @@ import { setMainPipeline, setMainJobs } from '../Store/Reducer/ReducerAtividade'
 import ListarJobs from '../components/ListarJobs';
 import Schedule from './Schedule';
 import iconPipeline from '../resources/pipeline.svg';
+import Informativo from '../components/Informativo';
+import Carregando from '../components/Carregando';
 
 
 const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
@@ -61,14 +63,19 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
         title: 'Nova Pipeline',
         icon: layers,
         trigger: () =>  modalNovaPipelineOn(),
-        disable: isLoading(),
+        disable: isLoading() || catalogoJobs.length < 1,
     } as ButtonLayoutProps;
 
     const botaoVerSchedule = {
         title: 'Ver Schedule',
         icon: listOutline,
-        trigger: () => modalScheduleOn(),
-        disable: isLoading(),
+        trigger: () => {
+            if (!modalRef || !modalRef.current) return;
+            modalRef.current.present();
+            setVerModalSchedule(true);
+            console.log(`Ativando modal Shedule (var: ${verModalSchedule})`);
+        },
+        disable: isLoading() || catalogoJobs.length < 1,
     } as ButtonLayoutProps;
 
     const botaoNovaSchedule = {
@@ -156,20 +163,10 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
     const conteudoPainelPrincipal = () => {
         if (jobsSelecionados.length > 0) return exibirJobsSelecionados();
         if (mainPipeline !== "") return <ConfigurarJobs toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />;
-        const destaque = (texto: string) => 
-            <span className='m-0 px-1 border rounded rounded-3 h6 fw-bold'>{texto}</span>;
-        
-        return (
-                <IonRow className='mt-5 ion-justify-content-center ion-align-items-center' >
-                    <IonCol className='text-info text-center h5 opacity-50 lh-base fw-normal'>
-                        <IonIcon icon={informationCircleOutline} color='secondary' size='large' className='mb-3 opacity-75' style={{transform: 'scale(2.5)' }} />
-                        <div>Use o painel lateral para vizualizar {destaque('Jobs')} e {destaque('Pipelines')}.</div>
-                        <div>Selecone um {destaque('Job')} sem nenhuma {destaque('Pipeline')} marcada para analisá-lo.</div>
-                        <div>Selecione uma {destaque('Pipeline')} para configurar suas etapas, podendo inserir <br/>
-                            os {destaque('Jobs')} ao selecioná-los.</div>
-                    </IonCol>
-                </IonRow>
-        );
+        const mensagem = 'Use o painel lateral para vizualizar {Jobs} e {Pipelines}\n'
+            +'Selecione um {Job}, fora da {Pipeline}, para analisá-lo\n'
+            +'Selecione uma {Pipeline} para inserir {Jobs} ou configurar sua execução';
+        return <Informativo mensagem={mensagem} status='Normal' />;
     }
 
     const cancelarMainPipeline = () => {
@@ -227,9 +224,7 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
 
     //Conteúdo da modal 'Carregar Pipeline'
     const painelDeControle = (
-        <IonLabel className='m-0 p-0 h-100' >
-            {layoutGrupoBotoes([ botaoAtualizar, botaoNovaPipeline, botaoVerSchedule, botaoNovaSchedule ])}
-            
+        
             <IonSplitPane when="xs" contentId="main" className='px-5 mx-5 '>
                 <IonMenu contentId="main" className='glass' color='#'>
                     <IonContent className='glass-content p-0 m-0 mx-5'>
@@ -280,7 +275,6 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
                     {conteudoPainelPrincipal()}
                 </div>
             </IonSplitPane>
-        </IonLabel>
     );
 
     function exibirJobsSelecionados() {
@@ -356,16 +350,8 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
         }
     );
 
-    //Configurações e propriedades da modal de pipelines no banco
-    const [modalScheduleOn, modalScheduleOff] = useIonModal(
-        DynamicModal,
-        {
-            titulo: "Schedule Completa",
-            elemento: <Schedule />,
-            onDismiss: () => modalScheduleOff(),
-            padding: false,
-        }
-    );
+    const [verModalSchedule, setVerModalSchedule] = useState<boolean>(false);
+    const modalRef = useRef<HTMLIonModalElement>(null);
 
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {
@@ -551,23 +537,36 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
     }
 
     function conteudo() {
-        const loadingBar = <IonProgressBar type="indeterminate" />;
-        if (isLoading()) {
-            return <div className='h-100 row align-items-center text-primary text-center mt-2'>
-                <div className='py-5'>
-                    <div className='col-12 text-primary h5'>Carregando recursos do banco...</div>
-                    <div className='col-12'>Número de conexões: {conectionsCount}</div>
-                </div>
-                <br />
-                {loadingBar}
-            </div>;
+        if (catalogoJobs.length < 1) {
+            return <Informativo 
+                mensagem='Uma alternativa é fazer o upload da planilha de Jobs, usando o botão {Nova Schedule}' 
+                status='SemDados'
+            />;
         }
         return painelDeControle;
     }
 
+    if (isLoading()) return <Carregando />;
+
     return (
         <div className='p-0 m-0'> 
-            {conteudo()}
+            <IonLabel className='m-0 p-0 h-100' >
+                {layoutGrupoBotoes([ botaoAtualizar, botaoNovaPipeline, botaoVerSchedule, botaoNovaSchedule ])}
+                {conteudo()}
+            </IonLabel>
+            <IonModal style={{'--min-width': '94%', '--min-height': '90%'}} isOpen={verModalSchedule} ref={modalRef}>
+                <DynamicModal
+                    titulo="Schedule Completa"
+                    elemento={<Schedule />}
+                    onDismiss={() => {
+                        if (!modalRef || !modalRef.current) return;
+                        modalRef.current.dismiss();
+                        setVerModalSchedule(false);
+                        console.log(`Desativando modal Shedule (var: ${verModalSchedule})`);
+                    }}
+                    padding={false}
+                />
+            </IonModal>
         </div>
     );
 };

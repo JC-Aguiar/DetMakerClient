@@ -1,15 +1,15 @@
-import { IonCheckbox, useIonViewDidEnter } from "@ionic/react";
 import { useDispatch } from "react-redux";
 import { JobInfoDTO } from "../data/JobInfoDTO";
 import { validarExibirData } from "../App";
+import { IonBadge, IonCol, IonLabel, IonRow, IonText } from "@ionic/react";
 
 export interface ScheduleJobProps {
     job: JobInfoDTO, 
     indexId: string,
-    cor: string,
+    par: boolean,
 }
 
-const ScheduleJob: React.FC<ScheduleJobProps> = ({ job, indexId, cor }) => {
+const ScheduleJob: React.FC<ScheduleJobProps> = ({ job, indexId, par }) => {
     const dispatch = useDispatch();
     //var color = ""; //job.checked ? "bg-warning" : "";
 
@@ -21,35 +21,43 @@ const ScheduleJob: React.FC<ScheduleJobProps> = ({ job, indexId, cor }) => {
     //        ordem: ordem
     //    }));
     //}
+    const cor = par ? "var(--ion-color-tertiary)" : "var(--ion-color-tertiary-shade)"
+    const colunaCss = 'bg-transparent border border-1 px-2';
 
     return (
-        <tr className={`font-monospace ${cor} align-items-center align-middle small`} id={indexId}>
+        <tr className={`font-monospace align-items-center align-middle small`} id={indexId} style={{backgroundColor: cor}}>
             {/*
             <IonCheckbox className="check-box" checked={job.checked} onClick={() => handlerCheckJob()}/>
             */}
-            <td className='bg-transparent border border-1'> {job.id} </td>
-            <td className='bg-transparent border border-1'> {job.nome} </td>
-            <td className='bg-transparent border border-1'> {job.executarAposJob.join(", ")} </td>
-            <td className='bg-transparent border border-1'> {job.grupoConcorrencia} </td>
-            <td className='bg-transparent border border-1'> {job.fase} </td>
-            <td className='bg-transparent border border-1'> {job.descricao} </td>
-            <td className='bg-transparent border border-1'> {job.grupoUda} </td>
-            <td className='bg-transparent border border-1'> {job.programa.join(", ")} </td>
-            <td className='bg-transparent border border-1'> {job.tabelas.join(", ")} </td>
-            <td className='bg-transparent border border-1'> {job.servidor} </td>
-            <td className='bg-transparent border border-1'> {job.caminhoExec} </td>
-            <td className='bg-transparent border border-1'> {job.parametros.join(", ")} </td>
-            <td className='bg-transparent border border-1'> {job.descricaoParametros.join(", ")} </td>
-            <td className='bg-transparent border border-1'> {job.diretorioEntrada} </td>
-            <td className='bg-transparent border border-1'> {job.mascaraEntrada.join(", ")} </td>
-            <td className='bg-transparent border border-1'> {job.diretorioSaida} </td>
-            <td className='bg-transparent border border-1'> {job.mascaraSaida.join(", ")} </td>
-            <td className='bg-transparent border border-1'> {job.diretorioLog} </td>
-            <td className='bg-transparent border border-1'> {job.mascaraLog.join(", ")} </td>
-            <td className='bg-transparent border border-1'> {job.tratamento} </td>
-            <td className='bg-transparent border border-1'> {job.escalation} </td>
-            <td className='bg-transparent border border-1'> {validarExibirData(job.dataAtualizacao)} </td>
-            <td className='bg-transparent border border-1'> {job.atualizadoPor} </td>
+            <td className='border border-start-0 align-items-center'  style={{backgroundColor: cor}}> 
+                <IonRow className="m-0 mx-2 mt-2 p-0 d-flex ion-justify-content-start ">
+                    <IonBadge color="secondary" className="ms-0 me-2 h6">
+                        ID {job.id}
+                    </IonBadge>
+                    <IonBadge color="#" className="text-white me-0 fw-bold h6">{job.nome}</IonBadge>
+                </IonRow> 
+            </td>
+            <td className={colunaCss}> {job.executarAposJob.join('\n')} </td>
+            <td className={colunaCss}> {job.grupoConcorrencia} </td>
+            <td className={colunaCss}> {job.fase} </td>
+            <td className={colunaCss}> {job.descricao} </td>
+            <td className={colunaCss}> {job.grupoUda} </td>
+            <td className={colunaCss}> {job.programa.join('\n')} </td>
+            <td className={colunaCss}> {job.tabelas.join('\n')} </td>
+            <td className={colunaCss}> {job.servidor} </td>
+            <td className={colunaCss}> {job.caminhoExec} </td>
+            <td className={colunaCss}> {job.parametros.join('\n')} </td>
+            <td className={colunaCss}> {job.descricaoParametros.join('\n')} </td>
+            <td className={colunaCss}> {job.diretorioEntrada} </td>
+            <td className={colunaCss}> {job.mascaraEntrada.join('\n')} </td>
+            <td className={colunaCss}> {job.diretorioSaida} </td>
+            <td className={colunaCss}> {job.mascaraSaida.join('\n')} </td>
+            <td className={colunaCss}> {job.diretorioLog} </td>
+            <td className={colunaCss}> {job.mascaraLog.join('\n')} </td>
+            <td className={colunaCss}> {job.tratamento} </td>
+            <td className={colunaCss}> {job.escalation} </td>
+            <td className={colunaCss}> {validarExibirData(job.dataAtualizacao)} </td>
+            <td className={colunaCss}> {job.atualizadoPor} </td>
         </tr>
     );
 };

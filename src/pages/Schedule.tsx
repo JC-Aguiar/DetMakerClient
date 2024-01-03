@@ -1,19 +1,11 @@
-import { IonIcon, useIonViewDidEnter } from '@ionic/react';
-import { useState } from 'react';
-import { useHistory } from 'react-router';
-import { checkmarkCircle, closeCircle } from 'ionicons/icons';
-import { useDispatch, useSelector } from 'react-redux';
+import { IonCard, IonCol, IonContent, IonGrid, IonIcon, IonRow, useIonViewDidEnter } from '@ionic/react';
+import { useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
 import ScheduleJob from '../components/ScheduleJob';
-import { Noticacao } from '../components/Noticacao';
-import { URL_CLIENTES } from '../data/AxiosRequest';
 import { JobInfoDTO } from '../data/JobInfoDTO';
 
 const Schedule: React.FC = () => {
     const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalago);
-    const [checks, setChecks] = useState<boolean>(true);
-    const history = useHistory();
-
     //async function handlerCheckAll() {
     //    console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para 'false'`);
     //    catalogoJobs.forEach((item) => dispatch( 
@@ -36,8 +28,7 @@ const Schedule: React.FC = () => {
 
     const header: HeaderTYPE = {
         colunas: [
-            { largura: 20, nome: "ID" },
-            { largura: 20, nome: "JOB" },
+            { largura: 400, nome: "JOB" },
             { largura: 50, nome: "EXECUTAR APÓS" },
             { largura: 20, nome: "GRUPO" },
             { largura: 20, nome: "FASE" },
@@ -63,30 +54,32 @@ const Schedule: React.FC = () => {
     };
 
     const renderizarColunas = header.colunas.map((item, index) => 
-        <th className='bg-primary' style={{minWidth: `${item.largura}px`}}>
+        <th className='bg-white text-dark px-2' style={{minWidth: `${item.largura}px`}}>
             {item.nome}
         </th>
     );
-        // min-width: 12vw;
-        // max-width: 28vw;
 
     return (
-            <div className="schedule-tabela scroll text-center p-0 m-0">
-                <table className="table p-0 m-0"> {/* table-light table-striped */}
-                    <thead className='sticky-top align-items-center align-middle small'>
-                        <tr className='text-white '>
-                            {renderizarColunas}
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {
-                        catalogoJobs.map((item, index) => {
-                            const indexId: string = `job-index-${item.id}`;
-                            return <ScheduleJob key={index} job={item} indexId={indexId} cor={index % 2 ? "" : "bg-white"} />
-                        })
-                    }
-                    </tbody>
-                </table>
+            <div className="text-center p-0 ps-2 pt-2 m-0">
+                <IonContent className='glass w-100' scrollEvents={true} style={{height: '82vh'}}>
+                    <IonRow className='position-absolute w-100 h-100'>
+                        <table id='tabela-schedule' className="glass-content text-white p-0 m-0 w-100 h-100" > 
+                            <thead className='sticky-top align-items-center align-middle small'>
+                                <tr className=''>
+                                    {renderizarColunas}
+                                </tr>
+                            </thead>
+                            <tbody className=''>
+                                {
+                                    catalogoJobs.map((item, index) => {
+                                        const indexId: string = `job-index-${item.id}`;
+                                        return <ScheduleJob key={index} job={item} indexId={indexId} par={index % 2 === 0} />
+                                    })
+                                }
+                            </tbody>
+                        </table>
+                    </IonRow>
+                </IonContent>
             </div>
     );
 };
