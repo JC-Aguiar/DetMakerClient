@@ -10,7 +10,7 @@ export interface RelatorioHistoricoDTO {
     parametros: string,
     dados: string,
     testeTipo: string,
-    sistema: string,
+    cliente: string,
     ambiente: string,
     evidencias: EvidenciaInfoDTO[],
     data: string,

@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosRequestHeaders } from 'axios';
 import { PipelineInfoDTO } from './PIpelineInfoDTO';
-import { PipelineNovaExecDTO } from './PipelineNovaExecDTO';
+import { PipelineExecDTO } from './PipelineExecDTO';
 import { ComandoSQL } from './ComandoSQL';
 import { JobConfigDTO } from './JobConfigDTO';
 import { RelatorioHistoricoDTO } from './RelatorioHistoricoDTO';
@@ -11,6 +11,8 @@ import { RelatorioRevisadoDTO } from './RelatorioRevisadoDTO';
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_PROFILE_INFO, GOOGLE_REDIRECT_URI, GOOGLE_TOKEN_URL } from '../config/OAuth2';
 import { JobInfoDTO } from './JobInfoDTO';
 import { RelatorioResumoDTO } from './RelatorioResumoDTO';
+import { ClienteInfoDTO } from './ClienteInfoDTO';
+import { ConfigQueryInfoDTO } from './ConfigQueryInfoDTO';
 
 const EM_TESTE = true;
 
@@ -138,23 +140,34 @@ export async function getUserInfo(accessToken: string): Promise<UserDTO> {
         });
 }
 
-/* 
-export async function getFoto(url: string): Blob {
+//Requisição para obter todos os Pipelines no banco
+export async function getAllClientes(): Promise<ClienteInfoDTO[]> {
+    const titulo = "OBTENDO CLIENTES";
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/cliente`,
+        headers: headers,
+        timeout: 30000,
+    };
+    //Executando requisição
     return await axios
-    .get(url, {
-        responseType: 'stream'
-    })
-    .then((response) => {
-        response.data.pipe(fs.createWriteStream('profile-image.jpg'));
-    })
-    .catch((error) => {
-        console.error('Erro ao fazer o download da imagem:', error);
-    });
+        .request(config)
+        .then((response) => {
+            const json: ClienteInfoDTO[] = response.data;
+            requestSucesso(titulo, json);
+            return json;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
 }
-*/
 
 //Requisição para abrir planilha Schedule
-export async function openSchedule(arquivoXlsx: File): Promise<JobInfoDTO[]> {
+export async function openSchedule(ambienteId: number, arquivoXlsx: File): Promise<JobInfoDTO[]> {
     const titulo = "ABRIR SCHEDULE";
     requestStart(titulo);
 
@@ -172,11 +185,14 @@ export async function openSchedule(arquivoXlsx: File): Promise<JobInfoDTO[]> {
     });
     data.append('file', blob);
 
+    throw "Falta desenvolver a coleta do nome da planilha";
+    const planilhaNome = "TODO"; //TODO!
+
     //Preparando requisição
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/job/open/xlsx`,
+        url: `${REQUEST_URL}/job/ambiente/${ambienteId}/read/xlsx/planilha/${planilhaNome}`,
         headers: headersXlsx,
         timeout: 30000,
         data: data
@@ -195,7 +211,7 @@ export async function openSchedule(arquivoXlsx: File): Promise<JobInfoDTO[]> {
 }
 
 //Requisição para obter todos os Pipelines no banco
-export async function getAllPipelines(): Promise<PipelineInfoDTO[]> {
+export async function getAllPipelines(clienteId: number): Promise<PipelineInfoDTO[]> {
     const titulo = "OBTENDO PIPELINES";
     requestStart(titulo);
 
@@ -203,7 +219,7 @@ export async function getAllPipelines(): Promise<PipelineInfoDTO[]> {
     let config: AxiosRequestConfig = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/pipeline?itens=200`,
+        url: `${REQUEST_URL}/pipeline/cliente/${clienteId}`,
         headers: headers,
         timeout: 30000,
     };
@@ -211,7 +227,7 @@ export async function getAllPipelines(): Promise<PipelineInfoDTO[]> {
     return await axios
         .request(config)
         .then((response) => {
-            const json: PipelineInfoDTO[] = response.data.content;
+            const json: PipelineInfoDTO[] = response.data;
             requestSucesso(titulo, json);
             return json;
         })
@@ -221,30 +237,23 @@ export async function getAllPipelines(): Promise<PipelineInfoDTO[]> {
 }
 
 //Requisição para obter todos os Jobs no banco
-export async function getAllJobs(): Promise<JobInfoDTO[]> {
+export async function getAllJobs(clienteId: number): Promise<JobInfoDTO[]> {
     const titulo = "OBTENDO JOBS";
     requestStart(titulo);
 
-    //Configurando endereço da requisição
-    const headersXlsx: AxiosRequestHeaders = {
-        "Access-Control-Allow-Origin": `${REQUEST_URL}/*`,
-        "Access-Control-Allow-Methods": "POST, GET",
-        "Access-Control-Allow-Headers": "*",
-        "Access-Control-Max-Age": "60000",
-    }
     //Preparando requisição
     let config: AxiosRequestConfig = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/job?itens=200`,
-        headers: headersXlsx,
+        url: `${REQUEST_URL}/job/cliente/${clienteId}`,
+        headers: headers,
         timeout: 30000,
     };
     //Executando requisição
     return await axios
         .request(config)
         .then((response) => {
-            const json: JobInfoDTO[] = response.data.content;
+            const json: JobInfoDTO[] = response.data;
             requestSucesso(titulo, json);
             return json;
         })
@@ -253,8 +262,34 @@ export async function getAllJobs(): Promise<JobInfoDTO[]> {
         });
 }
 
-//Requisição para obter todos os Jobs no banco
-export async function getAllRelatorios(): Promise<RelatorioResumoDTO[]> {
+//Requisição para obter somente 1 Relatório no banco
+export async function getUmRelatorio(id: number): Promise<RelatorioResumoDTO> {
+    const titulo = `OBTENDO RELATORIO ID ${id}`;
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/relatorio/id/${id}`,
+        headers: headers,
+        timeout: 30000,
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            const relatorio: RelatorioResumoDTO = response.data;
+            requestSucesso(titulo, relatorio);
+            return relatorio;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para obter todos os Relatórios no banco
+export async function getAllRelatorios(ambienteId: number): Promise<RelatorioResumoDTO[]> {
     const titulo = "OBTENDO RELATORIOS";
     requestStart(titulo);
 
@@ -262,9 +297,12 @@ export async function getAllRelatorios(): Promise<RelatorioResumoDTO[]> {
     let config: AxiosRequestConfig = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/relatorio/summary?itens=200`,
+        url: `${REQUEST_URL}/relatorio/summary/ambiente/${ambienteId}`,
         headers: headers,
         timeout: 30000,
+        params: {
+            itens: 200,
+        }
     };
     //Executando requisição
     return await axios
@@ -273,6 +311,32 @@ export async function getAllRelatorios(): Promise<RelatorioResumoDTO[]> {
             const json: RelatorioResumoDTO[] = response.data.content;
             requestSucesso(titulo, json);
             return json;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para obter todos os Jobs no banco
+export async function reexecutarRelatorio(id: number): Promise<RelatorioHistoricoDTO> {
+    const titulo = `REEXECUTANDO RELATORIO ID ${id}`;
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/relatorio/rerun/${id}`,
+        headers: headers,
+        timeout: 30000,
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            const resutlado: RelatorioHistoricoDTO = response.data;
+            requestSucesso(titulo, resutlado);
+            return resutlado;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -288,7 +352,7 @@ export async function salvarNovaPipeline(novaPipeline: PipelineInfoDTO): Promise
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/pipeline/save`,
+        url: `${REQUEST_URL}/pipeline/new`,
         data: novaPipeline,
         headers: headers,
         timeout: 10000,
@@ -306,7 +370,7 @@ export async function salvarNovaPipeline(novaPipeline: PipelineInfoDTO): Promise
 }
 
 //Requisição para executar a Pipeline
-export async function executarPipeline(body: PipelineNovaExecDTO): Promise<RelatorioHistoricoDTO> {
+export async function executarPipeline(body: PipelineExecDTO): Promise<RelatorioHistoricoDTO> {
     const titulo = "EXECUTAR PIPELINE";
     requestStart(titulo);
 
@@ -379,31 +443,6 @@ export async function reexecutarPilha(pipelineNome: string): Promise<Blob> {
             const fileBlob = response.data;
             requestSucesso(titulo, fileBlob);
             return fileBlob;
-        })
-        .catch((error: AxiosError) => {
-            throw requestErro(titulo, error);
-        });
-}
-
-//Requisição para obter ConfigQuery's de um Job
-export async function getQueries(jobId: number): Promise<ComandoSQL[]> {
-    const titulo = "OBTER CONFIG-QUERYs";
-    requestStart(titulo);
-
-    //Instanciando Axios
-    let config: AxiosRequestConfig = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/queries/job/${jobId}`,
-        headers: headers,
-        timeout: 10000,
-    };
-    //Executando requisiçãao
-    return await axios.request(config)
-        .then((response) => {
-            const listaDto: ComandoSQL[] = response.data;
-            requestSucesso(titulo, listaDto);
-            return listaDto;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -491,16 +530,42 @@ export async function saveRevisaoRelatorio(relatorio: RelatorioRevisadoDTO): Pro
         });
 }
 
-//Requisição para obter todos os Jobs no banco
-export async function getJobConfigQueries(id: number): Promise<ComandoSQL[]> {
-    const titulo = `OBTENDO CONFIG QUERIES DO JOB ID ${id}`;
+//Requisição para obter todas as ConfigQuery's dos Jobs de um Cliente
+export async function getAllConfigQueries(clienteId: number): Promise<ConfigQueryInfoDTO[]> {
+    const titulo = `OBTENDO TODOS As QUERIES DO CLIENTE ID ${clienteId}`;
     requestStart(titulo);
 
     //Preparando requisição
     let config: AxiosRequestConfig = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/queries/job/${id}`,
+        url: `${REQUEST_URL}/query/cliente/${clienteId}`,
+        headers: headers,
+        timeout: 30000,
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            const lista: ConfigQueryInfoDTO[] = response.data;
+            requestSucesso(titulo, lista);
+            return lista;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para obter ConfigQuery's de um Job
+export async function getJobConfigQueries(jobId: number): Promise<ComandoSQL[]> {
+    const titulo = `OBTENDO CONFIG-QUERIES DO JOB ID ${jobId}`;
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/query/job/${jobId}`,
         headers: headers,
         timeout: 30000,
     };
@@ -518,7 +583,7 @@ export async function getJobConfigQueries(id: number): Promise<ComandoSQL[]> {
 }
 
 //Requisição para validar querys
-export async function validarQuery(comandoSql: ComandoSQL | string): Promise<string> {
+export async function validarQuery(ambienteId: number, comandoSql: ComandoSQL | string): Promise<string> {
     const titulo = "VALIDAR QUERY";
     requestStart(titulo);
     const endpoint = (typeof comandoSql === 'string') ? 'manual' : 'dynamic';
@@ -527,7 +592,7 @@ export async function validarQuery(comandoSql: ComandoSQL | string): Promise<str
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/queries/validade/${endpoint}`,
+        url: `${REQUEST_URL}/query/validade/${endpoint}/ambiente/${ambienteId}`,
         headers: headers,
         timeout: 10000,
         data: comandoSql,

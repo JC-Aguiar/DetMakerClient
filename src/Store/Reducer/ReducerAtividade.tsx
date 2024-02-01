@@ -5,17 +5,37 @@ import { JobConfig } from '../../data/JobConfigDTO';
 //Valores iniciais do recuder
 const initialState = {
     mainCliente: "", 
+    mainClienteId: -1, 
     mainAmbiente: "",
+    mainAmbienteId: -1,
     mainPipeline: "", 
+    mainPipelineId: -1,
     mainJobs: [],
 } as ReducerAtividadeProps;
 
 //Interface das propriedades deste reducer
 export interface ReducerAtividadeProps {
-    mainCliente: string;
+    mainCliente: string,
+    mainClienteId: number, 
     mainAmbiente: string;
-    mainPipeline: string;
-    mainJobs: JobConfig[];
+    mainAmbienteId: number,
+    mainPipeline: string,
+    mainPipelineId: number,
+    mainJobs: JobConfig[],
+}
+
+//Interface das propriedades do controlador setMainAmbiente
+export interface SetMainAmbienteProps {
+    cliente: string;
+    clienteId: number, 
+    ambiente: string;
+    ambienteId: number;
+}
+
+export interface SetMainPipelineProps {
+    id: number,
+    nome: string,
+    jobs: JobConfig[]
 }
 
 //Configurando ações 'configAtividade' para o reducer ReducerAtividade
@@ -23,17 +43,22 @@ const configAtividade = createSlice({
     name: 'configAtividade',
     initialState,
     reducers: {
-        setMainAmbiente: (state, action: PayloadAction<{ cliente: string, ambiente: string }>) => {
-            const {cliente, ambiente} = action.payload;
+        setMainAmbiente: (state, action: PayloadAction<SetMainAmbienteProps>) => {
+            const { cliente, clienteId,  ambiente,  ambienteId} = action.payload;
             console.log('[ReducerAtividade]: Acionado controlador configAtividade.setMainAmbiente!');
-            console.log(`[ReducerAtividade]: Definindo Cliente: '${cliente}', Ambiente: '${ambiente}'.`);
+            console.log(`[ReducerAtividade]: Definindo Cliente ID ${clienteId} '${cliente}' ` +
+                + `Ambiente ID ${ambienteId} '${ambiente}' `
+            );
             state.mainCliente = cliente;
+            state.mainClienteId = clienteId;
             state.mainAmbiente = ambiente;
+            state.mainAmbienteId = ambienteId;
         },
-        setMainPipeline: (state, action: PayloadAction<{ nome: string, jobs: JobConfig[] }>) => {
+        setMainPipeline: (state, action: PayloadAction<SetMainPipelineProps>) => {
             console.log('[ReducerAtividade]: Acionado controlador configAtividade.setMainPipeline!');
             console.log(`[ReducerAtividade]: Definindo Pipeline: '${action.payload.nome}'.`);
             console.log(`[ReducerAtividade]: Jobs inclusos: '${action.payload.jobs.map((item) => item.nome).join(", ")}'.`);
+            state.mainPipelineId = action.payload.id;
             state.mainPipeline = action.payload.nome;
             state.mainJobs = action.payload.jobs.sort((item1, item2) => item1.ordem - item2.ordem);
         },

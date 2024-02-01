@@ -5,15 +5,15 @@ import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from "../Store/ReduxStore";
 import { Noticacao } from "../components/Noticacao";
 import { RelatorioResumoDTO } from "../data/RelatorioResumoDTO";
-import { loadingRelatorios, setRelatorios } from "../Store/Reducer/ReducerRelatorios";
-import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, cubeOutline, document, eye, flag, newspaperOutline, pricetagOutline, refresh } from "ionicons/icons";
+import { addRelatorio, loadingRelatorios, setRelatorios } from "../Store/Reducer/ReducerRelatorios";
+import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, cubeOutline, document, eye, flag, flash, layers, newspaperOutline, pricetagOutline, refresh } from "ionicons/icons";
 import { layoutGrupoBotoes, ButtonLayoutProps } from "../components/ButtonLayout";
 import { offsetDateTimeParaString } from "../App";
 import { RelatorioHistoricoDTO } from "../data/RelatorioHistoricoDTO";
 import { addRevisao, removeRevisao } from "../Store/Reducer/ReducerRevisao";
 import { useHistory } from "react-router";
 import { UserDTO } from "../data/UserDTO";
-import iconPipeline from '../resources/pipeline.svg';
+import { PipelineInfoDTO } from "../data/PIpelineInfoDTO";
 
 
 const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
@@ -24,9 +24,9 @@ const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
     //const catalogoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
     const catalogoRelatorios: RelatorioResumoDTO[] = useSelector((state: RootState) => state.store.catalogoRelatorios.catalogo);
+    const catalagoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
     const isLoading: boolean = useSelector((state: RootState) => state.store.catalogoRelatorios.loading);
-    const mainCliente: string = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
-    const mainAmbiente: string = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
+    const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
     const fonteCodigo = 'h6 lh-1 font-monospace text-white ';
 
     const tag = (icone: string | null, conteudo: string | number | null, alerta: boolean = false) => {
@@ -70,7 +70,7 @@ const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro
         toastInfo("DOWNLOAD RELÁTORIOS: Em execução...", []);
         setConectionsCount(c => c+1);
         try {
-            const relatoriosBanco: RelatorioResumoDTO[] = (await axiosRequest.getAllRelatorios());
+            const relatoriosBanco: RelatorioResumoDTO[] = (await axiosRequest.getAllRelatorios(mainAmbienteId));
             dispatch(setRelatorios(relatoriosBanco));
             setRelatoriosSucesso(true);
             toastOk("DOWNLOAD RELÁTORIOS: Realizado com sucesso.", []);
@@ -83,9 +83,38 @@ const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro
         }
     }
 
+    //Requisição para reexecugar Jobs com base nos dados de um Relatório
+    async function reexecutarRelatorio(id: number) {
+        const titulo = `REEXECUTAR RELÁTORIO ID ${id}`;
+        console.log(`[ESCOLHER-RELATORIOS]: Iniciando requisição '${titulo}'.`);
+        //modalGetPipelinesOff();
+        //modalNovaPipelineOff();
+        toastInfo(`${titulo}: Em execução...`, []);
+        setConectionsCount(c => c+1);
+        try {
+            const relatorioReexecutado: RelatorioHistoricoDTO = await axiosRequest.reexecutarRelatorio(id);
+            const buttons = [
+                {
+                  text: 'Revisar',
+                  role: 'Revisar DET',
+                  handler: () => iniciarRevisao(relatorioReexecutado),
+                }
+            ];
+            toastOk(`${titulo}: Realizado com sucesso.`, buttons);
+            console.log(`[ESCOLHER-RELATORIOS]: Requisição '${titulo}' funcionou.`);
+
+            const novoRelatorioResumo: RelatorioResumoDTO = await axiosRequest.getUmRelatorio(relatorioReexecutado.id);
+            dispatch(addRelatorio(novoRelatorioResumo));
+        }
+        catch (error) {
+            toastErro(`${titulo}: ${error}`, []);
+            console.error(`[ESCOLHER-RELATORIOS]: Requisição '${titulo}' falhou.`);
+        }
+    }
+
     //Requisição para obter o relatório no banco a ser revisado
     async function obterUmaRevisao(id: number) {
-        const titulo = `OBTER RELÁTORIO ID ${id}`;
+        const titulo = `OBTER REVISÃO ID ${id}`;
         console.log(`[ESCOLHER-RELATORIOS]: Iniciando requisição '${titulo}'.`);
         //modalGetPipelinesOff();
         //modalNovaPipelineOff();
@@ -93,18 +122,27 @@ const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro
         setConectionsCount(c => c+1);
         try {
             const relatorioParaRevisar: RelatorioHistoricoDTO = await axiosRequest.getUmaRevisao(id);
-            dispatch(removeRevisao())
-            dispatch(addRevisao(relatorioParaRevisar));
-
-            toastOk(`${titulo}: Realizado com sucesso.`, []);
+            const buttons = [
+                {
+                  text: 'Revisar',
+                  role: 'Revisar DET',
+                  handler: () => iniciarRevisao(relatorioParaRevisar),
+                }
+            ];
+            toastOk(`${titulo}: Realizado com sucesso.`, buttons);
             console.log(`[ESCOLHER-RELATORIOS]: Requisição '${titulo}' funcionou.`);
-            console.log(`[ESCOLHER-RELATORIOS] Navegando para: ${axiosRequest.URL_DET}`);
-            history.push(axiosRequest.URL_DET);
         }
         catch (error) {
             toastErro(`${titulo}: ${error}`, []);
             console.error(`[ESCOLHER-RELATORIOS]: Requisição '${titulo}' falhou.`);
         }
+    }
+
+    function iniciarRevisao(revisao: RelatorioHistoricoDTO) {
+        dispatch(removeRevisao())
+        dispatch(addRevisao(revisao));
+        console.log(`[ESCOLHER-RELATORIOS] Navegando para: ${axiosRequest.URL_DET}`);
+        history.push(axiosRequest.URL_DET);
     }
 
     function abrirDet(fileBlob: Blob) {
@@ -147,6 +185,7 @@ const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro
                 .map((item, index) => {
                     const tagSucesso = !item.sucesso ? tag(alertCircleOutline, null, true) : <></>;
                     const jaRevisado = item.revisados === item.evidencias;
+                    const buttonClass = `btn btn-outline-dark border-0 my-1 p-0 w-100`;
                     return (
                         <IonRow key={index} className="ion-align-items-center p-2 px-4 ">
                             <div className="glass d-flex w-100 p-0 m-0">
@@ -177,32 +216,43 @@ const EscolherRelatorios: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro
                                                     {item.nomeAtividade}
                                                 </div>
                                                 <div className="">
-                                                    <IonIcon icon={iconPipeline} className='ms-1' style={{fill: 'var(--ion-color-light)', transform: 'translate(-3px, 3px)'}}/>
+                                                    <IonIcon icon={layers} className='ms-1' style={{fill: 'var(--ion-color-light)', transform: 'translate(-3px, 3px)'}}/>
                                                     {item.nomePipeline}
                                                 </div>
                                             </div>
                                         </IonCardContent>
                                     </IonCard>
-                                    <div>
-                                        <IonBadge color="#" className="m-0 p-0 pe-2 w-100">
+                                    <div className="p-0 pe-2">
+                                        <IonBadge color="#" className={buttonClass}>
+                                            <IonButton size="small" 
+                                                expand="block"
+                                                fill="outline"
+                                                className='m-0'
+                                                onClick={() => reexecutarRelatorio(item.id)}
+                                            >
+                                            <IonIcon icon={flash} className="pe-1" style={{transform: 'translate(0px, -1px)'}} />
+                                                Reexecutar
+                                            </IonButton>
+                                        </IonBadge>
+                                        <IonBadge color="#" className={buttonClass}>
                                             <IonButton size="small" 
                                                 expand="block"
                                                 fill="outline"
                                                 className='m-0'
                                                 onClick={() => obterUmaRevisao(item.id)}
                                             >
-                                                <IonIcon icon={eye} className="pe-1" style={{transform: 'translate(0px, -1px)'}} />
+                                            <IonIcon icon={eye} className="pe-1" style={{transform: 'translate(0px, -1px)'}} />
                                                 Revisar
                                             </IonButton>
                                         </IonBadge>
-                                        <IonBadge color="#" className="m-0 p-0 pe-2 w-100">
+                                        <IonBadge color="#" className={buttonClass}>
                                             <IonButton size="small" 
                                                 expand="block"
                                                 fill="outline"
                                                 className='m-0'
                                                 onClick={() => obterDet(item.id)}
                                             >
-                                                <IonIcon icon={document} className="pe-1" style={{transform: 'translate(0px, -1px)'}} />
+                                            <IonIcon icon={document} className="pe-1" style={{transform: 'translate(0px, -1px)'}} />
                                                 Gerar DET
                                             </IonButton>
                                         </IonBadge>

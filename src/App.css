@@ -280,25 +280,6 @@ ion-modal::part(content) {
   margin: 0;
 }
 
-ion-split-pane {
-  /*--side-width: 24%; */
-  /*--side-min-width: calc(min(5vw, 5px));*/
-  /*--side-max-width: 10px;*/
-  /*--border: 2px solid var(--ion-color-warning);*/
-}
-
-ion-menu {
-  --side-min-width: 370px;
-  --side-max-width: 370px;
-}
-
-/*
-ion-accordion {
-  position: absolute;
-  max-width: 950px;
-}
-*/
-
 .item-native {
   padding-left: 0px;
   padding-right: 0px;

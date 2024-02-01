@@ -87,7 +87,7 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
     const nomeProjeto = relatorio.nomeProjeto;
     const nomeAtividade = relatorio.nomeAtividade;
     const testeTipo = relatorio.testeTipo;
-    const sistema = relatorio.sistema;
+    const cliente = relatorio.cliente;
     const nome = user.name;
     const cargo = "DEV";
     const empresa = "PPW";
@@ -543,7 +543,7 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
                                     </tr>
                                     <tr>
                                         <td id="teste-tipo">{testeTipo}</td>
-                                        <td id="teste-sistema">{sistema}</td>
+                                        <td id="teste-sistema">{cliente}</td>
                                     </tr>
                                 </tbody>
                             </table>

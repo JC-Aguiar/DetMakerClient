@@ -27,6 +27,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
     const jobInfo: JobInfoDTO = useSelector((state: RootState) => state.store.catalogoJobs.catalago)
         .filter((item) => item.id === id)[0];
     const [jobConfigurado, setJobConfigurado] = useState<JobConfig>({...jobExec});
+    const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
     //let pronto: boolean = jobExec.pronto;
 
     //Método chamado quando este componente fica visível
@@ -173,7 +174,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
                                     aria-label="Sizing example input"
                                     aria-describedby="inputGroup-sizing-default"
                                     placeholder={jobInfo.descricaoParametros[index]}
-                                    onIonChange={(e) => preencherParametro(e, index)} //FIX01
+                                    onIonChange={(e) => preencherParametro(e, index)}
                                     value={jobConfigurado.argumentos[index]}
                                 />
                             </div>
@@ -295,7 +296,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
         console.log(`[CARD-JOB]: Iniciando requisição 'Validar ConfigQuery'.`);
         notificacao.toastInfo("VALIDAR QUERY: Em execução...", []);
         try {
-            const resultado: string = await axiosRequest.validarQuery(comandoSql);
+            const resultado: string = await axiosRequest.validarQuery(mainAmbienteId, comandoSql);
             notificacao.toastOk(`VALIDAR SQL: ${resultado}`, []);
             console.log(`[CARD-JOB]: Requisição 'Validar ConfigQuery' funcionou.`);
         }

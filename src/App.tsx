@@ -28,7 +28,7 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import { useState } from 'react';
-import { layers, receipt, checkmarkCircle, logoGoogle } from 'ionicons/icons';
+import { layers, receipt, checkmarkCircle, logoGoogle, flask } from 'ionicons/icons';
 import Login from './pages/Login';
 import EscolherPipelines from './pages/EscolherPipelines';
 import { RootState } from './Store/ReduxStore';
@@ -113,7 +113,7 @@ const App = () => {
                 message: mensagem,
                 duration: 5000,
                 position: 'bottom',
-                color: 'medium',
+                color: 'tertiary',
                 buttons: buttons,
             })
         );
@@ -158,10 +158,10 @@ const App = () => {
         {
             path: URL_PIPELINES,
             exact: true,
-            titulo: "Pipelines", 
+            titulo: "Laboratório", 
             subtitulo: "Escolha ou crie uma Pipeline para iniciar um fluxo de execução", 
             conteudo: <EscolherPipelines {...notificacao} />,
-            icone: layers,
+            icone: flask,
             desativado: mainAmbiente.length < 1 || isLoadingJobs || isLoadingPipelines,
             efeito: null, 
         },

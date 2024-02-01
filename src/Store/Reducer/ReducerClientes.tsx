@@ -1,37 +1,9 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { AmbienteInfoDTO, ClienteInfoDTO, logoVivo64, logoTim64 } from '../../pages/EscolherClientes';
+import { ClienteInfoDTO } from '../../data/ClienteInfoDTO';
 
-const vivoAmbientes: AmbienteInfoDTO[] = [
-    {
-        nome: "DEV",
-        conexaoSftp: "10.129.164.206:22",
-        conexaoBanco: "10.129.164.205:1521:cyb3dev",
-    },
-];
-
-const timAmbientes: AmbienteInfoDTO[] = [
-    {
-        nome: "DEV",
-        conexaoSftp: "172.31.10.17:7101",
-        conexaoBanco: "172.31.20.116:1521:ODVTIM",
-    },
-];
-
-const clientes: ClienteInfoDTO[] = [
-    {
-        nome: 'Vivo',
-        ambientes: vivoAmbientes,
-        imagem: logoVivo64,
-    },
-    {
-        nome: 'Tim',
-        ambientes: timAmbientes,
-        imagem: logoTim64,
-    },
-];
-
+//Valores iniciais do Reducer
 const initialState = { 
-    catalogo: clientes,
+    catalogo: [],
     clienteSelecionado: -1,
     loading: false,
 } as ReducerClientesProps;

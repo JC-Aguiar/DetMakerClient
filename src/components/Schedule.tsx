@@ -1,7 +1,7 @@
 import { IonCard, IonCol, IonContent, IonGrid, IonIcon, IonRow, useIonViewDidEnter } from '@ionic/react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
-import ScheduleJob from '../components/ScheduleJob';
+import ScheduleJob from './ScheduleJob';
 import { JobInfoDTO } from '../data/JobInfoDTO';
 
 const Schedule: React.FC = () => {

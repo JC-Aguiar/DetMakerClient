@@ -47,7 +47,7 @@ const ButtonLayout: React.FC<ButtonLayoutProps> = ({ title, icon, disable, trigg
                 </IonCol>
                 <IonCol size='12' className="m-0 p-0">
                     <IonBadge color='#' className="bg-transparent text-center lh-1" >
-                        <small className="text-white text-wrap">
+                        <small className="text-white text-wrap fw-normal">
                             {title}
                         </small>
                     </IonBadge>
