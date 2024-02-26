@@ -1,4 +1,4 @@
-import { InputChangeEventDetail, IonAccordion, IonAccordionGroup, IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCol, IonContent, IonFabButton, IonIcon, IonInput, IonItem, IonLabel, IonList, IonMenu, IonModal, IonProgressBar, IonRadio, IonRadioGroup, IonRow, IonSplitPane, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewWillEnter } from '@ionic/react';
+import { InputChangeEventDetail, IonAccordion, IonAccordionGroup, IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCol, IonContent, IonFabButton, IonIcon, IonInput, IonItem, IonLabel, IonList, IonMenu, IonModal, IonProgressBar, IonRadio, IonRadioGroup, IonRow, IonSplitPane, IonText, IonTextarea, IonTitle, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewWillEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useRef, useState } from 'react';
 import { caretDownOutline, close, closeCircle, cloudUpload, codeSlash, cube, flash, layers, listOutline, openOutline, refresh, save, shieldCheckmark } from 'ionicons/icons';
@@ -10,7 +10,7 @@ import DynamicModal from '../components/DynamicModal';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
 import { loadingPipelines, setPipelines } from '../Store/Reducer/ReducerPipelines';
 import { JobConfig, parseJobInfo } from '../data/JobConfigDTO';
-import { Noticacao } from '../components/Noticacao';
+import { Notificacao } from '../components/Noticacao';
 import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/ButtonLayout';
 import ConfigurarJobs from '../components/ConfigurarJobs';
 import { JobInfoDTO } from '../data/JobInfoDTO';
@@ -31,8 +31,9 @@ import { AmbienteInfoDTO } from '../data/AmbienteInfoDTO';
 import { ComandoSQL } from '../data/ComandoSQL';
 import { ConfigQueryInfoDTO } from '../data/ConfigQueryInfoDTO';
 import { loadingQueries, setQueries } from '../Store/Reducer/ReducerQueries';
+import ModalConfigQuery from '../components/ModalConfigQuery';
 
-const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
+const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos Redux e React
     const dispatch = useDispatch();
     const history = useHistory();
@@ -66,7 +67,6 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
     const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.catalogoJobs.jobsSelecionados);
     const catalogoJobsSelecionados: JobInfoDTO[] = catalogoJobs
         .filter((item) => jobsSelecionados.findIndex((id) => id === item.id) !== -1);
-    const catalogoQueries: ConfigQueryInfoDTO[] = useSelector((state: RootState) => state.store.catalogoQueries.catalogo);
     const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);  
     const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
@@ -450,43 +450,6 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
         </IonRadioGroup>
     );
 
-    //Listagem das Config-Queries no Menu Lateral
-    const listarQueries = (
-        <IonList className='m-0 p-0'>
-            {
-                //TODO: melhorar controle de estado
-                catalogoQueries.map((item, index) => {
-                    const color = index % 2 === 0 ? 'medium' : 'none';
-                    const handler = () => {
-                        setViewConfigQuery(item);
-                        if (!viewConfigQuery) return;
-                        setCiewConfigQuerySql(viewConfigQuery.comandosSql.sql);
-                        modalConfigQueryOn();
-                    }
-                    return (
-                        <IonItem key={index} lines='none'
-                            color={color}
-                            className='p-0 m-0 ion-align-items-top text-white small'
-                            style={{ '--min-height': '32px' }}
-                        >
-                            <IonBadge color="#" className="p-0 m-0 btn bg-transparent" onClick={handler}>
-                                <IonIcon icon={openOutline} color="primary" className='pe-1' style={{ transform: 'scale(1.2) translate(0.25px, 1.75px)' }}/>
-                            </IonBadge>
-                            <IonLabel className='p-0 m-0'>
-                                <span className='text-white font-monospace'>{item.comandosSql.tabela}</span>
-                                <IonBadge color='secondary'
-                                    className='ms-1 small fw-normal opacity-25'
-                                >
-                                    ID {item.id}
-                                </IonBadge>
-                            </IonLabel>
-                        </IonItem>
-                    );
-                })
-            }
-        </IonList>
-    );
-
     function exibirJobsSelecionados() {
         const fonteCodigo = 'font-monospace text-white fw-bold'
         return catalogoJobsSelecionados.map((jobDto, index) =>
@@ -498,11 +461,12 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
                                 <IonCardTitle className='text-dark py-0'>{jobDto.nome}</IonCardTitle>
                             </IonCardHeader>
                         </IonItem>
-                        <div className="glass rounded rounded-top-0" slot="content">
+                        <div className="glass rounded-0" slot="content">
                             <IonCardContent className='glass-content'>
                                 <div className='small'>
-                                    <section className="">
-                                        <table className="table table-stripe"> {/* table-light table-striped */}
+                                    <IonTitle color='primary' className='p-0'>Dados da Schedule</IonTitle>
+                                    <section className="mb-4">
+                                        <table className="table table-stripe">
                                             <tbody className='text-white fw-bold'>
                                                 <tr className='p-0 m-0'>
                                                     <td className='text-end' style={{ width: '0%' }}>Descrição:</td>
@@ -542,6 +506,21 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
                                                 </tr>
                                             </tbody>
                                         </table>
+                                        <IonTitle color='primary' className='p-0'>Dados de Queries</IonTitle>
+                                        {
+                                            jobDto.queries.map((queryItem, queryIndex) => {
+                                                return (
+                                                    <div className='text-white fw-bold border-bottom p-2' key={queryIndex}>
+                                                        <IonTitle color='secondary' className='w-100 h6'>
+                                                            {queryItem.tabela}
+                                                        </IonTitle>
+                                                        <div className={`${fonteCodigo} mx-4`} >
+                                                            {queryItem.sql}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })
+                                        }
                                     </section>
                                 </div>
                             </IonCardContent>
@@ -551,6 +530,49 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
             </IonCard>
         );
     }
+    /*
+        <IonList className='m-0 p-0'>
+            {
+                //TODO: melhorar controle de estado
+                query.map((item, index) => {
+                    const color = index % 2 === 0 ? 'medium' : 'none';
+                    const handler = () => {
+                        setViewConfigQuery(item);
+                        if (!viewConfigQuery) return;
+                        setCiewConfigQuerySql(viewConfigQuery.comandosSql.sql);
+                        //modalConfigQueryOn();
+                        useIonModal(
+                            DynamicModal,
+                            {
+                                titulo: `Query ID ${viewConfigQuery?.id}`,
+                                elemento: <ModalConfigQuery configQuery={} callback={} />,
+                                onDismiss: () => null,
+                            }
+                        )
+                    }
+                    return (
+                        <IonItem key={index} lines='none'
+                            color={color}
+                            className='p-0 m-0 ion-align-items-top text-white small'
+                            style={{ '--min-height': '32px' }}
+                        >
+                            <IonBadge color="#" className="p-0 m-0 btn bg-transparent" onClick={handler}>
+                                <IonIcon icon={openOutline} color="primary" className='pe-1' style={{ transform: 'scale(1.2) translate(0.25px, 1.75px)' }}/>
+                            </IonBadge>
+                            <IonLabel className='p-0 m-0'>
+                                <span className='text-white font-monospace'>{item.comandosSql.tabela}</span>
+                                <IonBadge color='secondary'
+                                    className='ms-1 small fw-normal opacity-25'
+                                >
+                                    ID {item.id}
+                                </IonBadge>
+                            </IonLabel>
+                        </IonItem>
+                    );
+                })
+            }
+        </IonList>
+    */
 
     //Configurações e propriedades da modal de nova pipeline
     const [modalNovaPipelineOn, modalNovaPipelineOff] = useIonModal(
@@ -559,16 +581,6 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
             titulo: "Criar nova Pipeline",
             elemento: conteudoModalNovaPipeline(),
             onDismiss: () => modalNovaPipelineOff(),
-        }
-    );
-
-    //Configurações e propriedades da modal de nova pipeline
-    const [modalConfigQueryOn, modalConfigQueryOff] = useIonModal(
-        DynamicModal,
-        {
-            titulo: `Query ID ${viewConfigQuery?.id}`,
-            elemento: conteudoModalConfigQuery(),
-            onDismiss: () => modalConfigQueryOff(),
         }
     );
 
@@ -815,7 +827,11 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
                 configuracao: configuracao,
                 testeTipo: "Unitário",
             };
-            const jobsDto: JobExecuteDTO[] = mainJobs.map((item) => parseJobConfigParaJobExecute(item));
+            console.log('[CONFIGURAR-JOBS]: Copvnertendo JobConfig para JobExecuteDTO...');
+            const jobsDto: JobExecuteDTO[] = mainJobs.map((item) => {
+                //console.log(JSON.stringify(item));
+                return parseJobConfigParaJobExecute(item);
+            });
             const body: PipelineExecDTO = {
                 pipeline: pipelineDto,              //TODO: informação repetida aqui
                 relatorio: relatorioDto,
@@ -865,68 +881,51 @@ const EscolherPipelines: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro 
             />;
         }
         return (
-            <IonSplitPane when="xs" contentId="main" className='px-5 mx-5 '>
+            <IonSplitPane when="xs" contentId="main" className='ps-5 ms-5 '>
                 <IonMenu contentId="main" className='glass' color='#'>
                     <IonContent className='glass-content p-0 m-0 mx-5'>
-                            <IonAccordionGroup multiple={true} className='px-2'>
-                                <IonAccordion value="jobs" className='lista-navegacao glass mb-1'>
-                                    <IonItem slot="header" color="#" className='rounded rounded-0'>
-                                        <IonFabButton className="p-2 m-0" size='small' color='#'>
-                                            <IonIcon icon={caretDownOutline} size='small' color="light" className="ion-accordion-toggle-icon" />
-                                        </IonFabButton>
-                                        <IonLabel className='d-flex py-0 my-0 ion-align-items-center ion-justify-content-between p-0 m-0'>
-                                            <span className='ms-1 text-white'>
-                                                Jobs
-                                                <IonIcon icon={cube} color='light' className='ms-1' style={{transform: 'translate(0, 3px)'}}/>
-                                            </span>
-                                        </IonLabel>
-                                    </IonItem>
-                                    <div className="p-0 m-0" slot="content">
-                                        <div className='p-0 m-0'>
-                                            <ListarJobs />
-                                        </div>
-                                    </div>
-                                </IonAccordion>
 
-                                <IonAccordion value="pipelines" className='lista-navegacao glass'>
-                                    <IonItem slot="header" color="#" className='rounded rounded-0'>
-                                        <IonFabButton className="p-2 m-0" size='small' color='#'>
-                                            <IonIcon icon={caretDownOutline} size='small' color="light" className="ion-accordion-toggle-icon" />
-                                        </IonFabButton>
-                                        <IonLabel className='d-flex ion-align-items-center ion-justify-content-between py-0 my-0'>
-                                            <span className='ms-1 text-white'>
-                                                Pipelines
-                                                <IonIcon icon={layers} color='light' className='ms-1' style={{transform: 'translate(0, 3px)'}}/>
-                                            </span>
-                                        </IonLabel>
-                                    </IonItem>
-                                    <div className="p-0 m-0" slot="content">
-                                        <div className='p-0 m-0'>
-                                            {listarPipelines}
+                        <IonAccordionGroup multiple={true} className='px-2'>
+                            <IonAccordion value="jobs" className='lista-navegacao glass mb-1'>
+                                <IonItem slot="header" color="#" className='rounded rounded-0'>
+                                    <IonFabButton className="p-2 m-0" size='small' color='#'>
+                                        <IonIcon icon={caretDownOutline} size='small' color="light" className="ion-accordion-toggle-icon" />
+                                    </IonFabButton>
+                                    <IonLabel className='d-flex py-0 my-0 ion-align-items-center ion-justify-content-between p-0 m-0'>
+                                        <span className='ms-1 text-white'>
+                                            Jobs
+                                            <IonIcon icon={cube} color='light' className='ms-1' style={{transform: 'translate(0, 3px)'}}/>
+                                        </span>
+                                    </IonLabel>
+                                </IonItem>
+                                <div className="p-0 m-0" slot="content">
+                                    <div className='p-0 m-0'>
+                                        <ListarJobs />
                                     </div>
                                 </div>
                             </IonAccordion>
 
-                            <IonAccordion value="queries" className='lista-navegacao glass'>
+                            <IonAccordion value="pipelines" className='lista-navegacao glass'>
                                 <IonItem slot="header" color="#" className='rounded rounded-0'>
                                     <IonFabButton className="p-2 m-0" size='small' color='#'>
                                         <IonIcon icon={caretDownOutline} size='small' color="light" className="ion-accordion-toggle-icon" />
                                     </IonFabButton>
                                     <IonLabel className='d-flex ion-align-items-center ion-justify-content-between py-0 my-0'>
                                         <span className='ms-1 text-white'>
-                                            Queries
-                                            <IonIcon icon={codeSlash} color='light' className='ms-1' style={{ transform: 'translate(0, 3px)' }} />
+                                            Pipelines
+                                            <IonIcon icon={layers} color='light' className='ms-1' style={{transform: 'translate(0, 3px)'}}/>
                                         </span>
                                     </IonLabel>
                                 </IonItem>
                                 <div className="p-0 m-0" slot="content">
                                     <div className='p-0 m-0'>
-                                        {listarQueries}
+                                        {listarPipelines}
                                     </div>
                                 </div>
                             </IonAccordion>
 
-                            </IonAccordionGroup>
+                        </IonAccordionGroup>
+
                     </IonContent>
                 </IonMenu>
                 <div className="container" id="main" >

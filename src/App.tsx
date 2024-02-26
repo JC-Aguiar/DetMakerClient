@@ -37,7 +37,7 @@ import { validarJwt } from './data/JwtDTO';
 import { validarUser } from './data/UserDTO';
 import Avatar from './components/Avatar';
 import DynamicPage from './components/DynamicPage';
-import { Noticacao } from './components/Noticacao';
+import { Notificacao } from './components/Noticacao';
 import { URL_CLIENTES, URL_PIPELINES, URL_RELATORIOS, URL_DET, URL_LOGIN } from './data/AxiosRequest';
 import { createBrowserHistory } from "history";
 import { JobInfoDTO } from './data/JobInfoDTO';
@@ -142,7 +142,7 @@ const App = () => {
             })
         );
     };
-    const notificacao = { toastInfo: toastInfo, toastOk: toastOk, toastErro: toastErro } as Noticacao;
+    const notificacao = { toastInfo: toastInfo, toastOk: toastOk, toastErro: toastErro } as Notificacao;
 
     const rotas: rotaTYPE[] = [
         {
@@ -150,7 +150,7 @@ const App = () => {
             exact: true,
             titulo: "Clientes", 
             subtitulo: "Escolha ou crie perfis de Clientes para acessar os recursos", 
-            conteudo: <EscolherClientes />,
+            conteudo: <EscolherClientes {...notificacao} />,
             icone: iconUserTie,
             desativado: false,
             efeito: null, //perfilSelecionado(),

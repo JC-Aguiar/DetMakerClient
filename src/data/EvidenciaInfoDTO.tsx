@@ -17,6 +17,7 @@ export interface EvidenciaInfoDTO {
     logs: AnexoInfoDTO[],
     cargas: AnexoInfoDTO[],
     saidas: AnexoInfoDTO[],
+    analise: string,
     revisor: string, 
     dataRevisao: Date,
     requisitos: string, 

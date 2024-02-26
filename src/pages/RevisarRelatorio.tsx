@@ -11,7 +11,7 @@ import { UserDTO } from '../data/UserDTO';
 import { EvidenciaRevisadaDTO } from '../data/EvidenciaRevisadaDTO';
 import * as axiosRequest from '../data/AxiosRequest';
 import { EvidenciasRevisadasDTO } from '../data/AxiosRequest';
-import { Noticacao } from '../components/Noticacao';
+import { Notificacao } from '../components/Noticacao';
 import dayjs from 'dayjs';
 import { offsetDateTimeParaString } from '../App';
 import { useHistory } from 'react-router';
@@ -47,7 +47,7 @@ export interface DetTestcase {
 export type DetStatusTYPE = "Aprovado" | "Reprovado" | "Parcial";
 
 
-const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
+const RevisarRelatorio: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     const dispatch = useDispatch();
     const history = useHistory();
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
@@ -132,6 +132,7 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
             const comentario = evidencia.comentario;
             const resultado = evidencia.resultado;
             const parametros = evidencia.argumentos;
+            const analise = evidencia.analise;
             const revisor = evidencia.revisor;
             const data = offsetDateTimeParaString(evidencia.dataFim);
             const queries = evidencia.queries;
@@ -243,15 +244,17 @@ const RevisarRelatorio: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }
                                 <th>Parâmetros do Job</th>
                                 <td>{parametros}</td>
                             </tr>
-                            { /*
-                            <tr>
-                                <th>Requisitos</th>
-                                <td>{requisitos}</td>
-                            </tr>
-                            */}
                             <tr>
                                 <th>Data do Teste</th>
                                 <td>{data}</td>
+                            </tr>
+                            <tr>
+                                <th>Análise Técnica</th>
+                                <td className='font-monospace'>
+                                    <div style={{ width: "100%", maxWidth: "950px", whiteSpace: "nowrap", overflowX: 'scroll' }}>
+                                        { analise.split("\n").map(linha => <div>{linha}</div>) }
+                                    </div>
+                                </td>
                             </tr>
                             <tr>
                                 <th>

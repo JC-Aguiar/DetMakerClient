@@ -93,21 +93,31 @@ const configAtividade = createSlice({
             });
             logItemPilha(state.mainJobs);
         },
+        removeOneMainJob: (state, action: PayloadAction<number>) => {
+            console.log('[ReducerAtividade] Acionado controlador pilhaJobs.updateOneMainJob!');
+            const id = action.payload;
+            const index = state.mainJobs.findIndex(item => item.id === id);
+            if (index !== -1) {
+                state.mainJobs.splice(index, 1);
+            }
+            logItemPilha(state.mainJobs);
+        },
     },
 });
 
 //Exibe informações dos mainJobs
 function logItemPilha(jobs: JobConfig[]) {
     console.log(`[ReducerAtividade] Main-Jobs em memória:` + '\n'
-        + jobs.map((item) => 
-            ` - IDº${item.id} - Nº${item.ordem}` + '\n' +
-            ` - Parametros: (${item.argumentos})` + '\n' +
-            ` - Queries: (${item.queries.map((comandoSql) => comandoSql.filtros).join(", ")})` + '\n' +
-            ` - Cargas: (${item.cargas.join(", ")})` + '\n'
-            //` - Pronto: ${item.pronto}`
-        )
+        + JSON.stringify(jobs)
+        //+ jobs.map((item) => 
+        //    ` - IDº${item.id} - Nº${item.ordem}` + '\n' +
+        //    ` - Parametros: (${item.argumentos})` + '\n' +
+        //    ` - Queries: (${item.queries.map((comandoSql) => comandoSql.filtros).join(", ")})` + '\n' +
+        //    ` - Cargas: (${item.cargas?.map(carga => carga.nome).join(", ")})` + '\n'
+        //    //` - Pronto: ${item.pronto}`
+        //)
     );
 }
 
 export default configAtividade.reducer;
-export const { setMainAmbiente, setMainPipeline, setMainJobs, updateOneMainJob, reorderMainJobs } = configAtividade.actions;
+export const { setMainAmbiente, setMainPipeline, setMainJobs, updateOneMainJob, reorderMainJobs, removeOneMainJob } = configAtividade.actions;

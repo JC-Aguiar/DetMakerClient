@@ -16,8 +16,9 @@ import { ClienteInfoDTO } from '../data/ClienteInfoDTO';
 import Informativo from '../components/Informativo';
 import Carregando from '../components/Carregando';
 import { AmbienteInfoDTO } from '../data/AmbienteInfoDTO';
+import { Notificacao } from '../components/Noticacao';
 
-const EscolherClientes: React.FC = () => {
+const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos úteis
     const dispatch = useDispatch();
     const history = useHistory();
@@ -32,14 +33,14 @@ const EscolherClientes: React.FC = () => {
         title: 'Atualizar',
         icon: refresh,
         trigger: () =>  coletarRecursos(),
-        disable: !isLoading,
+        disable: isLoading,
     } as ButtonLayoutProps;
 
     const botaoNovoCliente = {
         title: 'Novo Cliente',
         icon: personAdd,
         trigger: () =>  null,
-        disable: !isLoading,
+        disable: isLoading,
     } as ButtonLayoutProps;
 
     //Ações ao carregar esta página
@@ -52,9 +53,19 @@ const EscolherClientes: React.FC = () => {
     async function coletarRecursos() {
         if (isLoading) return;
 
+        console.log(`[ESCOLHER-CLIENTES]: Iniciando requisição 'Consultar Clientes'.`);
+        toastInfo("CONSULTAR CLIENTES: Em execução...", []);
         dispatch(loadingClientes(true));
-        const clientes: ClienteInfoDTO[] = await axiosRequest.getAllClientes();
-        dispatch(setClientes(clientes));
+        try {
+            const clientes: ClienteInfoDTO[] = await axiosRequest.getAllClientes();
+            dispatch(setClientes(clientes));
+            toastOk("CONSULTAR CLIENTES: Realizado com sucesso.", []);
+            console.log(`[ESCOLHER-PIPELINES]: Requisição 'Consultar Clientes' funcionou.`);
+        }
+        catch (error) {
+            toastErro(`CONSULTAR CLIENTES: ${error}`, []);
+            console.error(`[ESCOLHER-PIPELINES]: Requisição 'Consultar Clientes' falhou.`);
+        }
         dispatch(loadingClientes(false));
     }
 
@@ -133,13 +144,18 @@ const EscolherClientes: React.FC = () => {
     );
 
     if (isLoading) return <Carregando />;
-    if (catalogoClientes.length < 1) return <Informativo status='SemDados'/>;
+    if (catalogoClientes.length < 1) {
+        return <>
+            {layoutGrupoBotoes([ botaoAtualizar, botaoNovoCliente ])}
+            <Informativo status='SemDados'/>
+        </>
+    };
     return (
         <div className='container'>
             {layoutGrupoBotoes([ botaoAtualizar, botaoNovoCliente ])}
-            <div className='ion-justify-content-center glass'>
-                <div className='glass-content'>
-                    <div className='p-0 m-0 my-1 text-white text-center '>
+            <div className='ion-justify-content-center '>
+                <div className=''>
+                    <div className='p-0 m-0 text-white text-center '>
                         <span className='h5'>Lista de clientes disponíveis</span>
                     </div>
                     <Swiper navigation={true} modules={[Navigation]} >

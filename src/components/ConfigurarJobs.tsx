@@ -1,30 +1,20 @@
-import { InputChangeEventDetail, IonButton, IonCard, IonCardTitle, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, IonTextarea, ItemReorderEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from '@ionic/react';
+import { IonButton, IonCard, IonIcon, IonList, IonReorderGroup, IonRow, ItemReorderEventDetail, useIonViewDidEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import JobCard from './JobCard';
-import { flash } from 'ionicons/icons';
+import { close, flash, save } from 'ionicons/icons';
 import blueThunder from '../resources/thunder spark gif blue.gif';
 import darkThunder from '../resources/thunder spark gif dark.gif';
 import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
-import * as axiosRequest from "../data/AxiosRequest";
 import { JobConfig, } from '../data/JobConfigDTO';
 import { useDispatch } from 'react-redux';
-import DynamicModal from './DynamicModal';
-import { addRevisao, removeRevisao } from '../Store/Reducer/ReducerRevisao';
-import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
-import { PipelineExecDTO } from '../data/PipelineExecDTO';
-import { RelatorioInfoDTO } from '../data/RelatorioInfoDTO';
-import { UserInfoDTO } from '../data/UserInfoDTO';
-import { RelatorioHistoricoDTO } from '../data/RelatorioHistoricoDTO';
-import { Noticacao } from './Noticacao';
 import { reorderMainJobs, setMainJobs } from '../Store/Reducer/ReducerAtividade';
 import { UserDTO } from '../data/UserDTO';
-import { setRelatorios } from '../Store/Reducer/ReducerRelatorios';
-import { JobExecuteDTO, parseJobConfigParaJobExecute } from '../data/JobExecuteDTO';
+import { Notificacao } from './Noticacao';
 
 
-const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) => {
+const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Propriedades do <ConfigurarJobs>
     const dispatch = useDispatch();
     const reorderGroupRef = useRef<HTMLIonReorderGroupElement>(null);
@@ -32,7 +22,7 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
     const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
     const mainPipelineDescricao: string | undefined = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo)
-        .find((item) => item.nome === mainPipeline)?.nome;
+        .find((item) => item.nome === mainPipeline)?.descricao;
     const history = useHistory();
     const [thunderGif, setThunderGif] = useState(blueThunder);
     const gif = mainPipeline !== "";
@@ -109,14 +99,24 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
 
     //Renderização do componente
     return (
-        <div className='container mt-3 pt-2'>
+        <div className='container mt-3'>
             <IonCard className='glass text-white'>
-                <IonCardTitle className='glass-content text-center'>
-                    <span className='h6'>
-                        Ordene os Jobs e configure suas propriedades no ícone da engrenagem<br/>
-                        USe o menu lateral para adicionar novos Jobs quando quiser
-                    </span>
-                </IonCardTitle>
+                <div className='glass-content text-center'>
+                    <div className='h4 text-center text-dark py-2' style={{backgroundColor: 'var(--ion-color-primary)'}}>
+                        {mainPipeline}
+                    </div>
+                    <div className='py-2'>{mainPipelineDescricao}</div>
+                    <div className='d-flex px-3 pb-2'>
+                        <IonButton className='w-100' size="small" expand="block" fill="outline" >
+                            <IonIcon icon={save}  style={{transform: 'translate(-2px, -2px)'}} />
+                            Salvar
+                        </IonButton>
+                        <IonButton className='w-100' size="small" expand="block" fill="outline" >
+                            <IonIcon icon={close} style={{transform: 'translate(0px, -1px)'}} />
+                            Desselecionar
+                        </IonButton>
+                    </div>
+                </div>
             </IonCard>
                 <IonRow className='ion-justify-content-center p-0 m-0 w-100'>
                     <IonList className='w-100 py-2 px-2'>
@@ -126,7 +126,7 @@ const ConfigurarJobs: React.FC<Noticacao> = ({ toastInfo, toastOk, toastErro }) 
                                 <JobCard key={index} 
                                     jobExec={item}
                                     //jobUserInput={JobConfigUserInput[index]}
-                                    notificacao={{ toastInfo, toastOk, toastErro } as Noticacao}
+                                    notificacao={{ toastInfo, toastOk, toastErro } as Notificacao}
                                     callback={() => null}
                                 />
                             )

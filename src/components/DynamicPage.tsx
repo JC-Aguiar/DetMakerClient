@@ -27,7 +27,7 @@ const DynamicPage: React.FC<DynamicPageProps> = ({ titulo, subtitulo, elemento }
     return (
         <IonPage className="mt-2">
             <IonContent scrollEvents={true} className="p-0 m-0" >
-                <div className="container" >
+                <div className="mx-2" >
                     {elemento}
                 </div>
             </IonContent>

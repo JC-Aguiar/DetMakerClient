@@ -29,19 +29,19 @@ const Avatar: React.FC<AvatarProps> = ({ user }) => {
 
     const ambiente = () => {
         if (mainAmbiente === '') return <></>;
-        return <IonCol size="12" className="p-0 m-0">
-            <IonBadge color="primary" className="position-absolute w-100 text-center lh-1 p-0 m-0 " style={{top: '0px'}}>
-                <small className="text-dark text-wrap">{mainCliente}<br/>{mainAmbiente}</small>
-            </IonBadge>
-        </IonCol>;
+        //<IonCol size="12" className="p-0 m-0">
+        return <IonBadge color="primary" className="position-absolute w-100 text-center lh-1 p-0 m-0 " style={{right: '49px', top: '18px'}}>
+            <small className="text-dark text-wrap">{mainCliente}<br/>{mainAmbiente}</small>
+        </IonBadge>
     };
 
     return (
         <IonFab slot="fixed" vertical="top" horizontal="end" className="ion-justify-content-end ion-align-items-start" style={{ right: '18px', top: '-18px' }}>    
             <div className="p-0 m-0 mt-3"  >
                 <IonGrid className="p-0 m-0">
-                    <IonRow className="p-0 m-0 ion-justify-content-center">
+                    <IonRow className="p-0 m-0 ion-justify-content-start">
                         <IonCol size="12" className="p-0 m-0">
+                            {ambiente()}
                             <IonAvatar className="p-0 m-0 border border-4 border-primary" style={{transform: 'scale(0.8)'}}>
                                 <img src={user.picture} alt="user avatar"  referrerPolicy="no-referrer" />
                                 <IonBadge color='#' className="position-absolute bg-transparent" style={{top: '-10%', right: '-33%'}}>
@@ -58,7 +58,6 @@ const Avatar: React.FC<AvatarProps> = ({ user }) => {
                                 <small className="text-dark text-wrap">{user.name}</small>
                             </IonBadge>
                         </IonCol>
-                        {ambiente()}
                     </IonRow>
                 </IonGrid>
             </div>

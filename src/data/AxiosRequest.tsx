@@ -2,7 +2,6 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosRequestHeaders } from 'axio
 import { PipelineInfoDTO } from './PIpelineInfoDTO';
 import { PipelineExecDTO } from './PipelineExecDTO';
 import { ComandoSQL } from './ComandoSQL';
-import { JobConfigDTO } from './JobConfigDTO';
 import { RelatorioHistoricoDTO } from './RelatorioHistoricoDTO';
 import { JwtDTO } from './JwtDTO';
 import { UserDTO } from './UserDTO';

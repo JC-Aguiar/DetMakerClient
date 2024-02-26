@@ -1,3 +1,5 @@
+import { ComandoSQL } from "./ComandoSQL";
+
 export interface JobInfoDTO {
     //Atributos de uso frontend/backend
     id: number;
@@ -23,6 +25,7 @@ export interface JobInfoDTO {
     escalation: string;
     dataAtualizacao: string;
     atualizadoPor: string;
+    queries: ComandoSQL[];
 
     //Atributos de uso do front:
     //checked: boolean;

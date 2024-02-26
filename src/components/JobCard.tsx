@@ -1,22 +1,22 @@
 import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonReorder, IonRow, IonTextarea, TextareaChangeEventDetail, useIonModal, useIonViewDidEnter } from "@ionic/react";
 import React, { ChangeEvent, useEffect, useState } from "react";
-import { JobConfig, JobConfigDTO } from "../data/JobConfigDTO";
+import { JobConfig } from "../data/JobConfigDTO";
 import { ComandoSQL } from "../data/ComandoSQL";
-import { reorderFour, settings, shieldCheckmark } from "ionicons/icons";
+import { reorderFour, settings, shieldCheckmark, trash } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../Store/ReduxStore";
 import { setJobs } from "../Store/Reducer/ReducerJobs";
 import * as axiosRequest from "../data/AxiosRequest";
 import { FiltroSQL } from "../data/FiltroSQL";
-import { Noticacao } from "./Noticacao";
+import { Notificacao } from "./Noticacao";
 import DynamicModal from "./DynamicModal";
 import { JobInfoDTO } from "../data/JobInfoDTO";
-import { updateOneMainJob } from "../Store/Reducer/ReducerAtividade";
+import { removeOneMainJob, updateOneMainJob } from "../Store/Reducer/ReducerAtividade";
 
 export interface JobCardProps {
     jobExec: JobConfig,
     //jobUserInput: JobConfig,
-    notificacao: Noticacao,
+    notificacao: Notificacao,
     callback: () => void
 }
 
@@ -114,8 +114,8 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
 
     const badgeInfo = (texto: string, x: number, y: number) => {
         return <IonBadge color='tertiary' 
-            className="border m-1 sticky-top"
-            style={{position: 'absolute', top: '0%', left: `0%`, transform: `translate(${x}%, ${y}%)`}}
+            className="border m-1 sticky-top text-start ion-justify-content-start"
+            style={{position: 'absolute', top: `0%`, left: `0%`, transform: `translate(${x}%, ${y}%)`}}
         >
             {texto}
         </IonBadge>
@@ -127,22 +127,20 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
     function informacoes() {
         let sessaoExecutarApos: JSX.Element | null = null;
         if (jobInfo.executarAposJob.length > 0) {
-            sessaoExecutarApos = <div>Executar após Jobs:
-                {
-                    jobInfo.programa.map((recursos, index) => 
-                        <span key={index}> {textoCodigo(recursos)} </span>
-                    )
-                }
+            sessaoExecutarApos = <div> 
+                { textoCodigo("Executar após ID " + jobInfo.executarAposJob.join(", ") + ".") }
             </div>
         }
         let sessaoProgramas: JSX.Element | null = null;
         if (jobInfo.programa.length > 0) {
-            sessaoProgramas = <div>Programas:
-                {
-                    jobInfo.executarAposJob.map((idPosJob, index) => 
-                        <span key={index}> {textoCodigo(idPosJob)} </span>
-                    )
-                }
+            sessaoProgramas = <div> 
+                { textoCodigo("Programas " + jobInfo.programa.join(", ") + ".") }
+            </div>
+        }
+        let grupoUda: JSX.Element | null = null;
+        if (jobInfo.grupoUda.length > 0) {
+            grupoUda = <div className="d-flex lh-1">
+                { textoCodigo(`Grupo UDA${jobInfo.grupoUda}.`) }
             </div>
         }
         return (
@@ -151,8 +149,10 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
                 <div className="glass mx-4 mt-1 mb-4 pt-2 pb-4 px-2">
                     {sessaoExecutarApos}
                     {sessaoProgramas}
-                    <div className="d-flex lh-1">Grupo: {textoCodigo(`UDA${jobInfo.grupoUda}`)}</div>
-                    <div className="d-flex lh-1">Descrição: {textoCodigo(`${jobInfo.descricao}`)}</div>
+                    {grupoUda}
+                    <div className="d-flex lh-1">
+                        {textoCodigo(`${jobInfo.descricao}.`)}
+                    </div>
                 </div>
             </>
         );
@@ -166,7 +166,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
                 {
                     jobExec.argumentos.map((param, index) => {
                         return (
-                            <div key={index} className="position-relative mx-3 mt-1 mb-4 pt-2 pb-4 px-2">
+                            <div key={index} className="position-relative mx-3 my-1 pt-2 pb-4 px-2">
                                 {badgeInfo(jobInfo.parametros[index], 10, -25)}
                                 <IonInput id={`job${id}-param`}
                                     type="text"
@@ -265,31 +265,50 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
 
     //Mecânica para adicionar cargas ao ConfigJob
     function camposInputCargas() {
-        if (jobExec.cargas.length === 0) return;
+        if (!jobInfo.mascaraEntrada || jobInfo.mascaraEntrada.length === 0) return;
         return (
-
-
             <div className="px-1 mb-2">
                 {labelTitulo('CARGAS DE CONSUMO', `job${id}-carga`)}
                 {
-                    jobExec.cargas.map((carga, index) => {
-                        return (
-                            <div key={index} className="position-relative mx-3 mt-1 mb-4 pt-2 pb-4 px-2">
-                                <IonLabel className="badge bg-info mx-1 sticky-top"
-                                    style={{ position: 'absolute', top: '0%', rigth: `100%` }}
-                                >
-                                    {jobInfo.mascaraEntrada[index]}
-                                </IonLabel>
-                                <form action="/upload" method="post" encType="multipart/form-data" className="py-0my-0" >
-                                    <label htmlFor="formFile" className="form-label " ></label>
-                                    <input className="form-control " type="file" id="formFile" /> {/* onChange={getFile} */}
-                                </form>
-                            </div>
-                        );
-                    })
+                    jobInfo.mascaraEntrada.map((item, index) => 
+                        <div key={index} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
+                            {badgeInfo(item, 0, -50)}
+                            <form action="/upload" method="post" encType="multipart/form-data" className="" >
+                                <label htmlFor="formFile" className="form-label" ></label>
+                                <input className="form-control" 
+                                    type="file" id="formFile" 
+                                    onChange={e => preencherCarga(e, index)} 
+                                    style={{transform: `translate(0, -8px)`}}
+                                /> 
+                            </form>
+                        </div>
+                    )
                 }
             </div>
         );
+    }
+
+    function preencherCarga(e: React.ChangeEvent<HTMLInputElement>, index: number) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        console.log(`[CARD-JOB]: Usuário enaminhou arquivo para carga[${index}] do Job '${jobInfo.nome}':`);
+        const reader = new FileReader();
+        reader.onload = () => {
+            const novasCargas = {...jobConfigurado.cargas};
+            novasCargas[index] = {
+                nome: file.name,
+                conteudo: reader.result as string,
+                tipo: file.type,
+            };
+            setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
+            console.log('\n'
+                + ` - Nome: ${novasCargas[index].nome}` + '\n' 
+                + ` - Tamanho do conteudo: ${novasCargas[index].conteudo.length}` + '\n'
+                + ` - Tipo: ${novasCargas[index].tipo}`
+            );
+        };
+        reader.readAsText(file);
     }
 
     const validarQuery = async (comandoSql: ComandoSQL | string) => {
@@ -349,6 +368,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
         modalParamOn();
     }
 
+
     if (!jobExec) return null;
     return (
         <IonRow className="ion-align-items-center ion-justify-content-between w-100">
@@ -374,6 +394,9 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
                 </IonLabel>
                 <IonButton fill="clear" shape="round" onClick={abrirModalInfo} >
                     <IonIcon icon={settings} color='light' />
+                </IonButton>
+                <IonButton fill="clear" shape="round" onClick={ () => dispatch(removeOneMainJob(id)) }>
+                    <IonIcon icon={trash} color='light' />
                 </IonButton>
             </IonItem>
         </IonRow>
