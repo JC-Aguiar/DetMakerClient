@@ -4,6 +4,7 @@ import { RelatorioInfoDTO } from "./RelatorioInfoDTO";
 import { UserInfoDTO } from "./UserInfoDTO";
 
 export interface PipelineExecDTO {
+    clienteId: number,
     ambienteId: number,
     pipeline: PipelineInfoDTO,
     relatorio: RelatorioInfoDTO,

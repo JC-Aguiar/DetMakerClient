@@ -1,4 +1,4 @@
-import { ComandoSQL } from "./ComandoSQL";
+import { ComandoSQL, converterQueryInfoEmConfigQuery } from "./ComandoSQL";
 import { JobInfoDTO } from "./JobInfoDTO";
 
 export interface JobConfig {
@@ -25,18 +25,19 @@ export function parseJobInfo(infoDto: JobInfoDTO, ordem : number = -1): JobConfi
             .filter((item) => item)
             .map(() => "")
         ,
-        queries: infoDto.tabelas
+        queries: infoDto.queries
             .filter((item) => item)
-            .map((item) => {
-                return {
-                    campos: [],
-                    tabela: item,
-                    filtros: [],
-                    sql: "",
-                    descricao: "",
-                    dinamico: false,
-                } as ComandoSQL;
-        }),
+            .map((item) => converterQueryInfoEmConfigQuery(item)),
+            //.map((item) => {
+            //    return {
+            //        campos: item.campos,
+            //        tabela: item.tabela,
+            //        filtros: item.filtros,
+            //        sql: item.sql,
+            //        descricao: item.descricao,
+            //        dinamico: item.dinamico,
+            //    } as ComandoSQL;
+            //}),
         cargas: infoDto.mascaraEntrada
             .filter((item) => item)
             .map((item) => { return {

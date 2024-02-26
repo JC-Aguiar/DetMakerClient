@@ -1,5 +1,5 @@
-import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonIcon, IonInput, IonItem, IonLabel, IonReorder, IonRow, IonTextarea, TextareaChangeEventDetail, useIonModal } from "@ionic/react";
-import React, { useState } from "react";
+import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonReorder, IonRow, IonTextarea, TextareaChangeEventDetail, useIonModal } from "@ionic/react";
+import React, { useEffect, useState } from "react";
 import { JobConfig } from "../data/JobConfigDTO";
 import { ComandoSQL } from "../data/ComandoSQL";
 import { reorderFour, settings, shieldCheckmark, trash } from "ionicons/icons";
@@ -10,6 +10,7 @@ import { Notificacao } from "./Noticacao";
 import DynamicModal from "./DynamicModal";
 import { JobInfoDTO } from "../data/JobInfoDTO";
 import { removeOneMainJob, updateOneMainJob } from "../Store/Reducer/ReducerAtividade";
+import { FiltroSQL } from "../data/FiltroSQL";
 
 export interface JobCardProps {
     jobExec: JobConfig,
@@ -44,10 +45,12 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
     };
 
     //Método chamado quando este componente fica visível
-    //useEffect(() => {
-    //    console.log(`[CARD-JOB] jobExec.queries:  ${jobExec.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
-    //    console.log(`[CARD-JOB] jobUserInput.queries: ${jobConfigurado.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
-    //}, [jobExec]); 
+    useEffect(() => {
+        console.log(`[CARD-JOB] JobConfig: ${JSON.stringify(jobExec)}`);
+        console.log(`[CARD-JOB] Queries: ${JSON.stringify(jobExec.queries)}`);
+        //console.log(`[CARD-JOB] jobExec.queries:  ${jobExec.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
+        //console.log(`[CARD-JOB] jobUserInput.queries: ${jobConfigurado.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
+    }, [jobExec]); 
 
     //Método para salvar este JobCard (objeto ConfigJob) preenchido pelo usuário no banco
     async function salvandoItem() {
@@ -84,9 +87,30 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
     //Método de tratamento dos inputs do usuário para as ConfigQueries (automáticas)
     const preencherConfigQueries = (event: CustomEvent<InputChangeEventDetail>, queryIndex: number, filtroIndex: number) => {
         const value = (event.target as HTMLInputElement).value;
-        const tabelaAtualizada = jobConfigurado.queries;
-        tabelaAtualizada[queryIndex].filtros[filtroIndex].valor = value;
-        setJobConfigurado( {...jobConfigurado, queries: tabelaAtualizada} );
+        
+        const novasQueries = [...jobConfigurado.queries];
+        const novosFiltros: FiltroSQL[] = [...novasQueries[queryIndex].filtros]
+            .map((item, index) => {
+                if (index === filtroIndex) {
+                    return {
+                        coluna: item.coluna,
+                        valor: value,
+                        tipo: item.tipo,
+                    };
+                }
+                return item; 
+            });
+
+        novasQueries[queryIndex] = {
+            campos: novasQueries[queryIndex].campos,
+            tabela: novasQueries[queryIndex].tabela,
+            filtros: novosFiltros,
+            sql: novasQueries[queryIndex].sql,
+            descricao: novasQueries[queryIndex].descricao,
+            dinamico: novasQueries[queryIndex].dinamico,
+        };
+
+        setJobConfigurado( {...jobConfigurado, queries: novasQueries} );
         console.log(
             `[CARD-JOB] ${jobConfigurado.nome} config-query[${queryIndex}]='${jobConfigurado.queries[queryIndex].tabela}', filtro[${filtroIndex}]='${jobConfigurado.queries[queryIndex].filtros[filtroIndex].valor}'.`
         );
@@ -100,7 +124,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
         console.log(`[CARD-JOB]: Usuário enaminhou arquivo para carga[${index}] do Job '${jobInfo.nome}':`);
         const reader = new FileReader();
         reader.onload = () => {
-            const novasCargas = {...jobConfigurado.cargas};
+            const novasCargas = [...jobConfigurado.cargas];
             novasCargas[index] = {
                 nome: file.name,
                 conteudo: reader.result as string,
@@ -207,15 +231,13 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
 
     //Exibindo os campos de Queries 
     const camposInputQueries = () => {
-        if (jobInfo.queries.length < 1) return null;
+        if (jobExec.queries.length < 1) return null;
         //Gerando preenchimento dinâmico para as ConfigQuery's cadastradas
-        const queriesDinamicas = jobInfo.queries
+        const queriesDinamicas = jobConfigurado.queries
             .filter((cmdSql) => cmdSql.dinamico)
             .filter((cmdSql) => cmdSql.filtros.length > 0)
             .map((cmdSql, queryIndex) =>
-                <div key={queryIndex}
-                    className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2"
-                >
+                <div key={queryIndex} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
                     <IonIcon icon={shieldCheckmark}
                         className="btn btn-info border rounded rounded-circle p-2"
                         color="tertiary"
@@ -263,17 +285,30 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
             <div className="px-1 mb-2">
                 {labelTitulo('CARGAS DE CONSUMO', `job${id}-carga`)}
                 {
+                    //form-label
                     jobInfo.mascaraEntrada.map((item, index) => 
-                        <div key={index} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
+                        {
+                        const arquivoNome = (jobConfigurado.cargas[index].nome.length > 0) ?
+                            jobConfigurado.cargas[index].nome : 
+                            "Nenhum arquivo selecionado";
+
+                        return <div key={index} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
                             {badgeInfo(item, 0, -50)}
                             <form action="/upload" method="post" encType="multipart/form-data" className="" >
-                                <label htmlFor="formFile" className="form-label" ></label>
-                                <input className="upload p-0 pt-2" 
-                                    type="file" id="formFile" 
-                                    onChange={e => preencherCarga(e, index)} 
-                                /> 
+                                <label htmlFor="uploader" id="uploader-label" className="btn mt-1" >
+                                    Escolha um Arquivo
+                                </label>
+                                <span className="px-2 bg-transparent text-light" style={{position: "absolute", top:"24px" }}>
+                                    {arquivoNome}
+                                </span>
+                                <input id="uploader" type="file" 
+                                    accept=".log, .txt, .err, .gz"
+                                    multiple={false}
+                                    onChange={e => preencherCarga(e, index)}  
+                                />
                             </form>
                         </div>
+                        }
                     )
                 }
             </div>

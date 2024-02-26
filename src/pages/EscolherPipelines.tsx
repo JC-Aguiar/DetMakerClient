@@ -29,7 +29,7 @@ import { UserDTO } from '../data/UserDTO';
 import { UserInfoDTO } from '../data/UserInfoDTO';
 import { AmbienteInfoDTO } from '../data/AmbienteInfoDTO';
 import { ComandoSQL } from '../data/ComandoSQL';
-import { ConfigQueryInfoDTO } from '../data/ConfigQueryInfoDTO';
+import { QueryInfoDTO } from '../data/QueryInfoDTO';
 import { loadingQueries, setQueries } from '../Store/Reducer/ReducerQueries';
 import ModalConfigQuery from '../components/ModalConfigQuery';
 
@@ -45,9 +45,9 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
     const isLoadingJobs = useSelector((state: RootState) => state.store.catalogoJobs.loading);
     const isLoadingPipelines = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
     const isLoading = isLoadingJobs || isLoadingPipelines;
-    const [viewConfigQuery, setViewConfigQuery] = useState<ConfigQueryInfoDTO | null>(null);
+    const [viewConfigQuery, setViewConfigQuery] = useState<QueryInfoDTO | null>(null);
     const [viewConfigQuerySql, setCiewConfigQuerySql] = useState<string>(
-        viewConfigQuery !== null ? viewConfigQuery.comandosSql.sql : "");
+        viewConfigQuery !== null ? viewConfigQuery.sql : "");
 
     //Atributos de input do usuário
     const mainAmbiente = useSelector((state: RootState) => state.store.catalogoJobs.loading);
@@ -212,18 +212,13 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             setCiewConfigQuerySql(value);
             console.log(`[LABORATÓRIO] ConfigQuery ID ${viewConfigQuery.id} teve sua query alterada para: '${value}'.`);
         }
-        //Identificando Job da ConfigQuery
-        const jobAlvo = catalogoJobs.find((j) => j.id === viewConfigQuery.jobId);
         const queryTamanhoMin = viewConfigQuerySql.trim().length > 15;
-        const infoJobAlvo = typeof jobAlvo !== "undefined" ? 
-            <h2 className='font-monospace text-white'>{jobAlvo.nome}</h2> : 
-            <></>;
+        
         //Conteúdo visual
         return (
             <div className='position-relative mx-3 px-2'>
                 <div className="text-center pb-3">
-                    {infoJobAlvo}
-                    <div className=''>{viewConfigQuery.comandosSql.descricao}</div>
+                    {viewConfigQuery.nome}
                 </div>
                 <IonTextarea className='text-start glass font-monospace'
                     inputmode='text'
@@ -512,7 +507,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                                                 return (
                                                     <div className='text-white fw-bold border-bottom p-2' key={queryIndex}>
                                                         <IonTitle color='secondary' className='w-100 h6'>
-                                                            {queryItem.tabela}
+                                                            {queryItem.nome}
                                                         </IonTitle>
                                                         <div className={`${fonteCodigo} mx-4`} >
                                                             {queryItem.sql}
@@ -745,7 +740,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         //setQueries([]); Apagar recursos antes de uma nova coleta ou não?
         dispatch(loadingQueries(true));
         try {
-            const queriesBanco: ConfigQueryInfoDTO[] = await axiosRequest.getAllConfigQueries(mainClienteId);
+            const queriesBanco: QueryInfoDTO[] = await axiosRequest.getAllConfigQueries(mainClienteId);
             dispatch(setQueries(queriesBanco));
             toastOk("DOWNLOAD QUERIES: Realizado com sucesso.", []);
             console.log(`[ESCOLHER-PIPELINES]: Requisição 'Download Config-Queries' funcionou.`);
@@ -842,6 +837,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                     empresa: user ? "PPW" : null,
                 } as UserInfoDTO,
                 ambienteId: mainAmbienteId,
+                clienteId: mainClienteId
             };
 
             dispatch(removeRevisao());

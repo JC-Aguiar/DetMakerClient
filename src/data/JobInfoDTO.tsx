@@ -1,4 +1,5 @@
 import { ComandoSQL } from "./ComandoSQL";
+import { QueryInfoDTO } from "./QueryInfoDTO";
 
 export interface JobInfoDTO {
     //Atributos de uso frontend/backend
@@ -25,7 +26,7 @@ export interface JobInfoDTO {
     escalation: string;
     dataAtualizacao: string;
     atualizadoPor: string;
-    queries: ComandoSQL[];
+    queries: QueryInfoDTO[];
 
     //Atributos de uso do front:
     //checked: boolean;

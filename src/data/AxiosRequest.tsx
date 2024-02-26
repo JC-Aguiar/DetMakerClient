@@ -11,7 +11,7 @@ import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_PROFILE_INFO, GOOGLE_RED
 import { JobInfoDTO } from './JobInfoDTO';
 import { RelatorioResumoDTO } from './RelatorioResumoDTO';
 import { ClienteInfoDTO } from './ClienteInfoDTO';
-import { ConfigQueryInfoDTO } from './ConfigQueryInfoDTO';
+import { QueryInfoDTO } from './QueryInfoDTO';
 
 const EM_TESTE = true;
 
@@ -530,7 +530,7 @@ export async function saveRevisaoRelatorio(relatorio: RelatorioRevisadoDTO): Pro
 }
 
 //Requisição para obter todas as ConfigQuery's dos Jobs de um Cliente
-export async function getAllConfigQueries(clienteId: number): Promise<ConfigQueryInfoDTO[]> {
+export async function getAllConfigQueries(clienteId: number): Promise<QueryInfoDTO[]> {
     const titulo = `OBTENDO TODOS As QUERIES DO CLIENTE ID ${clienteId}`;
     requestStart(titulo);
 
@@ -546,7 +546,7 @@ export async function getAllConfigQueries(clienteId: number): Promise<ConfigQuer
     return await axios
         .request(config)
         .then((response) => {
-            const lista: ConfigQueryInfoDTO[] = response.data;
+            const lista: QueryInfoDTO[] = response.data;
             requestSucesso(titulo, lista);
             return lista;
         })
