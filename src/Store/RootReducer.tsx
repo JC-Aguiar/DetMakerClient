@@ -6,6 +6,7 @@ import catalogoClientes from './Reducer/ReducerClientes';
 import catalogoJobs from './Reducer/ReducerJobs';
 import catalogoPipelines  from './Reducer/ReducerPipelines';
 import catalogoRelatorios  from './Reducer/ReducerRelatorios';
+import catalogoMassas  from './Reducer/ReducerMassas';
 //import catalogoQueries  from './Reducer/ReducerQueries';
 import docRevisao from "./Reducer/ReducerRevisao";
 import projetos from './Reducer/ReducerProjetos';
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
     catalogoClientes: catalogoClientes,
     catalogoJobs: catalogoJobs,
     catalogoPipelines: catalogoPipelines,
+    catalogoMassas: catalogoMassas,
     //catalogoQueries: catalogoQueries,
     catalogoRelatorios: catalogoRelatorios,
     docRevisao: docRevisao,

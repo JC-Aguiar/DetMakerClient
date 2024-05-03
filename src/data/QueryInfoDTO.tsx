@@ -1,5 +1,3 @@
-import { ComandoSQL } from "./ComandoSQL";
-
 export interface QueryInfoDTO {
     id: number,
     nome: string,

@@ -533,6 +533,30 @@ input[type="file"]::-webkit-file-upload-button {
   -webkit-animation: spin-right z0s linear infinite;
   animation: spin-right 60s linear infinite;
 }
+/*
+#opcao-tipo-massa {
+  --placeholder-opacity: 100%;
+}
+
+#opcao-tipo-massa::part(content) {
+  --placeholder-opacity: 100%;
+}
+*/
+.ion-select-action-sheet {
+  --backdrop-opacity: 40%;
+  --background: var(--ion-color-tertiary);
+  --min-width: 24vw;
+}
+
+.ion-select-action-sheet .alert-wrapper .alert-radio-group {
+  border-color: var(--ion-color-primary-shade);
+}
+
+.ion-select-action-sheet .alert-wrapper .alert-radio-group button:hover {
+  background: var(--ion-color-primary-shade);
+}
+/*alert-radio-button*/
+
 
 .orbit-cirlce1 {
   position: fixed;

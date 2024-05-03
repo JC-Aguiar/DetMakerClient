@@ -1,19 +1,22 @@
 import { IonContent, IonFab, IonFabButton, IonFooter, IonHeader, IonIcon, } from "@ionic/react";
 import { close, closeCircle, closeCircleOutline } from "ionicons/icons";
 import React from "react";
+import { DynamicModalContent } from "./DynamicModalContent";
 
 //Propriedades da modal 
 export interface DynamicModalProps {
     titulo: string,
-    elemento: JSX.Element,
+    elemento: JSX.Element, // & DynamicModalContent,
     onDismiss: () => void,
     padding?: boolean,
-    fullSize?: boolean,
+    //fullSize?: boolean, (fullSize = true)
 }
 
 //Conteúdo da modal
-const DynamicModal: React.FC<DynamicModalProps> = ({ titulo, elemento, onDismiss, padding = true , fullSize = true }) => {
+const DynamicModal: React.FC<DynamicModalProps> = ({ titulo, elemento, onDismiss, padding = true }) => {
     //border-bottom border-2 border-warning
+    //const possuiButoes = typeof elemento.getButtons === 'function' && elemento.getButtons() !== undefined 
+    //const butoes = possuiButoes ? elemento.getButtons!() : <></>;
     return (
         <>
             <IonHeader className="banner p-2 m-0 text-center">

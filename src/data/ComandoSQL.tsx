@@ -2,8 +2,8 @@ import { FiltroSQL } from "./FiltroSQL";
 import { QueryInfoDTO } from "./QueryInfoDTO";
 
 export interface ComandoSQL {
+    nome: string;
     campos: string[];
-    tabela: string;
     filtros: FiltroSQL[];
     sql: string;
     descricao: string;
@@ -56,10 +56,9 @@ export function converterQueryInfoEmConfigQuery(dto: QueryInfoDTO): ComandoSQL {
             });
         }
     }
-
     //Retornando nova instância de ComandoSQL
     return {
-        tabela: dto.nome,
+        nome: dto.nome,
         campos: campos,
         filtros: filtros,
         descricao: dto.descricao,

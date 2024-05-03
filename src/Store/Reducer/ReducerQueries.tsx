@@ -13,8 +13,8 @@ interface ReducerQueriesProps {
 }
 
 //Controlador reducer para os relatórios
-const catalogoRelatorios = createSlice({
-    name: 'catalogoRelatorios',
+const catalogoQueries = createSlice({
+    name: 'catalogoQueries',
     initialState,
     reducers: {
         setQueries: (state, action: PayloadAction<QueryInfoDTO[]>) => {
@@ -22,17 +22,17 @@ const catalogoRelatorios = createSlice({
                 console.log('[ReducerQueries] Erro: payload inválido, pois não é um array.');
                 return { ...state };
             }
-            console.log('[ReducerQueries]: Acionado controlador catalogoRelatorios.setQueries!');
+            console.log('[ReducerQueries]: Acionado controlador catalogoQueries.setQueries!');
             state.catalogo = action.payload;
             logClientes(state.catalogo);
         },
         addQueries: (state, action: PayloadAction<QueryInfoDTO>) => {
-            console.log('[ReducerQueries]: Acionado controlador catalogoRelatorios.addQueries!');
+            console.log('[ReducerQueries]: Acionado controlador catalogoQueries.addQueries!');
             state.catalogo.push(action.payload);
             logClientes(state.catalogo);
         },
         loadingQueries: (state, action: PayloadAction<boolean>) => {
-            console.log('[ReducerQueries]: Acionado controlador catalogoRelatorios.loadingQueries!');
+            console.log('[ReducerQueries]: Acionado controlador catalogoQueries.loadingQueries!');
             state.loading = action.payload;
             console.log(`[ReducerQueries]: Catalogo de Relatorios ${state.loading ? 'está carregando..' : 'pronto'}.`);
         },
@@ -41,12 +41,12 @@ const catalogoRelatorios = createSlice({
 
 //Exibe informações da item-pilah pelos controladores
 function logClientes(clientes: QueryInfoDTO[]) {
-    console.log(`[ReducerQueries] Catálogo de Relatorios em memória:` + '\n' + clientes.map(
+    console.log(`[ReducerQueries] Catálogo de Queries em memória:` + '\n' + clientes.map(
         (item) => ` - ID: ${item.id}` + '\n' 
                 + ` - Nome: ${item.nome}`
                 + ` - SQL: '${item.sql}'`
     ));
 }
 
-export default catalogoRelatorios.reducer;
-export const { setQueries, addQueries, loadingQueries } = catalogoRelatorios.actions;
+export default catalogoQueries.reducer;
+export const { setQueries, addQueries, loadingQueries } = catalogoQueries.actions;

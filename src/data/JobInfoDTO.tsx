@@ -1,4 +1,3 @@
-import { ComandoSQL } from "./ComandoSQL";
 import { QueryInfoDTO } from "./QueryInfoDTO";
 
 export interface JobInfoDTO {

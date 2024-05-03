@@ -14,5 +14,4 @@ export interface RelatorioHistoricoDTO {
     ambiente: string,
     evidencias: EvidenciaInfoDTO[],
     data: string,
-    sucesso: string,
 }

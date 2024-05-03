@@ -72,7 +72,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
         const novasQueries = [...jobConfigurado.queries];
         novasQueries[index] = {
             campos: novasQueries[index].campos,
-            tabela: novasQueries[index].tabela,
+            nome: novasQueries[index].nome,
             filtros: [],
             sql: value,
             descricao: novasQueries[index].descricao,
@@ -80,7 +80,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
         };
         setJobConfigurado( {...jobConfigurado, queries: novasQueries} );
         console.log(
-            `[CARD-JOB] ${jobConfigurado.nome} query[${index}]='${jobConfigurado.queries[index].tabela}', sql='${jobConfigurado.queries[index].sql}'.`
+            `[CARD-JOB] ${jobConfigurado.nome} query[${index}]='${jobConfigurado.queries[index].nome}', sql='${jobConfigurado.queries[index].sql}'.`
         );
     }
 
@@ -103,7 +103,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
 
         novasQueries[queryIndex] = {
             campos: novasQueries[queryIndex].campos,
-            tabela: novasQueries[queryIndex].tabela,
+            nome: novasQueries[queryIndex].nome,
             filtros: novosFiltros,
             sql: novasQueries[queryIndex].sql,
             descricao: novasQueries[queryIndex].descricao,
@@ -112,7 +112,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
 
         setJobConfigurado( {...jobConfigurado, queries: novasQueries} );
         console.log(
-            `[CARD-JOB] ${jobConfigurado.nome} config-query[${queryIndex}]='${jobConfigurado.queries[queryIndex].tabela}', filtro[${filtroIndex}]='${jobConfigurado.queries[queryIndex].filtros[filtroIndex].valor}'.`
+            `[CARD-JOB] ${jobConfigurado.nome} config-query[${queryIndex}]='${jobConfigurado.queries[queryIndex].nome}', filtro[${filtroIndex}]='${jobConfigurado.queries[queryIndex].filtros[filtroIndex].valor}'.`
         );
     }
 
@@ -122,6 +122,14 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
         if (!file) return;
 
         console.log(`[CARD-JOB]: Usuário enaminhou arquivo para carga[${index}] do Job '${jobInfo.nome}':`);
+        const maxByteSize = 1 ; // 1MB
+        if (file.size > (maxByteSize * 1024 * 1024)) {
+            const mensagem = `Tamanho do arquivo excede o limite de ${maxByteSize}MB.`;
+            console.warn(mensagem);
+            notificacao.toastErro(mensagem, []);
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = () => {
             const novasCargas = [...jobConfigurado.cargas];
@@ -131,13 +139,9 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
                 tipo: file.type,
             };
             setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
-            console.log('\n'
-                + ` - Nome: ${novasCargas[index].nome}` + '\n' 
-                + ` - Tamanho do conteudo: ${novasCargas[index].conteudo.length}` + '\n'
-                + ` - Tipo: ${novasCargas[index].tipo}`
-            );
         };
         reader.readAsText(file);
+        notificacao.toastOk(`Arquivo '${jobConfigurado.cargas[index].nome}' carregado com sucesso.`, []);
     }
 
     //Exibindo dados do Job no card
@@ -215,7 +219,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
                         style={{ position: 'absolute', top: '0%', left: `100%`, transform: `translate(-55%, -45%)` }}
                         onClick={(e) => validarQuery(jobConfigurado.queries[index].sql)}
                     />
-                    { badgeInfo(cmdSql.tabela, 0, -50) }
+                    { badgeInfo(cmdSql.nome, 0, -50) }
                     <IonTextarea id={`job${id}-sql`}
                         className="form-control text-white glass text-start m-0 p-0"
                         aria-label="With textarea"
@@ -245,7 +249,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
                         style={{ position: 'absolute', top: '0%', left: `100%`, transform: `translate(-50%, -50%)` }}
                         onClick={(e) => validarQuery(jobConfigurado.queries[queryIndex])}
                     />
-                    {badgeInfo(cmdSql.tabela, 0, -50)}
+                    {badgeInfo(cmdSql.nome, 0, -50)}
                     {cmdSql.descricao}
                     <br />
                     <IonCard color="dark" className="font-monospace small opacity-75 mx-0 my-2 px-2 ">

@@ -1,7 +1,6 @@
-import { InputChangeEventDetail, IonAccordion, IonAccordionGroup, IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCol, IonContent, IonFabButton, IonIcon, IonInput, IonItem, IonLabel, IonList, IonMenu, IonModal, IonProgressBar, IonRadio, IonRadioGroup, IonRow, IonSplitPane, IonText, IonTextarea, IonTitle, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonModal, useIonViewWillEnter } from '@ionic/react';
-import { useHistory } from 'react-router';
+import { IonAccordion, IonAccordionGroup, IonBadge, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonFabButton, IonIcon, IonItem, IonLabel, IonList, IonMenu, IonModal, IonRadio, IonRadioGroup, IonSplitPane, IonTitle, RadioGroupChangeEventDetail, useIonModal, useIonViewWillEnter } from '@ionic/react';
 import { useRef, useState } from 'react';
-import { caretDownOutline, close, closeCircle, cloudUpload, codeSlash, cube, flash, layers, listOutline, openOutline, refresh, save, shieldCheckmark } from 'ionicons/icons';
+import { caretDownOutline, closeCircle, cloudUpload, cube, flash, layers, library, listOutline, open, refresh } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from '../Store/ReduxStore';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,354 +18,121 @@ import ListarJobs from '../components/ListarJobs';
 import Schedule from '../components/Schedule';
 import Informativo from '../components/Informativo';
 import Carregando from '../components/Carregando';
-import { addRevisao, removeRevisao } from '../Store/Reducer/ReducerRevisao';
-import { setRelatorios } from '../Store/Reducer/ReducerRelatorios';
-import { RelatorioHistoricoDTO } from '../data/RelatorioHistoricoDTO';
-import { JobExecuteDTO, parseJobConfigParaJobExecute } from '../data/JobExecuteDTO';
-import { PipelineExecDTO } from '../data/PipelineExecDTO';
-import { RelatorioInfoDTO } from '../data/RelatorioInfoDTO';
-import { UserDTO } from '../data/UserDTO';
-import { UserInfoDTO } from '../data/UserInfoDTO';
-import { AmbienteInfoDTO } from '../data/AmbienteInfoDTO';
-import { ComandoSQL } from '../data/ComandoSQL';
 import { QueryInfoDTO } from '../data/QueryInfoDTO';
 import { loadingQueries, setQueries } from '../Store/Reducer/ReducerQueries';
-import ModalConfigQuery from '../components/ModalConfigQuery';
+import ModalNovaPipeline from '../components/ModalNovaPipeline';
+import ModalConfigPipeline from '../components/ModalConfigPipeline';
+import { MassaTabelaDTO } from '../data/MassaTabelaDTO';
+import { loadingMassa, setMassas } from '../Store/Reducer/ReducerMassas';
+import ModalConfigMassa from '../components/ModalConfigMassa';
 
 const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos Redux e React
     const dispatch = useDispatch();
-    const history = useHistory();
 
     //Atributos de controle
+    const notificacao = { toastInfo: toastInfo, toastOk: toastOk, toastErro: toastErro } as Notificacao;
     const [conectionsCount, setConectionsCount] = useState<number>(0);
     const [jobsSucesso, setJobsSucesso] = useState<boolean | null>(null);
     const [pipelinesSucesso, setPipelinesSucesso] = useState<boolean | null>(null);
     const isLoadingJobs = useSelector((state: RootState) => state.store.catalogoJobs.loading);
     const isLoadingPipelines = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
     const isLoading = isLoadingJobs || isLoadingPipelines;
-    const [viewConfigQuery, setViewConfigQuery] = useState<QueryInfoDTO | null>(null);
-    const [viewConfigQuerySql, setCiewConfigQuerySql] = useState<string>(
-        viewConfigQuery !== null ? viewConfigQuery.sql : "");
 
     //Atributos de input do usuário
-    const mainAmbiente = useSelector((state: RootState) => state.store.catalogoJobs.loading);
-    const [pipelineNome, setPipelineNome] = useState<string>("");
-    const [pipelineDescricao, setPipelineDescricao] = useState<string>("");
-    const [projetoId, setProjetoId] = useState<string>("");
-    const [projetoNome, setProjetoNome] = useState<string>("");
-    const [atividadeNome, setAtividadeNome] = useState<string>("");
-    const [configuracao, setConfiguracao] = useState<string>("");
-    const [enviar, setEnviar] = useState<boolean | undefined>(false);
     const [anexo, setAnexo] = useState<File | null>(null);
+    const [massaToView, setMassaToView] = useState<string>("");
 
     //Atributos dos principais recursos da página
-    const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
     const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalago);
-    const catalagoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
+    const catalogoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
+    const catalogoMassas: MassaTabelaDTO[] = useSelector((state: RootState) => state.store.catalogoMassas.catalogo);
     const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.catalogoJobs.jobsSelecionados);
-    const catalogoJobsSelecionados: JobInfoDTO[] = catalogoJobs
-        .filter((item) => jobsSelecionados.findIndex((id) => id === item.id) !== -1);
+    const catalogoJobsSelecionados: JobInfoDTO[] = catalogoJobs.filter(
+        (item) => jobsSelecionados.findIndex((id) => id === item.id) !== -1);
     const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);  
     const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
-    const mainPipelineId: number = useSelector((state: RootState) => state.store.configAtividade.mainPipelineId);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
-    const mainPipelineIndex: number = catalagoPipelines.findIndex((item) => item.nome === mainPipeline);
-    const mainPipelineDescricao: string | undefined = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo)
-        .find((item) => item.nome === mainPipeline)?.nome;
 
-    //Atributos de botões
-    const botaoAtualizar = {
-        title: 'Atualizar',
-        icon: refresh,
-        trigger: () => coletarRecursos(),
-        disable: isLoading,
-    } as ButtonLayoutProps;
+    //Ações ao carregar esta página
+    useIonViewWillEnter(() => {
+        if ((catalogoJobs.length < 1 || conectionsCount < 1) && !isLoading) coletarRecursos();
+    }, []);
 
-    const botaoNovaPipeline = {
-        title: 'Nova Pipeline',
-        icon: layers,
-        trigger: () =>  modalNovaPipelineOn(),
-        disable: isLoading || catalogoJobs.length < 1,
-    } as ButtonLayoutProps;
+    //Botões
+    const butoes: ButtonLayoutProps[] = [ 
+        {
+            title: 'Atualizar',
+            icon: refresh,
+            trigger: () => coletarRecursos(),
+            disable: isLoading,
+        }, 
+        {
+            title: 'Nova Pipeline',
+            icon: layers,
+            trigger: () =>  modalNovaPipelineOn(),
+            disable: isLoading || catalogoJobs.length < 1,
+        }, 
+        {
+            title: 'Executar Pipeline',
+            icon: flash,
+            trigger: () => modalConfigPipelineOn(),
+            disable: isLoading || mainJobs.length < 1,
+        }, 
+        {
+            title: 'Ver Schedule',
+            icon: listOutline,
+            trigger: () => {
+                if (!modalRef || !modalRef.current) return;
+                modalRef.current.present();
+                setVerModalSchedule(true);
+                console.log(`Ativando modal Shedule (var: ${verModalSchedule})`);
+            },
+            disable: isLoading || catalogoJobs.length < 1,
+        }, 
+        {
+            title: 'Nova Schedule',
+            icon: cloudUpload,
+            trigger: () => uploadSchedule(),
+            disable: isLoading,
+        } 
+    ];
 
-    const botaoExecutarPipeline = {
-        title: 'Executar Pipeline',
-        icon: flash,
-        trigger: () => modalConfigPipelineOn(),
-        disable: isLoading || mainJobs.length < 1,
-    } as ButtonLayoutProps;
-
-    const botaoVerSchedule = {
-        title: 'Ver Schedule',
-        icon: listOutline,
-        trigger: () => {
-            if (!modalRef || !modalRef.current) return;
-            modalRef.current.present();
-            setVerModalSchedule(true);
-            console.log(`Ativando modal Shedule (var: ${verModalSchedule})`);
-        },
-        disable: isLoading || catalogoJobs.length < 1,
-    } as ButtonLayoutProps;
-
-    const botaoNovaSchedule = {
-        title: 'Nova Schedule',
-        icon: cloudUpload,
-        trigger: () => uploadSchedule(),
-        disable: isLoading,
-    } as ButtonLayoutProps;
-
-    const butoes = [ botaoAtualizar, botaoNovaPipeline, botaoExecutarPipeline, botaoVerSchedule, botaoNovaSchedule ];
-
-    //Conteúdo da modal 'Nova Pipeline'
-    function conteudoModalNovaPipeline() {
-        //handler para preencher nome da Pipeline
-        const preencherPepilineNome = (event: CustomEvent<InputChangeEventDetail>) => {
-            const value = (event.target as HTMLInputElement).value.trim();
-            setPipelineNome(value);
-            console.log(`[CONFIGURAR-JOBS] Pipeline nome alterada para ${value}.`);
-        }
-        //Handler para preencher descrição da Pipeline
-        const preencherPepilineDescricao = (event: CustomEvent<TextareaChangeEventDetail>) => {
-            const value = (event.target as HTMLInputElement).value.trim();
-            setPipelineDescricao(value);
-            console.log(`[CONFIGURAR-JOBS] Pipeline descrição alterada para ${value}.`);
-        }
-        return <>
-            <div className="container justify-content-center mt-1 px-5">
-                <div className='glass px-3'>
-                    <div className='h5 text-center text-white py-2 mt-2 mb-4'>
-                        Preencha os dados abaixo para prosseguir
-                    </div>
-                    <div className='text-primary'>
-                        <IonRow className='p-0 m-0 w-100 ion-align-items-center'>
-                            <IonCol size='1' className='text-center p-0 m-0'>
-                                <IonLabel className='fw-bold'>Pipeline:</IonLabel>
-                            </IonCol>
-                            <IonCol size='11' className=''>
-                                <IonInput inputmode='text'
-                                    maxlength={500}
-                                    value={pipelineNome}
-                                    className='glass text-white m-1'
-                                    onIonChange={(e) => preencherPepilineNome(e)}
-                                    required
-                                />
-                            </IonCol>
-                        </IonRow>
-                        <IonRow className='p-0 m-0 w-100 ion-align-items-center'>
-                            <IonCol size='1' className='text-center p-0 m-0'>
-                                <IonLabel className='fw-bold'>Descrição:</IonLabel>
-                            </IonCol>
-                            <IonCol size='11' className=''>
-                                <IonTextarea inputmode='text'
-                                    maxlength={500}
-                                    value={pipelineDescricao}
-                                    className='glass text-white m-1'
-                                    style={{minHeight: '100px' }}
-                                    onIonChange={(e) => preencherPepilineDescricao(e)}
-                                    required
-                                />
-                            </IonCol>
-                        </IonRow>
-                        <IonRow className='d-flex w-100 ion-align-items-center'>
-                            <IonCol size='1' className='text-center p-0 m-0'>
-                                <IonLabel className='fw-bold mt-2' >Jobs:</IonLabel>
-                            </IonCol>
-                            <IonCol size='11' className=''>
-                                <div className='ms-1 pt-1 glass'>
-                                {
-                                    catalogoJobsSelecionados.map((item, index) => 
-                                        <IonBadge key={index} className='ion-align-items-center mx-1 mt-1 pt-2 font-monospace small'>
-                                            <span style={{backgroundColor: 'var(--ion-color-dark)'}} className='rounded text-white px-1'>
-                                                Nº{index+1}
-                                            </span>
-                                            <span className='ms-1 pt-1'>{item.nome}</span>
-                                        </IonBadge>
-                                    )
-                                }
-                                </div>
-                            </IonCol>
-                        </IonRow>
-                        <IonButton fill='solid'
-                            className='w-100 mt-4 my-3' 
-                            disabled={pipelineNome.trim().length < 2 || pipelineDescricao.trim().length < 2} 
-                            onClick={() => salvarNovaPipeline()} 
-                        > 
-                            <IonIcon icon={save} className='me-2'/>
-                            Salvar no Banco
-                        </IonButton>
-                    </div>
-                </div>
-            </div>
-        </>
-    }
-
-    //Conteúdo da modal 'Vizualizar Config Query'
-    function conteudoModalConfigQuery() {
-        //Validação obrigatória
-        if (!viewConfigQuery) return;
-        //Handler para preencher query
-        const preencherSql = (event: CustomEvent<TextareaChangeEventDetail>) => {
-            const value = (event.target as HTMLInputElement).value.trim();
-            setCiewConfigQuerySql(value);
-            console.log(`[LABORATÓRIO] ConfigQuery ID ${viewConfigQuery.id} teve sua query alterada para: '${value}'.`);
-        }
-        const queryTamanhoMin = viewConfigQuerySql.trim().length > 15;
-        
-        //Conteúdo visual
-        return (
-            <div className='position-relative mx-3 px-2'>
-                <div className="text-center pb-3">
-                    {viewConfigQuery.nome}
-                </div>
-                <IonTextarea className='text-start glass font-monospace'
-                    inputmode='text'
-                    rows={9}
-                    maxlength={900}
-                    value={viewConfigQuerySql}
-                    onIonChange={(e) => preencherSql(e)}
-                />
-                <div className='d-flex my-2'>
-                    <IonButton fill='solid'
-                        className='w-100' 
-                        disabled={!queryTamanhoMin} 
-                        onClick={() => salvarNovaPipeline()} 
-                    > 
-                        <IonIcon icon={save} className='me-2'/>
-                        Salvar
-                    </IonButton>
-                    <IonButton fill='solid'
-                        className='w-100' 
-                        disabled={!queryTamanhoMin} 
-                        onClick={() => salvarNovaPipeline()} 
-                    > 
-                        <IonIcon icon={shieldCheckmark} className='me-2'/>
-                        Testar
-                    </IonButton>
-                    <IonButton fill='solid'
-                        className='w-100' 
-                        disabled={!queryTamanhoMin} 
-                        onClick={() => salvarNovaPipeline()} 
-                    > 
-                        <IonIcon icon={close} className='me-2'/>
-                        Cancelar
-                    </IonButton>
-                </div>
-            </div>
-
-        );
-    }
-
-    //Handler para preencher id do projeto
-    const preencherProjetoId = (event: CustomEvent<InputChangeEventDetail>) => {
-        const value = (event.target as HTMLInputElement).value.trim();
-        setProjetoId(value);
-        console.log(`[CONFIGURAR-JOBS] Projeto id alterado para ${value}.`);
-    }
-
-    //Handler para preencher nome do projeto
-    const preencherProjetoNome = (event: CustomEvent<InputChangeEventDetail>) => {
-        const value = (event.target as HTMLInputElement).value.trim();
-        setProjetoNome(value);
-        console.log(`[CONFIGURAR-JOBS] Projeto nome alterado para ${value}.`);
-    }
-
-    //Handler para preencher nome da atividade
-    const preencherAtividade = (event: CustomEvent<InputChangeEventDetail>) => {
-        const value = (event.target as HTMLInputElement).value.trim();
-        setAtividadeNome(value);
-        console.log(`[CONFIGURAR-JOBS] Atividade nome alterada para ${value}.`);
-    }
-
-    //Handler para preencher configuração do môdulo
-    const preencherConfiguracao = (event: CustomEvent<TextareaChangeEventDetail>) => {
-        const value = (event.target as HTMLInputElement).value.trim();
-        setConfiguracao(value);
-        console.log(`[CONFIGURAR-JOBS] Configuração do môdulo alterado para ${value}.`);
-    }
-
-    //Modal para executar a Pipeline
+    //Modal para executar a main Pipeline
     const [modalConfigPipelineOn, modalConfigPipelineOff] = useIonModal(
         DynamicModal,
         {
             titulo: "Executar Pipeline",
-            elemento: conteudoConfigPipeline(),
+            elemento: <ModalConfigPipeline toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />,
             onDismiss: () => modalConfigPipelineOff(),
         }
     );
 
-    function camposPreenchidos(): boolean {
-        if (!mainPipelineDescricao) return false;
-        return projetoId.trim().length > 0 && projetoNome.trim().length > 0 && atividadeNome.trim().length > 0;
-    }
+    //Modal para criar nova Pipeline
+    const [modalNovaPipelineOn, modalNovaPipelineOff] = useIonModal(
+        DynamicModal,
+        {
+            titulo: "Criar Nova Pipeline",
+            elemento: <ModalNovaPipeline toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />, //conteudoModalNovaPipeline(),
+            onDismiss: () => modalNovaPipelineOff(),
+        }
+    );
 
-    //Conteúdo da modal 'Executar Pipeline'
-    function conteudoConfigPipeline() {
-        if (mainPipeline === "") return;
-        return (
-            <div id="capa-jobs" className="row justify-content-center px-3 mx-0">
-                <div className='col row mt-2 px-0 mx-0 glass'>
-                    <div className='h5 bg-primary text-center text-white py-1 mb-3 rounded-top rounded-top-2'>
-                        Preencha os dados abaixo para prosseguir
-                    </div>
-                    <IonItem className='text-primary'>
-                        <IonLabel className='fw-bold me-4 '>Projeto Id:</IonLabel>
-                        <IonInput inputmode='text'
-                            type='text'
-                            size={10}
-                            maxlength={7}
-                            value={projetoId}
-                            className='glass text-white m-1 ms-3 me-3'
-                            style={{width: '256px', maxWidth: '256px'}}
-                            onIonChange={(e) => preencherProjetoId(e)}
-                            required
-                        />
-                        <IonLabel className='fw-bold '>Projeto Nome:</IonLabel>
-                        <IonInput inputmode='text'
-                            type='text'
-                            size={50}
-                            maxlength={200}
-                            value={projetoNome}
-                            className='glass text-white m-1'
-                            onIonChange={(e) => preencherProjetoNome(e)}
-                            required
-                        />
-                    </IonItem>
-                    <IonItem className='text-primary'>
-                        <IonLabel className='fw-bold me-4'>Atividade:</IonLabel>
-                        <IonInput inputmode='text'
-                            maxlength={300}
-                            value={atividadeNome}
-                            className='glass text-white m-1 ms-3'
-                            onIonChange={(e) => preencherAtividade(e)}
-                            required
-                        />
-                    </IonItem>
-                    <IonItem className='text-primary'>
-                        <IonLabel className='fw-bold'>Configurações:</IonLabel>
-                        <IonTextarea inputmode='text'
-                            maxlength={200}
-                            value={configuracao}
-                            className='glass text-white m-1'
-                            onIonChange={(e) => preencherConfiguracao(e)}
-                        />
-                    </IonItem>
-                    <div className='py-3' />
-                    <IonButton color='primary' 
-                        className='session-login-button' 
-                        fill="solid" 
-                        disabled={!camposPreenchidos()}
-                        onClick={() => executarPipeline()}
-                    >
-                        EXECUTAR
-                    </IonButton>
-                    <div className='pb-3' />
-                </div>
-            </div>
-        );
-    }
+    //Modal para ver registro de Massa
+    const [modalConfigMassaOn, modalConfigMassaOff] = useIonModal(
+        DynamicModal,
+        {
+            titulo: "Mapeamento de Massa",
+            elemento: <ModalConfigMassa 
+                notificacao={notificacao} 
+                massa={catalogoMassas.find(massa => massa.nome === massaToView)} 
+            />,
+            onDismiss: () => modalConfigMassaOff(),
+        }
+    );
 
+    //Painel principal (direita) contendo os recursos selecionado no painel de opções (esquerda)
     const conteudoPainelPrincipal = () => {
         if (jobsSelecionados.length > 0) 
             return exibirJobsSelecionados();
@@ -375,8 +141,8 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             return <ConfigurarJobs toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />;
 
         const mensagem = 'Use o painel lateral para vizualizar {Jobs} e {Pipelines}\n'
-            +'Selecione um {Job}, fora da {Pipeline}, para analisá-lo\n'
-            +'Selecione uma {Pipeline} para inserir {Jobs} ou configurar sua execução';
+            + 'Selecione um {Job}, fora da {Pipeline}, para analisá-lo\n'
+            + 'Selecione uma {Pipeline} para inserir {Jobs} ou configurar sua execução';
         return <div className='position-absolute'>
             <Informativo mensagem={mensagem} status='Normal' />
         </div>;
@@ -414,7 +180,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                     </IonLabel>
                 </IonItem>
                 {
-                    catalagoPipelines.map((item, index) => {
+                    catalogoPipelines.map((item, index) => {
                         const color = index % 2 === 0 ? 'medium' : 'none';
                         const jobTag = item.jobs.length > 1 ? 'Jobs' : 'Job';
                         return (
@@ -443,6 +209,43 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                 }
             </IonList>
         </IonRadioGroup>
+    );
+
+    //Listagem das Massas no Menu Lateral
+    const listarMassas = (
+        <IonList className='m-0 p-0'>
+        {
+            catalogoMassas.map((item, index) => {
+                const color = index % 2 === 0 ? 'medium' : 'none';
+                return (
+                    <IonItem key={index} lines='none'
+                        color={color}
+                        className='ion-align-items-top text-white small p-0 m-0'
+                        style={{ '--min-height': '32px' }}
+                        onClick={() => {
+                            setMassaToView(item.nome);
+                            modalConfigMassaOn();
+                        }}
+                    >
+                        <IonIcon color='primary'
+                            icon={open}
+                            size='small' 
+                            className='p-0 m-0 me-1'
+                            style={{ height: '16px', width: '17px', }}
+                        />
+                        <IonLabel className='p-0 m-0'>
+                            <span className='text-white font-monospace'>{item.nome}</span>
+                            <IonBadge color='secondary'
+                                className='ms-1 small fw-normal opacity-25'
+                            >
+                                {item.colunas.length}
+                            </IonBadge>
+                        </IonLabel>
+                    </IonItem>
+                );
+            })
+        }
+        </IonList>
     );
 
     function exibirJobsSelecionados() {
@@ -525,69 +328,10 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             </IonCard>
         );
     }
-    /*
-        <IonList className='m-0 p-0'>
-            {
-                //TODO: melhorar controle de estado
-                query.map((item, index) => {
-                    const color = index % 2 === 0 ? 'medium' : 'none';
-                    const handler = () => {
-                        setViewConfigQuery(item);
-                        if (!viewConfigQuery) return;
-                        setCiewConfigQuerySql(viewConfigQuery.comandosSql.sql);
-                        //modalConfigQueryOn();
-                        useIonModal(
-                            DynamicModal,
-                            {
-                                titulo: `Query ID ${viewConfigQuery?.id}`,
-                                elemento: <ModalConfigQuery configQuery={} callback={} />,
-                                onDismiss: () => null,
-                            }
-                        )
-                    }
-                    return (
-                        <IonItem key={index} lines='none'
-                            color={color}
-                            className='p-0 m-0 ion-align-items-top text-white small'
-                            style={{ '--min-height': '32px' }}
-                        >
-                            <IonBadge color="#" className="p-0 m-0 btn bg-transparent" onClick={handler}>
-                                <IonIcon icon={openOutline} color="primary" className='pe-1' style={{ transform: 'scale(1.2) translate(0.25px, 1.75px)' }}/>
-                            </IonBadge>
-                            <IonLabel className='p-0 m-0'>
-                                <span className='text-white font-monospace'>{item.comandosSql.tabela}</span>
-                                <IonBadge color='secondary'
-                                    className='ms-1 small fw-normal opacity-25'
-                                >
-                                    ID {item.id}
-                                </IonBadge>
-                            </IonLabel>
-                        </IonItem>
-                    );
-                })
-            }
-        </IonList>
-    */
 
-    //Configurações e propriedades da modal de nova pipeline
-    const [modalNovaPipelineOn, modalNovaPipelineOff] = useIonModal(
-        DynamicModal,
-        {
-            titulo: "Criar nova Pipeline",
-            elemento: conteudoModalNovaPipeline(),
-            onDismiss: () => modalNovaPipelineOff(),
-        }
-    );
-
-  //COnfigurações e propriedades da modal personalizada da Schedule  
+    //Co    nfigurações e propriedades da modal personalizada da Schedule  
     const [verModalSchedule, setVerModalSchedule] = useState<boolean>(false);
     const modalRef = useRef<HTMLIonModalElement>(null);
-
-    //Ações ao carregar esta página
-    useIonViewWillEnter(() => {
-        if ((catalogoJobs.length < 1 || conectionsCount < 1) && !isLoading) coletarRecursos();
-    }, []);
-
 
     //Atualizando Pipelines e Jobs com base no banco
     async function coletarRecursos() {
@@ -595,24 +339,29 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         dispatch(loadingPipelines(true));
         //dispatch(loadingQueries(true));
         //queries
-        await obterJobsBanco().then(() => obterPipelinesBanco()).then(() => obterQueriesBanco());
+        await obterJobsBanco()
+            .then(() => obterPipelinesBanco())
+            .then(() => obterQueriesBanco())
+            .then(() => obterMassasBanco());
         dispatch(loadingJobs(false));
         dispatch(loadingPipelines(false));
         //dispatch(loadingQueries(false));
     }
 
     //Coletando arquivo da máquina local
-    function getFile(event: React.ChangeEvent<HTMLInputElement>) {
-        const selectedFile = event.target.files?.[0];
-        if (selectedFile != null) {
-            setAnexo(selectedFile);
-            setEnviar(true);
+    /*
+        function getFile(event: React.ChangeEvent<HTMLInputElement>) {
+            const selectedFile = event.target.files?.[0];
+            if (selectedFile != null) {
+                setAnexo(selectedFile);
+                setEnviar(true);
+            }
+            else {
+                setAnexo(null);
+                setEnviar(false);
+            }
         }
-        else {
-            setAnexo(null);
-            setEnviar(false);
-        }
-    }
+    */
 
     //Requisição para abrir a planilha schedule para obter os jobs
     async function uploadSchedule() {
@@ -650,7 +399,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         if (valor === null || valor === undefined) return;
         console.log(`[ESCOLHER-PIPELINES]: Usuário selecionou opção Pipeline nome '${valor}'.`);
 
-        const userPipeline = catalagoPipelines.find((item) => item.nome === valor);
+        const userPipeline = catalogoPipelines.find((item) => item.nome === valor);
         if (!userPipeline && userPipeline !== "") {
             console.log(`[ESCOLHER-PIPELINES]: Pipeline '${valor}' não identificada no catálogo Pipelines.`);
             return;
@@ -752,123 +501,26 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         dispatch(loadingQueries(false));
     }
 
-    //Requisição para salvar nova Pipeline
-    async function salvarNovaPipeline() {
-        console.log(`[ESCOLHER-PIPELINES]: Iniciando requisição 'Salvar Nova Pipeline'.`);
-        toastInfo("SALVAR NOVA PIPELINE: Em execução...", []);
-        modalNovaPipelineOff();
-        setConectionsCount(c => c+1);
-        dispatch(loadingPipelines(true));
-        dispatch(setViewJobs([]));
+    //Requisição para obter todas as MassaTabelaDTO's do banco
+    async function obterMassasBanco() {
+        console.log(`[ESCOLHER-PIPELINES]: Iniciando requisição 'Download Massas'.`);
+        toastInfo("DOWNLOAD MASSAS: Em execução...", []);
+        //setMassas([]); Apagar recursos antes de uma nova coleta ou não?
+        dispatch(loadingMassa(true));
         try {
-            const novaPipeline: PipelineInfoDTO = {
-                id: -1,
-                nome: pipelineNome,
-                descricao: pipelineDescricao,
-                clienteId: mainClienteId,
-                jobs: catalogoJobsSelecionados.map((item) => item.nome),
-                checked: false,
-            };
-            const novaPipelineSalva = await axiosRequest.salvarNovaPipeline(novaPipeline);
-            console.log(`[CONFIGURAR-JOBS]: Nova Pipeline salva: ${novaPipelineSalva}`);
-
-            const jobsNovaPipeline: JobConfig[] = catalogoJobs
-                .filter((item) => novaPipelineSalva.jobs.findIndex((jobNome) => jobNome === item.nome) !== -1)
-                .map((item, index) => parseJobInfo(item, index));
-                
-            const catalogoPipelinesAtualizado = catalagoPipelines.slice();
-            catalogoPipelinesAtualizado.push(novaPipelineSalva);
-
-            console.log(`[CONFIGURAR-JOBS]: Atualizando catálogo das Pipelines com novo registro.`);
-            dispatch(setPipelines(catalogoPipelinesAtualizado));
-            console.log(`[CONFIGURAR-/JOBS]: Definindo Main-Pipeline para ${novaPipelineSalva.nome}.`);
-            dispatch(setMainPipeline({ 
-                id: novaPipelineSalva.id,
-                nome: novaPipelineSalva.nome, 
-                jobs: jobsNovaPipeline
-            }));
-            toastOk("SALVAR NOVA PIPELINE: Realizada com sucesso.", []);
-            console.log(`[CONFIGURAR-JOBS]: Requisição 'Salvar Nova Pipeline' funcionou.`);
+            const massasBanco: MassaTabelaDTO[] = await axiosRequest.getAllMassas(mainClienteId);
+            dispatch(setMassas(massasBanco));
+            toastOk("DOWNLOAD MASSAS: Realizado com sucesso.", []);
+            console.log(`[ESCOLHER-PIPELINES]: Requisição 'Download Massas' funcionou.`);
         }
         catch (error) {
-            toastErro(`SALVAR NOVA PIPELINE: ${error}`, []);
-            console.error(`[CONFIGURAR-JOBS]: Requisição 'Salvar Nova Pipeline' falhou.`);
+            toastErro(`DOWNLOAD MASSAS: ${error}`, []);
+            console.error(`[ESCOLHER-PIPELINES]: Requisição 'Download Massas' falhou.`);
         }
-        dispatch(loadingPipelines(false));
+        dispatch(loadingMassa(false));
     }
 
-    //Requisição para executar a Pipeline
-    async function executarPipeline() {
-        console.log(`[CONFIGURAR-JOBS]: Iniciando requisição 'Executar Pipeline'.`);
-        modalConfigPipelineOff();
-        if (!camposPreenchidos || !mainPipelineDescricao) {
-            console.log('[CONFIGURAR-JOBS]: Preencha os campos antes de executar a Pipeline!');
-            return;
-        };
-        toastInfo("EXECUTAR PIPELINE: Em execução...", []);
-        try {
-            const pipelineDto: PipelineInfoDTO = {
-                id: mainPipelineId,
-                nome: mainPipeline,
-                descricao: mainPipelineDescricao,
-                clienteId: mainClienteId,
-                jobs: mainJobs.map((item) => item.nome),
-                checked: true,
-            };
-            const relatorioDto: RelatorioInfoDTO = {
-                idProjeto: projetoId,
-                nomeProjeto: projetoNome,
-                nomeAtividade: atividadeNome,
-                configuracao: configuracao,
-                testeTipo: "Unitário",
-            };
-            console.log('[CONFIGURAR-JOBS]: Copvnertendo JobConfig para JobExecuteDTO...');
-            const jobsDto: JobExecuteDTO[] = mainJobs.map((item) => {
-                //console.log(JSON.stringify(item));
-                return parseJobConfigParaJobExecute(item);
-            });
-            const body: PipelineExecDTO = {
-                pipeline: pipelineDto,              //TODO: informação repetida aqui
-                relatorio: relatorioDto,
-                jobs: jobsDto,
-                userInfo: {
-                    nome: user ? user.name : null,
-                    papel: user ? "DEV" : null,
-                    empresa: user ? "PPW" : null,
-                } as UserInfoDTO,
-                ambienteId: mainAmbienteId,
-                clienteId: mainClienteId
-            };
-
-            dispatch(removeRevisao());
-            const relatorioParaRevisar: RelatorioHistoricoDTO = await axiosRequest.executarPipeline(body);
-            //dispatch(loadingRelatorios(true));
-            //dispatch(addRevisao({ value: relatorio }));
-            const buttons = [
-                {
-                  text: 'Revisar',
-                  role: 'Revisar DET',
-                  handler: () => {
-                    dispatch(addRevisao(relatorioParaRevisar));
-                    console.log(`[CONFIGURAR-JOBS] Navegando para: ${axiosRequest.URL_DET}`);
-                    history.push(axiosRequest.URL_DET);
-                  },
-                }
-            ];
-            dispatch(setRelatorios([]));
-            //dispatch(loadingRelatorios(false));
-            toastOk("EXECUTAR PIPELINE: Realizada com sucesso.", buttons);
-            console.log(`[CONFIGURAR-JOBS]: Requisição 'Executar Pipeline' funcionou.`);
-            
-            
-        }
-        catch (error) {
-            toastErro(`EXECUTAR PIPELINE: ${error}`, []);
-            console.error(`[CONFIGURAR-JOBS]: Requisição 'Executar Pipeline' falhou.`);
-        }
-    }
-
-
+    //Conteúdo principal caso existam dados na base
     function conteudo() {
         if (catalogoJobs.length < 1) {
             return <Informativo 
@@ -878,10 +530,11 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         }
         return (
             <IonSplitPane when="xs" contentId="main" className='ps-5 ms-5 '>
+
                 <IonMenu contentId="main" className='glass' color='#'>
                     <IonContent className='glass-content p-0 m-0 mx-5'>
-
                         <IonAccordionGroup multiple={true} className='px-2'>
+                            
                             <IonAccordion value="jobs" className='lista-navegacao glass mb-1'>
                                 <IonItem slot="header" color="#" className='rounded rounded-0'>
                                     <IonFabButton className="p-2 m-0" size='small' color='#'>
@@ -920,10 +573,29 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                                 </div>
                             </IonAccordion>
 
-                        </IonAccordionGroup>
+                            <IonAccordion value="massas" className='lista-navegacao glass'>
+                                <IonItem slot="header" color="#" className='rounded rounded-0'>
+                                    <IonFabButton className="p-2 m-0" size='small' color='#'>
+                                        <IonIcon icon={caretDownOutline} size='small' color="light" className="ion-accordion-toggle-icon" />
+                                    </IonFabButton>
+                                    <IonLabel className='d-flex ion-align-items-center ion-justify-content-between py-0 my-0'>
+                                        <span className='ms-1 text-white'>
+                                            Gerador de Massa
+                                            <IonIcon icon={library} color='light' className='ms-1' style={{ transform: 'translate(0, 3px)' }} />
+                                        </span>
+                                    </IonLabel>
+                                </IonItem>
+                                <div className="p-0 m-0" slot="content">
+                                    <div className='p-0 m-0'>
+                                        {listarMassas}
+                                    </div>
+                                </div>
+                            </IonAccordion>
 
+                        </IonAccordionGroup>
                     </IonContent>
                 </IonMenu>
+
                 <div className="container" id="main" >
                     <IonContent className='w-100 h-100'>
                         {conteudoPainelPrincipal()}
@@ -933,6 +605,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         );
     }
 
+    //Renderização visual deste componente
     if (isLoading) return <Carregando />;
     return (
         <div className='p-0 m-0'> 

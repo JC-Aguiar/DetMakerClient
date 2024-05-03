@@ -1,8 +1,9 @@
-import { IonCard, IonCol, IonContent, IonGrid, IonIcon, IonRow, useIonViewDidEnter } from '@ionic/react';
+import { IonContent, IonRow } from '@ionic/react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
 import ScheduleJob from './ScheduleJob';
 import { JobInfoDTO } from '../data/JobInfoDTO';
+import React from 'react';
 
 const Schedule: React.FC = () => {
     const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalago);
@@ -17,15 +18,18 @@ const Schedule: React.FC = () => {
     //    ));
     //}
 
+    //Define a interface das colunas da tabela
     interface HeaderTYPE {
         colunas: ColunaTYPE[];
     }
 
+    //Define a interface das propriedades de uma coluna
     interface ColunaTYPE {
         largura: number, 
         nome: string,
     }
 
+    //Tìtulos das colunas da tabela Schedule
     const header: HeaderTYPE = {
         colunas: [
             { largura: 400, nome: "JOB" },
@@ -53,12 +57,14 @@ const Schedule: React.FC = () => {
         ]
     };
 
+    //Método que retorna toda a primeira linha (cabeçalho) das colunas da tabela
     const renderizarColunas = header.colunas.map((item, index) => 
-        <th className='bg-white text-dark px-2' style={{minWidth: `${item.largura}px`}}>
+        <th key={index} className='bg-white text-dark px-2' style={{minWidth: `${item.largura}px`}}>
             {item.nome}
         </th>
     );
 
+    //Renderização principal do componente
     return (
             <div className="text-center p-0 ps-2 pt-2 m-0">
                 <IonContent className='glass w-100' scrollEvents={true} style={{height: '82vh'}}>

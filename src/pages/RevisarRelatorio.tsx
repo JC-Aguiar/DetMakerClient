@@ -16,6 +16,7 @@ import dayjs from 'dayjs';
 import { offsetDateTimeParaString } from '../App';
 import { useHistory } from 'react-router';
 import { layoutGrupoBotoes, ButtonLayoutProps } from '../components/ButtonLayout';
+import { exitCode } from 'process';
 
 
 //Interface das tabelas da sessão 'Evolução dos Testes' no DET
@@ -105,43 +106,52 @@ const RevisarRelatorio: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
         if (!relatorio || !user) return <></>;
 
         return relatorio.evidencias.map((evidencia, evIndex) => {
+            const evidenciaId = evidencia.id;
+            const nome = evidencia.job;
+            const descricao = evidencia.jobDescricao;
+            const sha256 = evidencia.sha256;
+            const exitCode = evidencia.exitCode;
+            const erroFatal = evidencia.erroFatal;
+            const comentario = evidencia.comentario;
+            const resultado = evidencia.resultado;
+            const parametros = evidencia.argumentos;
+            const revisor = evidencia.revisor;
+            const data = offsetDateTimeParaString(evidencia.dataFim);
+            const queries = evidencia.queries;
+            const tabelasNome = evidencia.queriesNome;
+            const tabelasPreJob = evidencia.tabelasPreJob;
+            const tabelasPosJob = evidencia.tabelasPosJob;
+            const queriesInconformidade = evidencia.queriesInconformidade;
+            const anexosTotais: JSX.Element[] = [];
+            const pronto = checkEvidenciaPronta(evidencia);
+            const lock = IdsLocked.findIndex((item) => item === evidencia.id) !== -1;
+
             const logsConteudo: string[] = [];
             const logsNome: string[] = [];
             const cargasConteudo: string[] = [];
             const cargasNome: string[] = [];
             const saidasConteudo: string[] = [];
             const saidasNome: string[] = [];
+            const anexosInconformidade: string[] = [];
 
             evidencia.logs.forEach((anexo) => {
                 logsConteudo.push(anexo.conteudo);
                 logsNome.push(anexo.nome);
+                if (anexo.inconformidade)
+                    anexosInconformidade.push(anexo.inconformidade);
             });
             evidencia.cargas.forEach((anexo) => {
                 cargasConteudo.push(anexo.conteudo);
                 cargasNome.push(anexo.nome); 
+                if (anexo.inconformidade)
+                    anexosInconformidade.push(anexo.inconformidade);
             });
             evidencia.saidas.forEach((anexo) => {
                 saidasConteudo.push(anexo.conteudo);
                 saidasNome.push(anexo.nome);
+                if (anexo.inconformidade)
+                    anexosInconformidade.push(anexo.inconformidade);
             });
-            
-            //console.log(`Testcase ID ${evidencia.id} - Pronto: ${pronto}.`);
-            const evidenciaId = evidencia.id;
-            const nome = evidencia.job;
-            const descricao = evidencia.jobDescricao;
-            const comentario = evidencia.comentario;
-            const resultado = evidencia.resultado;
-            const parametros = evidencia.argumentos;
-            const analise = evidencia.analise;
-            const revisor = evidencia.revisor;
-            const data = offsetDateTimeParaString(evidencia.dataFim);
-            const queries = evidencia.queries;
-            const tabelasNome = evidencia.tabelasNome;
-            const tabelasPreJob = evidencia.tabelasPreJob;
-            const tabelasPosJob = evidencia.tabelasPosJob;
-            const anexosTotais: JSX.Element[] = [];
-            const pronto = checkEvidenciaPronta(evidencia);
-            const lock = IdsLocked.findIndex((item) => item === evidencia.id) !== -1;
 
             //Preenchendo anexos de tabelas por query
             queries.forEach((query, index) => {
@@ -245,14 +255,31 @@ const RevisarRelatorio: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
                                 <td>{parametros}</td>
                             </tr>
                             <tr>
+                                <th>SHA256</th>
+                                <td>{sha256}</td>
+                            </tr>
+                            <tr>
                                 <th>Data do Teste</th>
                                 <td>{data}</td>
                             </tr>
                             <tr>
-                                <th>Análise Técnica</th>
+                                <th>Código de Saída</th>
+                                <td>{exitCode}</td>
+                            </tr>
+                            <tr>
+                                <th>Erro Fatal</th>
+                                <td>{erroFatal}</td>
+                            </tr>
+                            <tr>
+                                <th>Inconformidades</th>
                                 <td className='font-monospace'>
                                     <div style={{ width: "100%", maxWidth: "950px", whiteSpace: "nowrap", overflowX: 'scroll' }}>
-                                        { analise.split("\n").map(linha => <div>{linha}</div>) }
+                                    { 
+                                        queriesInconformidade.map(linha => <div> - {linha}</div>) 
+                                    }
+                                    { 
+                                        anexosInconformidade.map(linha => <div> - {linha}</div>) 
+                                    }
                                     </div>
                                 </td>
                             </tr>

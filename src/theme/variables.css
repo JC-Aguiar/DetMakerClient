@@ -138,9 +138,12 @@ body {
   --ion-color-dark-shade: #1e2023;
   --ion-color-dark-tint: #383a3e;
 
+  background: linear-gradient(#261f37, #2a1f49, #004a94, #172c94, #131e67);
+  /*
   background: radial-gradient(circle, #261f37, #2a1f49, #004a94, #172c94, #131e67);
   background-size: 500% 500%;
   animation: gradient 120s ease infinite;
+  */
   padding: 0;
   margin: 0;
 }
@@ -441,6 +444,15 @@ ion-tab-button:hover {
   --color-selected: var(--ion-color-primary);
 }
 
+/* Ocultando as setas verticais do ion-input quando inputtype='numeric' */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield; /* Para o Firefox */
+}
 
 /*
 ion-button {

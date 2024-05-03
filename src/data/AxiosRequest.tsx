@@ -12,6 +12,8 @@ import { JobInfoDTO } from './JobInfoDTO';
 import { RelatorioResumoDTO } from './RelatorioResumoDTO';
 import { ClienteInfoDTO } from './ClienteInfoDTO';
 import { QueryInfoDTO } from './QueryInfoDTO';
+import { MassaTabelaDTO } from './MassaTabelaDTO';
+import { MassaPreparada } from './MassaPreparada';
 
 const EM_TESTE = true;
 
@@ -287,6 +289,59 @@ export async function getUmRelatorio(id: number): Promise<RelatorioResumoDTO> {
         });
 }
 
+//Requisição para obter todas as Massa no banco
+export async function getAllMassas(clienteId: number): Promise<MassaTabelaDTO[]> {
+    const titulo = "OBTENDO MASSAS";
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/gerar-massa/cliente/${clienteId}`,
+        headers: headers,
+        timeout: 30000,
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            const json: MassaTabelaDTO[] = response.data;
+            requestSucesso(titulo, json);
+            return json;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para testar uma Massa de banco
+export async function testarMassa(massa: MassaTabelaDTO, clienteId: number): Promise<MassaPreparada[]> {
+    const titulo = "TESTANDO MASSA";
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/gerar-massa/cliente/${clienteId}/test`,
+        headers: headers,
+        timeout: 30000,
+        data: massa
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            const json: MassaPreparada[] = response.data;
+            requestSucesso(titulo, json);
+            return json;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
 //Requisição para obter todos os Relatórios no banco
 export async function getAllRelatorios(ambienteId: number): Promise<RelatorioResumoDTO[]> {
     const titulo = "OBTENDO RELATORIOS";
@@ -508,6 +563,7 @@ export async function getUmaRevisao(id: number): Promise<RelatorioHistoricoDTO> 
 //Requisição para salvar as revisões do Relatorio
 export async function saveRevisaoRelatorio(relatorio: RelatorioRevisadoDTO): Promise<void> {
     const titulo = "SALVAR REVISÃO RELATÓRIO";
+    throw "FALTA IMPLEMENTAR DATA no PAYLOAD";
     requestStart(titulo);
 
     //Instanciando Axios

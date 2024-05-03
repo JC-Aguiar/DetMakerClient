@@ -18,10 +18,12 @@ const Informativo: React.FC<InformativoProps> = ({icone = informationCircleOutli
         mensagem = 'Nenhum registro disponível foi encontrado no banco\n'+ mensagem;
     }
 
-    const textoFinal = mensagem.replaceAll("}", "{").split("{").map((item, index) => {
-        if (index % 2 === 0) return <>{item}</>;
-        return destaque(item);
-    });
+    const textoFinal = mensagem.replaceAll("}", "{")
+        .split("{")
+        .map((item, index) => {
+            if (index % 2 === 0) return <span key={index}>{item}</span>;
+            return <span key={index} className='m-0 px-1 border rounded rounded-3 h6 fw-bold'>{item}</span>;
+        });
 
     return <IonRow className='mt-5 ion-justify-content-center ion-align-items-center' >
         <IonCol className='text-info text-center ion-align-items-center h5 opacity-50 lh-base fw-normal text-wrap'>
