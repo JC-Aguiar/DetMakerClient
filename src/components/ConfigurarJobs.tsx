@@ -1,7 +1,7 @@
-import { IonButton, IonCard, IonIcon, IonList, IonReorderGroup, IonRow, ItemReorderEventDetail, useIonViewDidEnter } from '@ionic/react';
+import { IonBadge, IonButton, IonCard, IonIcon, IonLabel, IonList, IonReorderGroup, IonRow, ItemReorderEventDetail, useIonModal, useIonViewDidEnter } from '@ionic/react';
 import { useHistory } from 'react-router';
 import JobCard from './JobCard';
-import { close, flash, save } from 'ionicons/icons';
+import { ban, close, flash, open, save, trash } from 'ionicons/icons';
 import blueThunder from '../resources/thunder spark gif blue.gif';
 import darkThunder from '../resources/thunder spark gif dark.gif';
 import { useRef, useState } from 'react';
@@ -12,6 +12,9 @@ import { useDispatch } from 'react-redux';
 import { reorderMainJobs, setMainJobs } from '../Store/Reducer/ReducerAtividade';
 import { UserDTO } from '../data/UserDTO';
 import { Notificacao } from './Noticacao';
+import DynamicModal from './DynamicModal';
+import ModalExecPipeline from './ModalExecPipeline';
+import { BotaoProps, Botoes } from './Botao';
 
 
 const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
@@ -97,43 +100,63 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
         dispatch(reorderMainJobs({ ids: ordemIds }));
     }
 
+
+    //Modal para executar a main Pipeline
+    const [modalConfigPipelineOn, modalConfigPipelineOff] = useIonModal(
+        DynamicModal,
+        {
+            titulo: "Executar Pipeline",
+            elemento: <ModalExecPipeline toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />,
+            onDismiss: () => modalConfigPipelineOff(),
+        }
+    );
+
+    //Botoes contendo as opções para cada Pipeline
+    const botoes: BotaoProps[] = [
+        {icon: flash, texto: "Executar",  handler: () => modalConfigPipelineOn()},
+        {icon: save,  texto: "Salvar",    handler: () => null},
+        {icon: open,  texto: "Ver Dados", handler: () => null},
+        {icon: ban,   texto: "Cancelar",  handler: () => null},
+        {icon: trash, texto: "Apagar",    handler: () => null},
+    ];
+
+
     //Renderização do componente
     return (
         <div className='container mt-3'>
-            <IonCard className='glass text-white'>
+            <IonCard className='glass text-white fixed-top mx-5 mt-3' style={{background: 'var(--ion-color-tertiary)' }}>
                 <div className='glass-content text-center'>
-                    <div className='h4 text-center text-dark py-2' style={{backgroundColor: 'var(--ion-color-primary)'}}>
+                    <div className='h4 text-center text-dark py-2' style={{background: 'var(--ion-color-primary)'}}>
                         {mainPipeline}
                     </div>
-                    <div className='py-2'>{mainPipelineDescricao}</div>
-                    <div className='d-flex px-3 pb-2'>
-                        <IonButton className='w-100' size="small" expand="block" fill="outline" >
-                            <IonIcon icon={save}  style={{transform: 'translate(-2px, -2px)'}} />
-                            Salvar
-                        </IonButton>
-                        <IonButton className='w-100' size="small" expand="block" fill="outline" >
-                            <IonIcon icon={close} style={{transform: 'translate(0px, -1px)'}} />
-                            Desselecionar
-                        </IonButton>
+                    <div className='py-2'>
+                        {mainPipelineDescricao} 
+                        <IonBadge className='mx-2 px-2' style={{ transform: 'translate(0px, 5px)' }}>
+                            Total de jobs: {mainJobs.length}
+                        </IonBadge>
+                    </div>
+                    <div className='px-3 pb-2'>
+                        <Botoes botoes={botoes} />
                     </div>
                 </div>
             </IonCard>
-                <IonRow className='ion-justify-content-center p-0 m-0 w-100'>
-                    <IonList className='w-100 py-2 px-2'>
-                        <IonReorderGroup disabled={false} onIonItemReorder={reordenar} ref={reorderGroupRef} className='p-0 m-0' >
-                        {
-                            mainJobs.map((item, index) => 
-                                <JobCard key={index} 
-                                    jobExec={item}
-                                    //jobUserInput={JobConfigUserInput[index]}
-                                    notificacao={{ toastInfo, toastOk, toastErro } as Notificacao}
-                                    callback={() => null}
-                                />
-                            )
-                        }
-                        </IonReorderGroup>
-                    </IonList>
-                </IonRow>
+            <div className='py-5 mt-5 mb-3' />
+            <IonRow className='ion-justify-content-center p-0 m-0 w-100'>
+                <IonList className='w-100 py-2 px-2'>
+                    <IonReorderGroup disabled={false} onIonItemReorder={reordenar} ref={reorderGroupRef} className='p-0 m-0' >
+                    {
+                        mainJobs.map((item, index) => 
+                            <JobCard key={index} 
+                                jobExec={item}
+                                //jobUserInput={JobConfigUserInput[index]}
+                                notificacao={{ toastInfo, toastOk, toastErro } as Notificacao}
+                                callback={() => null}
+                            />
+                        )
+                    }
+                    </IonReorderGroup>
+                </IonList>
+            </IonRow>
         </div>
     );
 };

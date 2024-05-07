@@ -1,4 +1,4 @@
-import { IonTextarea, IonButton, IonInput, IonLabel, IonItem, InputChangeEventDetail, TextareaChangeEventDetail } from "@ionic/react";
+import { IonTextarea, IonButton, IonInput, IonLabel, IonItem, InputChangeEventDetail, TextareaChangeEventDetail, IonTitle, IonRow, IonCol } from "@ionic/react";
 import { useState } from "react";
 import { Notificacao } from "./Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,8 +15,9 @@ import { RelatorioInfoDTO } from "../data/RelatorioInfoDTO";
 import { UserInfoDTO } from "../data/UserInfoDTO";
 import { UserDTO } from "../data/UserDTO";
 import { useHistory } from "react-router";
+import Botao from "./Botao";
 
-const ModalConfigPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
+const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos Redux e React
     const dispatch = useDispatch();
     const history = useHistory();
@@ -146,65 +147,69 @@ const ModalConfigPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastE
     if (mainPipeline === "") return<></>;
     return (
         <div className="row justify-content-center px-3 mx-0">
-            <div className='col row mt-2 px-0 mx-0 glass'>
-                <div className='h5 bg-primary text-center text-white py-1 mb-3 rounded-top rounded-top-2'>
+            <div className='col row mt-2 px-3 mx-0 glass'>
+                <IonTitle className='h5 text-center m-4'>
                     Preencha os dados abaixo para prosseguir
-                </div>
-                <IonItem className='text-primary'>
-                    <IonLabel className='fw-bold me-4 '>Projeto Id:</IonLabel>
-                    <IonInput inputmode='text'
-                        type='text'
-                        size={10}
-                        maxlength={7}
-                        value={projetoId}
-                        className='glass text-white m-1 ms-3 me-3'
-                        style={{width: '256px', maxWidth: '256px'}}
-                        onIonChange={(e) => preencherProjetoId(e)}
-                        required
-                    />
-                    <IonLabel className='fw-bold '>Projeto Nome:</IonLabel>
-                    <IonInput inputmode='text'
-                        type='text'
-                        size={50}
-                        maxlength={200}
-                        value={projetoNome}
-                        className='glass text-white m-1'
-                        onIonChange={(e) => preencherProjetoNome(e)}
-                        required
-                    />
-                </IonItem>
-                <IonItem className='text-primary'>
-                    <IonLabel className='fw-bold me-4'>Atividade:</IonLabel>
-                    <IonInput inputmode='text'
-                        maxlength={300}
-                        value={atividadeNome}
-                        className='glass text-white m-1 ms-3'
-                        onIonChange={(e) => preencherAtividade(e)}
-                        required
-                    />
-                </IonItem>
-                <IonItem className='text-primary'>
-                    <IonLabel className='fw-bold'>Configurações:</IonLabel>
-                    <IonTextarea inputmode='text'
-                        maxlength={200}
-                        value={configuracao}
-                        className='glass text-white m-1'
-                        onIonChange={(e) => preencherConfiguracao(e)}
-                    />
-                </IonItem>
-                <div className='py-3' />
-                <IonButton color='primary' 
-                    className='session-login-button' 
-                    fill="solid" 
-                    disabled={!camposPreenchidos()}
-                    onClick={() => executarPipeline()}
-                >
-                    EXECUTAR
-                </IonButton>
-                <div className='pb-3' />
+                </IonTitle>
+                <IonRow >
+                    <IonCol size="3" className="glass m-0 my-1 px-1">
+                        <IonItem className='m-0 p-0'>
+                            <IonInput inputmode='text'
+                                type='text'
+                                size={10}
+                                placeholder="Projeto Id"
+                                maxlength={7}
+                                value={projetoId}
+                                className='text-white'
+                                onIonChange={(e) => preencherProjetoId(e)}
+                                required
+                            />
+                        </IonItem>
+                    </IonCol>
+                    <IonCol size="9" className="glass m-0 my-1 px-1">
+                        <IonItem className='m-0 p-0'>
+                            <IonInput inputmode='text'
+                                type='text'
+                                size={50}
+                                placeholder="Projeto Nome"
+                                maxlength={200}
+                                value={projetoNome}
+                                className='text-white'
+                                onIonChange={(e) => preencherProjetoNome(e)}
+                                required
+                            />
+                        </IonItem>
+                    </IonCol>
+                    <IonCol size="12" className="glass m-0 my-1 px-1">
+                        <IonItem className='m-0 p-0'>
+                            <IonInput inputmode='text'
+                                maxlength={300}
+                                placeholder="Atividade"
+                                value={atividadeNome}
+                                className='text-white'
+                                onIonChange={(e) => preencherAtividade(e)}
+                                required
+                            />
+                        </IonItem>
+                    </IonCol>
+                    <IonCol size="12" className="glass m-0 my-1 px-1">
+                        <IonItem className='m-0 p-0'>
+                            <IonTextarea inputmode='text'
+                                maxlength={200}
+                                placeholder="Configurações"
+                                value={configuracao}
+                                className='text-white'
+                                onIonChange={(e) => preencherConfiguracao(e)}
+                            />
+                        </IonItem>
+                    </IonCol>
+                </IonRow>
+                <IonRow className='py-3 ion-justify-content-end pe-1' >
+                    <Botao texto="EXECUTAR" handler={() => executarPipeline()}  disabled={!camposPreenchidos()} />
+                </IonRow>
             </div>
         </div>
     );
 }
 
-export default ModalConfigPipeline;
+export default ModalExecPipeline;

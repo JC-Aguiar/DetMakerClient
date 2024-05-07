@@ -1,4 +1,4 @@
-import { IonButton, IonLabel, IonItem, IonContent, IonCol, IonRow, IonCard, IonInput, IonGrid, IonSelect, IonSelectOption, InputChangeEventDetail, TextareaChangeEventDetail, SelectChangeEventDetail, IonFabButton, IonIcon, IonTitle, IonPopover, useIonModal, IonModal, IonToggle, ToggleChangeEventDetail } from "@ionic/react";
+import { IonButton, IonLabel, IonItem, IonContent, IonCol, IonRow, IonCard, IonInput, IonGrid, IonSelect, IonSelectOption, InputChangeEventDetail, TextareaChangeEventDetail, SelectChangeEventDetail, IonFabButton, IonIcon, IonTitle, IonPopover, useIonModal, IonModal, IonToggle, ToggleChangeEventDetail, IonText, IonBadge } from "@ionic/react";
 import { useRef, useState } from "react";
 import { Notificacao } from "./Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,7 +18,7 @@ import { MassaTabelaDTO } from "../data/MassaTabelaDTO";
 import { massaColunaTipos } from "../data/MassaColunaTipo";
 import { MassaColunaDTO } from "../data/MassaColunaDTO";
 import { DynamicModalContent } from "./DynamicModalContent";
-import { add, addCircle, cube, helpCircle } from "ionicons/icons";
+import { add, addCircle, checkmarkCircle, closeCircle, cube, helpCircle } from "ionicons/icons";
 import DynamicModal from "./DynamicModal";
 import ModalTiposDeMassa from "./ModalTiposDeMassa";
 import { MassaPreparada } from "../data/MassaPreparada";
@@ -182,16 +182,16 @@ const ModalConfigMassa: React.FC<ModalConfigMassaProps & DynamicModalContent> = 
                 usaPessoa: usaPessoaConfig
             };
             setMassaGerada(await axiosRequest.testarMassa(tabelaDto, mainClienteId));
-            //const buttons = [{
-            //    text: 'Ver Massa',
-            //    role: 'Ver Massa',
-            //    handler: () => {
+            const buttons = [{
+                text: 'Ver Massa',
+                role: 'Ver Massa',
+                handler: () => {
                     if (!testeRef || !testeRef.current) return;
                     setVerModalTeste(true);
                     testeRef.current.present();
-            //    },
-            //}];
-            notificacao.toastOk("TESTAR MASSA: Realizado com sucesso.", []); //buttons
+                },
+            }];
+            notificacao.toastOk("TESTAR MASSA: Realizado com sucesso.", buttons);
             console.log(`[MODAL CONFIG-MASSA]: Requisição 'Testar Massa' funcionou.`);
         }
         catch (error) {
@@ -204,19 +204,38 @@ const ModalConfigMassa: React.FC<ModalConfigMassaProps & DynamicModalContent> = 
     if (!massa) return<></>;
     return (
         <div className="row justify-content-center px-3 mx-0 text-center">
-            <div className='h5 py-1 mb-2 rounded-top rounded-top-2'>
-                {massa.nome}
-            </div>
-                <IonItem lines="none" className="d-flex w-100 ps-0"> 
-                    <IonLabel className={usaPessoaConfig ? "" : "disable"}>Dados Da Mesma Pessoa</IonLabel>
-                    <IonToggle slot="start" 
-                        checked={usaPessoaConfig} 
-                        onIonChange={(e) => setUsaPessoaConfig(e.detail.checked)}
-                    />
-                </IonItem>
-            <IonCard className="glass ">
-                <IonGrid className="glass-content text-primary p-0 m-0 w-100 h-100" > 
-                    <IonRow className='text-dark' style={{ backgroundColor: `var(--ion-color-primary-shade)`}}>
+            <IonCard className="glass">
+                <IonGrid className="glass-content text-primary p-0 m-0 w-100 h-100" >
+                    {/*
+                        style={{ backgroundColor: `var(--ion-color-primary-shade)`}} 
+                        color="tertiary"
+                     */}
+                    <IonRow className='text-dark ion-justify-content-between p-0 m-0'>
+                        <IonCol className="w-100"></IonCol>
+                        <IonCol className="w-100">
+                            <IonItem lines="none" className="" >
+                                <IonLabel className='text-center py-0 my-0' >
+                                    <IonTitle className="fs-1">{massa.nome}</IonTitle>
+                                </IonLabel>
+                            </IonItem>
+                        </IonCol> 
+                        <IonCol className="w-100 d-flex ion-align-items-center ion-justify-content-end">
+                            <IonItem lines="none"> 
+                                <IonLabel className='text-end' >
+                                    Dados Da Mesma Pessoa 
+                                </IonLabel>
+                                <IonIcon className="ms-0 me-1" icon={usaPessoaConfig ? checkmarkCircle : closeCircle} />
+                                <IonToggle slot="end"
+                                    className={`px-0 ${usaPessoaConfig ? "" : "disable"}`} 
+                                    checked={usaPessoaConfig} 
+                                    onIonChange={(e) => setUsaPessoaConfig(e.detail.checked)}
+                                />
+                            </IonItem>
+                        </IonCol>
+                    </IonRow>
+                    <IonRow className='text-dark ion-justify-content-between' 
+                        style={{ backgroundColor: `var(--ion-color-primary-shade)`}}
+                    >    
                         {renderizarTitulos}
                     </IonRow>
                     {

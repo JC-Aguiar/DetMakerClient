@@ -444,6 +444,10 @@ ion-tab-button:hover {
   --color-selected: var(--ion-color-primary);
 }
 
+input, textarea, select {
+  --placeholder-color: var(--ion-color-primary);
+}
+
 /* Ocultando as setas verticais do ion-input quando inputtype='numeric' */
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {

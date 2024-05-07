@@ -29,12 +29,14 @@ const ScheduleJob: React.FC<ScheduleJobProps> = ({ job, indexId, par }) => {
             {/*
             <IonCheckbox className="check-box" checked={job.checked} onClick={() => handlerCheckJob()}/>
             */}
-            <td className='border border-start-0 align-items-center'  style={{backgroundColor: cor}}> 
-                <IonRow className="m-0 mx-2 mt-2 p-0 d-flex ion-justify-content-start ">
-                    <IonBadge color="secondary" className="ms-0 me-2 h6">
+            <td className='h-100 border border-start-0 align-items-center'  style={{backgroundColor: cor}}> 
+                <IonRow className="border-end border-3 h-100 w-100 m-0 p-0 ion-justify-content-start ion-align-items-center">
+                    <IonCol>
+                    <IonBadge color="secondary" className="ms-2 h6">
                         ID {job.id}
                     </IonBadge>
                     <IonBadge color="#" className="text-white me-0 fw-bold h6">{job.nome}</IonBadge>
+                    </IonCol>
                 </IonRow> 
             </td>
             <td className={colunaCss}> {job.executarAposJob.join('\n')} </td>

@@ -21,10 +21,11 @@ import Carregando from '../components/Carregando';
 import { QueryInfoDTO } from '../data/QueryInfoDTO';
 import { loadingQueries, setQueries } from '../Store/Reducer/ReducerQueries';
 import ModalNovaPipeline from '../components/ModalNovaPipeline';
-import ModalConfigPipeline from '../components/ModalConfigPipeline';
+import ModalExecPipeline from '../components/ModalExecPipeline';
 import { MassaTabelaDTO } from '../data/MassaTabelaDTO';
 import { loadingMassa, setMassas } from '../Store/Reducer/ReducerMassas';
 import ModalConfigMassa from '../components/ModalConfigMassa';
+import ModalTiposDeMassa from '../components/ModalTiposDeMassa';
 
 const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos Redux e React
@@ -73,12 +74,12 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             icon: layers,
             trigger: () =>  modalNovaPipelineOn(),
             disable: isLoading || catalogoJobs.length < 1,
-        }, 
+        },
         {
-            title: 'Executar Pipeline',
-            icon: flash,
-            trigger: () => modalConfigPipelineOn(),
-            disable: isLoading || mainJobs.length < 1,
+            title: 'Nova Schedule',
+            icon: cloudUpload,
+            trigger: () => uploadSchedule(),
+            disable: isLoading,
         }, 
         {
             title: 'Ver Schedule',
@@ -90,24 +91,8 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                 console.log(`Ativando modal Shedule (var: ${verModalSchedule})`);
             },
             disable: isLoading || catalogoJobs.length < 1,
-        }, 
-        {
-            title: 'Nova Schedule',
-            icon: cloudUpload,
-            trigger: () => uploadSchedule(),
-            disable: isLoading,
-        } 
+        },
     ];
-
-    //Modal para executar a main Pipeline
-    const [modalConfigPipelineOn, modalConfigPipelineOff] = useIonModal(
-        DynamicModal,
-        {
-            titulo: "Executar Pipeline",
-            elemento: <ModalConfigPipeline toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />,
-            onDismiss: () => modalConfigPipelineOff(),
-        }
-    );
 
     //Modal para criar nova Pipeline
     const [modalNovaPipelineOn, modalNovaPipelineOff] = useIonModal(
@@ -125,10 +110,11 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         {
             titulo: "Mapeamento de Massa",
             elemento: <ModalConfigMassa 
-                notificacao={notificacao} 
-                massa={catalogoMassas.find(massa => massa.nome === massaToView)} 
-            />,
+                    notificacao={notificacao} 
+                    massa={catalogoMassas.find(massa => massa.nome === massaToView)} 
+                />,
             onDismiss: () => modalConfigMassaOff(),
+            //helpContent: <ModalTiposDeMassa />,
         }
     );
 

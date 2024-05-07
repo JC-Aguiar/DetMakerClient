@@ -1,4 +1,4 @@
-import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonLabel } from "@ionic/react";
+import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonLabel, IonItem } from "@ionic/react";
 import { save } from "ionicons/icons";
 import { useState } from "react";
 import { Notificacao } from "./Noticacao";
@@ -11,6 +11,7 @@ import { PipelineInfoDTO } from "../data/PIpelineInfoDTO";
 import { JobInfoDTO } from "../data/JobInfoDTO";
 import { RootState } from "../Store/ReduxStore";
 import * as axiosRequest from "../data/AxiosRequest";
+import Botao from "./Botao";
 
 const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos Redux e React
@@ -95,17 +96,17 @@ const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                 </div>
                 <div className='text-primary'>
                     <IonRow className='p-0 m-0 w-100 ion-align-items-center'>
-                        <IonCol size='1' className='text-center p-0 m-0'>
-                            <IonLabel className='fw-bold'>Pipeline:</IonLabel>
-                        </IonCol>
-                        <IonCol size='11' className=''>
-                            <IonInput inputmode='text'
-                                maxlength={500}
-                                value={pipelineNome}
-                                className='glass text-white m-1'
-                                onIonChange={(e) => preencherPepilineNome(e)}
-                                required
-                            />
+                        <IonCol size='12' className="glass m-0 my-1 px-1">
+                            <IonItem className='m-0 p-0'>
+                                <IonInput inputmode='text'
+                                    maxlength={500}
+                                    placeholder="Nome da Pipeline"
+                                    value={pipelineNome}
+                                    className='text-white'
+                                    onIonChange={(e) => preencherPepilineNome(e)}
+                                    required
+                                />
+                            </IonItem>
                         </IonCol>
                     </IonRow>
                     <IonRow className='p-0 m-0 w-100 ion-align-items-center'>
@@ -142,14 +143,13 @@ const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                             </div>
                         </IonCol>
                     </IonRow>
-                    <IonButton fill='solid'
-                        className='w-100 mt-4 my-3' 
-                        disabled={pipelineNome.trim().length < 2 || pipelineDescricao.trim().length < 2} 
-                        onClick={() => salvarNovaPipeline()} 
-                    > 
-                        <IonIcon icon={save} className='me-2'/>
-                        Salvar no Banco
-                    </IonButton>
+                    <div className="d-flex ion-justify-content-end py-2">
+                        <Botao icon={save}
+                            texto="Salvar no Banco"
+                            disabled={pipelineNome.trim().length < 2 || pipelineDescricao.trim().length < 2} 
+                            handler={salvarNovaPipeline} 
+                        /> 
+                    </div>
                 </div>
             </div>
         </div>
