@@ -14,7 +14,7 @@ import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/ButtonLayout
 import ConfigurarJobs from '../components/ConfigurarJobs';
 import { JobInfoDTO } from '../data/JobInfoDTO';
 import { setMainPipeline, setMainJobs } from '../Store/Reducer/ReducerAtividade';
-import ListarJobs from '../components/ListarJobs';
+import ListaCatalogoJobs from '../components/ListaCatalogoJobs';
 import Schedule from '../components/Schedule';
 import Informativo from '../components/Informativo';
 import Carregando from '../components/Carregando';
@@ -27,6 +27,7 @@ import { loadingMassa, setMassas } from '../Store/Reducer/ReducerMassas';
 import ModalConfigMassa from '../components/ModalConfigMassa';
 import ModalTiposDeMassa from '../components/ModalTiposDeMassa';
 import ListaRetratril, { ListaRetratrilAgrupada, ListaRetratrilProps } from '../components/ListaRetratil';
+import ListaCatalogoPipelines from '../components/ListaCatalogoPipelines';
 
 const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos Redux e React
@@ -134,69 +135,6 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             <Informativo mensagem={mensagem} status='Normal' />
         </div>;
     }
-
-    const cancelarMainPipeline = () => {
-        if (mainPipeline === "") return;
-        dispatch(setMainPipeline({
-            id: -1,
-            nome: "", 
-            jobs: [] 
-        }));
-    }
-
-    //Listagem das Pipelines no Menu Lateral
-    const listarPipelines = (
-        <IonRadioGroup value={mainPipeline}
-            className='border-0 h-100'
-            onIonChange={(e) => selecionarMainPipeline(e)}
-        >
-            <IonList className='m-0 p-0'>
-                <IonItem lines='none'
-                    className={`p-0 m-0 ion-align-items-top text-primary small`}
-                    style={{ '--min-height': '32px' }}
-                >
-                    <IonLabel className='btn bg-transparent border-0 p-0 m-0 text-start' onClick={cancelarMainPipeline}>
-                        <IonBadge color="#" className="me-1 bg-transparent">
-                            <IonIcon icon={closeCircle} 
-                                color="primary" 
-                                className='pe-1' 
-                                style={{ transform: 'translate(-2px, 1px) scale(1.4)' }} 
-                            />
-                            <span className='text-white'>Desselecionar Pipeline</span>
-                        </IonBadge>
-                    </IonLabel>
-                </IonItem>
-                {
-                    catalogoPipelines.map((item, index) => {
-                        const color = index % 2 === 0 ? 'medium' : 'none';
-                        const jobTag = item.jobs.length > 1 ? 'Jobs' : 'Job';
-                        return (
-                            <IonItem key={index} lines='none'
-                                color={color}
-                                className='p-0 m-0 ion-align-items-top text-white small'
-                                style={{ '--min-height': '32px' }}
-                            >
-                                <IonLabel className='p-0 m-0'>
-                                    <span className='text-white font-monospace'>{item.nome}</span>
-                                    <IonBadge color='secondary'
-                                        className='ms-1 small fw-normal opacity-25'
-                                    >
-                                        {item.jobs.length}
-                                    </IonBadge>
-                                </IonLabel>
-                                <IonRadio color='primary'
-                                    slot="start"
-                                    value={item.nome}
-                                    className='p-0 m-0 me-1'
-                                    style={{ height: '16px', width: '17px', }}
-                                />
-                            </IonItem>
-                        );
-                    })
-                }
-            </IonList>
-        </IonRadioGroup>
-    );
 
     //Listagem das Massas no Menu Lateral
     const listarMassas = (
@@ -380,43 +318,6 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         }
     }
 
-    //Acionamento ao selecionar uma opção de Pipeline carregada do banco
-    function selecionarMainPipeline(e: CustomEvent<RadioGroupChangeEventDetail<string>>): void {
-        const valor = e.detail.value;
-        if (valor === null || valor === undefined) return;
-        console.log(`[ESCOLHER-PIPELINES]: Usuário selecionou opção Pipeline nome '${valor}'.`);
-
-        const userPipeline = catalogoPipelines.find((item) => item.nome === valor);
-        if (!userPipeline && userPipeline !== "") {
-            console.log(`[ESCOLHER-PIPELINES]: Pipeline '${valor}' não identificada no catálogo Pipelines.`);
-            return;
-        };
-        console.log(`[ESCOLHER-PIPELINES]: Pipeline '${userPipeline.nome}' identificada no catálogo de Pipelines.`);
-
-        //Definido MainJobs com base na MainPipline
-        const jobsMainPipline: JobConfig[] = [];
-        userPipeline.jobs.forEach((pipelineJob, index) => {
-            const atividadeJobs = catalogoJobs.find((jobDto) => jobDto.nome === pipelineJob);
-            if (!atividadeJobs) {
-                console.log(`[ESCOLHER-PIPELINES]: Nenhum dos Jobs informados na Pipeline selecionada '
-                    + ('${userPipeline.nome}') foram identificados no catálogo de Jobs.`);
-                return;
-            }
-            const configJob: JobConfig = parseJobInfo(atividadeJobs, index);
-            jobsMainPipline.push(configJob);
-        });
-        dispatch(setMainPipeline({
-            id: userPipeline.id,
-            nome: userPipeline.nome,
-            jobs: jobsMainPipline
-        }));
-        dispatch(setViewJobs([]));
-        //reordenar();
-        //dispatch(setMainJobs(jobsMainPipline));
-        //dispatch(setDadosProjeto(novaPipelineConfig));
-    }
-
-
     //Requisição para obter os jobs diretamente do banco
     async function obterJobsBanco() {
         console.log(`[ESCOLHER-PIPELINES]: Iniciando requisição 'Download Jobs'.`);
@@ -511,8 +412,8 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
     function conteudo() {
 
         const listasRetratil: ListaRetratrilProps[] = [
-            {titulo: 'Jobs', icon: cube, conteudo: <ListarJobs />},
-            {titulo: 'Pipelines', icon: layers, conteudo: listarPipelines},
+            {titulo: 'Jobs', icon: cube, conteudo: <ListaCatalogoJobs />},
+            {titulo: 'Pipelines', icon: layers, conteudo: <ListaCatalogoPipelines />},
             {titulo: 'Gerador de Massa', icon: library, conteudo: listarMassas},
         ];
 
