@@ -1,5 +1,5 @@
 import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonLabel, IonItem } from "@ionic/react";
-import { save } from "ionicons/icons";
+import { closeCircle, save, trash } from "ionicons/icons";
 import { useState } from "react";
 import { Notificacao } from "./Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,21 +14,43 @@ import * as axiosRequest from "../data/AxiosRequest";
 import Botao from "./Botao";
 
 const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
-    //Atrbiutos Redux e React
+    //Atrbiutos para usar recursos Redux e React
     const dispatch = useDispatch();
 
-    //Atributos globais
+    //Atributos de estado gerenciados via React
     const catalogoJobs: JobInfoDTO[] = useSelector(
         (state: RootState) => state.store.catalogoJobs.catalago);
     const catalagoPipelines: PipelineInfoDTO[] = useSelector(
         (state: RootState) => state.store.catalogoPipelines.catalogo);
+    const mainPipelineId: number = useSelector(
+        (state: RootState) => state.store.configAtividade.mainPipelineId);
+
     const jobsSelecionados: number[] = useSelector(
         (state: RootState) => state.store.catalogoJobs.jobsSelecionados);
+    const mainClienteId: number = useSelector(
+        (state: RootState) => state.store.configAtividade.mainClienteId);
+
+    //Atibutos de estado gerenciados via Redux
     const [pipelineNome, setPipelineNome] = useState<string>("");
     const [pipelineDescricao, setPipelineDescricao] = useState<string>("");
-    const catalogoJobsSelecionados: JobInfoDTO[] = catalogoJobs.filter(
-        (item) => jobsSelecionados.findIndex((id) => id === item.id) !== -1);
-    const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
+    const [jobsParaUso, setJobsParaUso] = useState<JobInfoDTO[]>(jobsParaUsoInicial);
+
+    //Método para preencher a quantidade de Jobs na variável jobsParaUso 
+    function jobsParaUsoInicial(): JobInfoDTO[] {
+        if (jobsSelecionados.length > 0)
+            return catalogoJobs.filter(item => jobsSelecionados.findIndex(id => id === item.id) !== -1);
+        if (mainPipelineId !== -1) {
+            const pipeline = catalagoPipelines.find(pipe => pipe.id === mainPipelineId);
+            const jobsDto: JobInfoDTO[] = [];
+            pipeline?.jobs.forEach(
+                jobNome => catalogoJobs
+                    .filter(job => job.nome === jobNome)
+                    .forEach(job => jobsDto.push(job))
+            );
+            return jobsDto;
+        }
+        return [];
+    }
 
     //handler para preencher nome da Pipeline
     const preencherPepilineNome = (event: CustomEvent<InputChangeEventDetail>) => {
@@ -56,7 +78,7 @@ const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                 nome: pipelineNome,
                 descricao: pipelineDescricao,
                 clienteId: mainClienteId,
-                jobs: catalogoJobsSelecionados.map((item) => item.nome),
+                jobs: jobsParaUso.map((item) => item.nome),
                 checked: false,
             };
             const novaPipelineSalva = await axiosRequest.salvarNovaPipeline(novaPipeline);
@@ -87,6 +109,33 @@ const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         dispatch(loadingPipelines(false));
     }
 
+    const jobs = () => {
+        if (jobsParaUso.length < 1) return <></>; 
+        return (
+            <IonCol size='12' className='mx-0 px-0 '>
+                <IonRow className='glass px-4 pt-2'>
+                    <IonCol size='12' className="opacity-50">Jobs</IonCol>
+                    {
+                        jobsParaUso.map((item, index) => <IonCol key={index} size="6" className=""> 
+                            <IonBadge color='tertiary' className='ion-align-items-center font-monospace small w-100 text-start'>
+                                <span style={{backgroundColor: 'var(--ion-color-dark)'}} className='rounded text-white px-1'>
+                                    Nº{index+1}
+                                </span>
+                                <span className="ms-1">{item.nome}</span>
+                                <IonIcon icon={closeCircle} 
+                                    color="light"
+                                    className="btn btn-outline m-0 p-0 ms-1 mb-1" 
+                                    onClick={() => setJobsParaUso(jobsParaUso.filter((job, jobIndex) => jobIndex !== index)) } 
+                                />
+                            </IonBadge>
+                        </IonCol>
+                        )
+                    }
+                </IonRow>
+            </IonCol>
+        );
+    } 
+
     //Renderização do componente
     return <>
         <div className="container justify-content-center mt-1 px-5">
@@ -108,40 +157,20 @@ const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                                 />
                             </IonItem>
                         </IonCol>
-                    </IonRow>
-                    <IonRow className='p-0 m-0 w-100 ion-align-items-center'>
-                        <IonCol size='1' className='text-center p-0 m-0'>
-                            <IonLabel className='fw-bold'>Descrição:</IonLabel>
+                        <IonCol size='12' className='glass m-0 my-1 px-1'>
+                            <IonItem className='m-0 p-0'>
+                                <IonTextarea inputmode='text'
+                                    maxlength={500}
+                                    value={pipelineDescricao}
+                                    placeholder="Descrição"
+                                    className='text-white'
+                                    style={{minHeight: '100px' }}
+                                    onIonChange={(e) => preencherPepilineDescricao(e)}
+                                    required
+                                />
+                            </IonItem>
                         </IonCol>
-                        <IonCol size='11' className=''>
-                            <IonTextarea inputmode='text'
-                                maxlength={500}
-                                value={pipelineDescricao}
-                                className='glass text-white m-1'
-                                style={{minHeight: '100px' }}
-                                onIonChange={(e) => preencherPepilineDescricao(e)}
-                                required
-                            />
-                        </IonCol>
-                    </IonRow>
-                    <IonRow className='d-flex w-100 ion-align-items-center'>
-                        <IonCol size='1' className='text-center p-0 m-0'>
-                            <IonLabel className='fw-bold mt-2' >Jobs:</IonLabel>
-                        </IonCol>
-                        <IonCol size='11' className=''>
-                            <div className='ms-1 pt-1 glass'>
-                            {
-                                catalogoJobsSelecionados.map((item, index) => 
-                                    <IonBadge key={index} className='ion-align-items-center mx-1 mt-1 pt-2 font-monospace small'>
-                                        <span style={{backgroundColor: 'var(--ion-color-dark)'}} className='rounded text-white px-1'>
-                                            Nº{index+1}
-                                        </span>
-                                        <span className='ms-1 pt-1'>{item.nome}</span>
-                                    </IonBadge>
-                                )
-                            }
-                            </div>
-                        </IonCol>
+                        {jobs()}
                     </IonRow>
                     <div className="d-flex ion-justify-content-end py-2">
                         <Botao icon={save}

@@ -129,7 +129,7 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
                     <div className='h4 text-center text-dark py-2' style={{background: 'var(--ion-color-primary)'}}>
                         {mainPipeline}
                     </div>
-                    <div className='py-2'>
+                    <div className='mb-3'>
                         {mainPipelineDescricao} 
                         <IonBadge className='mx-2 px-2' style={{ transform: 'translate(0px, 5px)' }}>
                             Total de jobs: {mainJobs.length}

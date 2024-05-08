@@ -2,7 +2,7 @@ import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonContent, IonIc
 import React, { useEffect, useState } from "react";
 import { JobConfig } from "../data/JobConfigDTO";
 import { ComandoSQL } from "../data/ComandoSQL";
-import { reorderFour, settings, shieldCheckmark, trash } from "ionicons/icons";
+import { reorderFour, save, settings, shieldCheckmark, trash } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../Store/ReduxStore";
 import * as axiosRequest from "../data/AxiosRequest";
@@ -11,6 +11,7 @@ import DynamicModal from "./DynamicModal";
 import { JobInfoDTO } from "../data/JobInfoDTO";
 import { removeOneMainJob, updateOneMainJob } from "../Store/Reducer/ReducerAtividade";
 import { FiltroSQL } from "../data/FiltroSQL";
+import Botao from "./Botao";
 
 export interface JobCardProps {
     jobExec: JobConfig,
@@ -29,7 +30,11 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
     
     //Atributos para padrões de estilização
-    const textoCodigo = (texto: string) => <span className="mx-1 font-monospace">{texto}</span>;
+    const textoCodigo = (texto: string, info: string) => {
+        return <span className="mx-1">
+            <span className="text-white">{texto}</span> <span className="font-monospace">{info}</span>
+        </span>
+    };
     const labelTitulo = (texto: string, htmlIdFor: string) => {
         return <label className="form-label fw-bold text-white pb-1 mb-0" htmlFor={htmlIdFor}>
             {texto}
@@ -54,6 +59,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
 
     //Método para salvar este JobCard (objeto ConfigJob) preenchido pelo usuário no banco
     async function salvandoItem() {
+        console.log(JSON.stringify(jobConfigurado));
         dispatch(updateOneMainJob(jobConfigurado));
     }
 
@@ -118,43 +124,55 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
 
     //Método de tratamento dos inputs do usuário para as Cargas
     function preencherCarga(e: React.ChangeEvent<HTMLInputElement>, index: number) {
-        const file = e.target.files?.[0];
+        try {
+            const file = e.target.files?.[0];
+            if (!file) {
+                console.log(`[CARD-JOB]: Usuário solicitou remover arquivo para carga[${index}] do Job '${jobInfo.nome}'.`);
+                console.log(`[CARD-JOB]: Removendo arquivo '${jobConfigurado.cargas[index].nome}'.`);
+                const novasCargas = [...jobConfigurado.cargas];
+                novasCargas[index] = {
+                    nome: "",
+                    conteudo: "",
+                    tipo: "",
+                };
+                setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
+                notificacao.toastOk(`Nenhum arquivo será anexado para carga Nº${index}.`, []);
+                return;
+            }
 
-        if (!file) {
-            console.log(`[CARD-JOB]: Usuário solicitou remover arquivo para carga[${index}] do Job '${jobInfo.nome}'.`);
-            console.log(`[CARD-JOB]: Removendo arquivo '${jobConfigurado.cargas[index].nome}'.`);
-            const novasCargas = [...jobConfigurado.cargas];
-            novasCargas[index] = {
-                nome: "",
-                conteudo: "",
-                tipo: "",
+            console.log(`[CARD-JOB]: Usuário enaminhou arquivo para carga[${index}] do Job '${jobInfo.nome}'.`);
+            console.log(`[CARD-JOB]: Anexando arquivo '${file.name}'.`);
+            const maxByteSize = 1 ; // 1MB
+            if (file.size > (maxByteSize * 1024 * 1024))
+                throw `Tamanho do arquivo excede o limite de ${maxByteSize}MB.`;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                const novasCargas = [...jobConfigurado.cargas];
+                novasCargas[index] = {
+                    nome: file.name,
+                    conteudo: reader.result as string,
+                    tipo: file.type,
+                };
+                setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
             };
-            setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
-            return;
+            reader.readAsText(file);
+            notificacao.toastOk(`Arquivo '${file.name}' carregado com sucesso.`, []);
         }
+        catch (error: unknown) {
+            e.target.value = '';
+            let errorMessage: string;
 
-        console.log(`[CARD-JOB]: Usuário enaminhou arquivo para carga[${index}] do Job '${jobInfo.nome}'.`);
-        console.log(`[CARD-JOB]: Anexando arquivo '${file.name}'.`);
-        const maxByteSize = 1 ; // 1MB
-        if (file.size > (maxByteSize * 1024 * 1024)) {
-            const mensagem = `Tamanho do arquivo excede o limite de ${maxByteSize}MB.`;
-            console.warn(mensagem);
-            notificacao.toastErro(mensagem, []);
-            return;
+            if (typeof error === "string")
+              errorMessage = error;
+            else if (error instanceof Error)
+              errorMessage = error.message;
+            else
+              errorMessage = String(error);
+
+            console.warn(errorMessage);
+            notificacao.toastErro(errorMessage, []);
         }
-
-        const reader = new FileReader();
-        reader.onload = () => {
-            const novasCargas = [...jobConfigurado.cargas];
-            novasCargas[index] = {
-                nome: file.name,
-                conteudo: reader.result as string,
-                tipo: file.type,
-            };
-            setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
-        };
-        reader.readAsText(file);
-        notificacao.toastOk(`Arquivo '${jobConfigurado.cargas[index].nome}' carregado com sucesso.`, []);
     }
 
     //Método de tratamento para remoer arquivos de Cargas
@@ -174,34 +192,23 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
 
     //Exibindo dados do Job no card
     function informacoes() {
-        let sessaoExecutarApos: JSX.Element | null = null;
-        if (jobInfo.executarAposJob.length > 0) {
-            sessaoExecutarApos = <div> 
-                { textoCodigo("Executar após ID " + jobInfo.executarAposJob.join(", ") + ".") }
-            </div>
-        }
-        let sessaoProgramas: JSX.Element | null = null;
-        if (jobInfo.programa.length > 0) {
-            sessaoProgramas = <div> 
-                { textoCodigo("Programas " + jobInfo.programa.join(", ") + ".") }
-            </div>
-        }
-        let grupoUda: JSX.Element | null = null;
-        if (jobInfo.grupoUda.length > 0) {
-            grupoUda = <div className="d-flex lh-1">
-                { textoCodigo(`Grupo UDA${jobInfo.grupoUda}.`) }
-            </div>
-        }
+        const sessaoes: JSX.Element[] = [];
+        
+        if (jobInfo.executarAposJob.length > 0)
+            sessaoes.push(textoCodigo("Executar após IDs:", jobInfo.executarAposJob.join(", ")));
+        if (jobInfo.programa.length > 0)
+            sessaoes.push(textoCodigo("Programas: ", jobInfo.programa.join(", ")));
+        if (jobInfo.grupoUda.length > 0)
+            sessaoes.push(textoCodigo(`Grupo: `, `UDA${jobInfo.grupoUda}`));
+        sessaoes.push(textoCodigo(`Descrição: `, jobInfo.descricao));
+        
         return (
             <>
                 {labelTitulo('INFORMAÇÕES', `job${id}-param`)}
                 <div className="glass mx-4 mt-1 mb-4 pt-2 pb-4 px-2">
-                    {sessaoExecutarApos}
-                    {sessaoProgramas}
-                    {grupoUda}
-                    <div className="d-flex lh-1">
-                        {textoCodigo(`${jobInfo.descricao}.`)}
-                    </div>
+                    {
+                        sessaoes.map(item => <div>{item}</div>)
+                    }
                 </div>
             </>
         );
@@ -320,29 +327,19 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
                     //form-label
                     jobInfo.mascaraEntrada.map((item, index) => 
                         {
-                            const arquivoNome = (jobConfigurado.cargas[index].nome.length > 0) ?
-                                jobConfigurado.cargas[index].nome : 
-                                "Nenhum arquivo selecionado";
-                            const nomeCor = (jobConfigurado.cargas[index].nome.length > 0) ?
-                                'light' : "primary";
-                            const nomeOpacidade = (jobConfigurado.cargas[index].nome.length > 0) ?
-                                '100' : "20";
-                            const enableRemove = (jobConfigurado.cargas[index].nome.length > 0) ?
-                                true : false;
+                            const arquivoNome = (jobExec.cargas[index].nome.length > 0) ?
+                                jobExec.cargas[index].nome : null;
 
                             return <div key={index} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
                                 {badgeInfo(item, 0, -50)}
                                 <form action="/upload" method="post" encType="multipart/form-data" className="" >
 
                                 <label htmlFor="formFile" className="form-label">
-                                    Escolha um Arquivo
-                                    <span className="px-2 bg-transparent" style={{
-                                        position: "absolute", 
-                                        top:"24px", 
-                                        color: `var(--ion-color-${nomeCor})`,
-                                        opacity: `${nomeOpacidade}` 
-                                    }}>
-                                        {arquivoNome}
+                                    <span className="px-2 bg-transparent d-flex" style={{color: `var(--ion-color-primary)`}}>
+                                        Arquivo Atual: 
+                                        <IonBadge color='dark' className="mx-1 px-2 mb-0 font-monospace">
+                                            {arquivoNome}
+                                        </IonBadge>
                                     </span>
                                 </label>
                                 <input className="form-control" 
@@ -377,23 +374,22 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
     }
 
     //Criando a Modal desse componente
-    const [modalParamOn, modalParamOff] = useIonModal(
-        DynamicModal,
+    const [modalParamOn, modalParamOff] = useIonModal(DynamicModal,
         {
             titulo: <>
-                <span className="badge bg-white me-1 text-primary">ID {id}</span>
-                {jobExec.nome}
-            </>,
+                        <span className="badge bg-white me-1 text-primary">ID {id}</span>
+                        {jobExec.nome}
+                    </>,
             elemento: <div className="p-2">
-                {informacoes()}
-                {camposInputParametros()}
-                {camposInputQueries()}
-                {camposInputCargas()}
-            </div>,
-            onDismiss: () => {
-                salvandoItem();
-                modalParamOff()
-            }
+                        {informacoes()}
+                        {camposInputParametros()}
+                        {camposInputQueries()}
+                        {camposInputCargas()}
+                        <div className="d-flex ion-justify-content-end me-2 pe-1">
+                            <Botao icon={save} texto="Salvar" handler={salvandoItem} />
+                        </div>
+                    </div>,
+            onDismiss: () => modalParamOff(),
         }
     );
 
@@ -441,7 +437,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
                         </IonItem>
                     </IonReorder>
                 </IonLabel>
-                <IonButton fill="clear" shape="round" size='large' onClick={() => modalParamOn()} >
+                <IonButton fill="clear" shape="round" size='large' onClick={() => modalParamOn({cssClass: 'modal-job-card'})} >
                     <IonIcon icon={settings} size='large' color='light' />
                 </IonButton>
                 <IonButton fill="clear" shape="round" size='large' onClick={ () => dispatch(removeOneMainJob(id)) }>

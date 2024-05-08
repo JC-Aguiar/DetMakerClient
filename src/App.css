@@ -555,7 +555,13 @@ input[type="file"]::-webkit-file-upload-button {
 .ion-select-action-sheet .alert-wrapper .alert-radio-group button:hover {
   background: var(--ion-color-primary-shade);
 }
-/*alert-radio-button*/
+
+
+/* customizando modal */
+ion-modal.modal-job-card::part(content) {
+  height: 90%;
+}
+
 
 
 .orbit-cirlce1 {
