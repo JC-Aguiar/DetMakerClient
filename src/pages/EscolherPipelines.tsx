@@ -26,6 +26,7 @@ import { MassaTabelaDTO } from '../data/MassaTabelaDTO';
 import { loadingMassa, setMassas } from '../Store/Reducer/ReducerMassas';
 import ModalConfigMassa from '../components/ModalConfigMassa';
 import ModalTiposDeMassa from '../components/ModalTiposDeMassa';
+import ListaRetratril, { ListaRetratrilAgrupada, ListaRetratrilProps } from '../components/ListaRetratil';
 
 const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos Redux e React
@@ -508,6 +509,13 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
 
     //Conteúdo principal caso existam dados na base
     function conteudo() {
+
+        const listasRetratil: ListaRetratrilProps[] = [
+            {titulo: 'Jobs', icon: cube, conteudo: <ListarJobs />},
+            {titulo: 'Pipelines', icon: layers, conteudo: listarPipelines},
+            {titulo: 'Gerador de Massa', icon: library, conteudo: listarMassas},
+        ];
+
         if (catalogoJobs.length < 1) {
             return <Informativo 
                 mensagem='Uma alternativa é fazer o upload da planilha de Jobs, usando o botão {Nova Schedule}' 
@@ -516,72 +524,11 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         }
         return (
             <IonSplitPane when="xs" contentId="main" className='ps-5 ms-5 '>
-
                 <IonMenu contentId="main" className='glass' color='#'>
                     <IonContent className='glass-content p-0 m-0 mx-5'>
-                        <IonAccordionGroup multiple={true} className='px-2'>
-                            
-                            <IonAccordion value="jobs" className='lista-navegacao glass mb-1'>
-                                <IonItem slot="header" color="#" className='rounded rounded-0'>
-                                    <IonFabButton className="p-2 m-0" size='small' color='#'>
-                                        <IonIcon icon={caretDownOutline} size='small' color="light" className="ion-accordion-toggle-icon" />
-                                    </IonFabButton>
-                                    <IonLabel className='d-flex py-0 my-0 ion-align-items-center ion-justify-content-between p-0 m-0'>
-                                        <span className='ms-1 text-white'>
-                                            Jobs
-                                            <IonIcon icon={cube} color='light' className='ms-1' style={{transform: 'translate(0, 3px)'}}/>
-                                        </span>
-                                    </IonLabel>
-                                </IonItem>
-                                <div className="p-0 m-0" slot="content">
-                                    <div className='p-0 m-0'>
-                                        <ListarJobs />
-                                    </div>
-                                </div>
-                            </IonAccordion>
-
-                            <IonAccordion value="pipelines" className='lista-navegacao glass'>
-                                <IonItem slot="header" color="#" className='rounded rounded-0'>
-                                    <IonFabButton className="p-2 m-0" size='small' color='#'>
-                                        <IonIcon icon={caretDownOutline} size='small' color="light" className="ion-accordion-toggle-icon" />
-                                    </IonFabButton>
-                                    <IonLabel className='d-flex ion-align-items-center ion-justify-content-between py-0 my-0'>
-                                        <span className='ms-1 text-white'>
-                                            Pipelines
-                                            <IonIcon icon={layers} color='light' className='ms-1' style={{transform: 'translate(0, 3px)'}}/>
-                                        </span>
-                                    </IonLabel>
-                                </IonItem>
-                                <div className="p-0 m-0" slot="content">
-                                    <div className='p-0 m-0'>
-                                        {listarPipelines}
-                                    </div>
-                                </div>
-                            </IonAccordion>
-
-                            <IonAccordion value="massas" className='lista-navegacao glass'>
-                                <IonItem slot="header" color="#" className='rounded rounded-0'>
-                                    <IonFabButton className="p-2 m-0" size='small' color='#'>
-                                        <IonIcon icon={caretDownOutline} size='small' color="light" className="ion-accordion-toggle-icon" />
-                                    </IonFabButton>
-                                    <IonLabel className='d-flex ion-align-items-center ion-justify-content-between py-0 my-0'>
-                                        <span className='ms-1 text-white'>
-                                            Gerador de Massa
-                                            <IonIcon icon={library} color='light' className='ms-1' style={{ transform: 'translate(0, 3px)' }} />
-                                        </span>
-                                    </IonLabel>
-                                </IonItem>
-                                <div className="p-0 m-0" slot="content">
-                                    <div className='p-0 m-0'>
-                                        {listarMassas}
-                                    </div>
-                                </div>
-                            </IonAccordion>
-
-                        </IonAccordionGroup>
+                        <ListaRetratrilAgrupada listas={listasRetratil} />
                     </IonContent>
                 </IonMenu>
-
                 <div className="container" id="main" >
                     <IonContent className='w-100 h-100'>
                         {conteudoPainelPrincipal()}
