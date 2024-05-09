@@ -1,14 +1,14 @@
-import { IonAccordion, IonAccordionGroup, IonBadge, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonFabButton, IonIcon, IonItem, IonLabel, IonList, IonMenu, IonModal, IonRadio, IonRadioGroup, IonSplitPane, IonTitle, RadioGroupChangeEventDetail, useIonModal, useIonViewWillEnter } from '@ionic/react';
+import { IonAccordion, IonAccordionGroup, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonItem, IonLabel, IonMenu, IonModal, IonSplitPane, IonTitle, useIonModal, useIonViewWillEnter } from '@ionic/react';
 import { useRef, useState } from 'react';
-import { caretDownOutline, closeCircle, cloudUpload, cube, flash, layers, library, listOutline, open, refresh } from 'ionicons/icons';
+import { cloudUpload, cube, layers, library, listOutline, refresh } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from '../Store/ReduxStore';
 import { useDispatch, useSelector } from 'react-redux';
-import { loadingJobs, setJobs, setViewJobs } from '../Store/Reducer/ReducerJobs';
+import { loadingJobs, setJobs } from '../Store/Reducer/ReducerJobs';
 import DynamicModal from '../components/DynamicModal';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
 import { loadingPipelines, setPipelines } from '../Store/Reducer/ReducerPipelines';
-import { JobConfig, parseJobInfo } from '../data/JobConfigDTO';
+import { JobConfig } from '../data/JobConfigDTO';
 import { Notificacao } from '../components/Noticacao';
 import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/ButtonLayout';
 import ConfigurarJobs from '../components/ConfigurarJobs';
@@ -21,35 +21,28 @@ import Carregando from '../components/Carregando';
 import { QueryInfoDTO } from '../data/QueryInfoDTO';
 import { loadingQueries, setQueries } from '../Store/Reducer/ReducerQueries';
 import ModalNovaPipeline from '../components/ModalNovaPipeline';
-import ModalExecPipeline from '../components/ModalExecPipeline';
 import { MassaTabelaDTO } from '../data/MassaTabelaDTO';
 import { loadingMassa, setMassas } from '../Store/Reducer/ReducerMassas';
-import ModalConfigMassa from '../components/ModalConfigMassa';
-import ModalTiposDeMassa from '../components/ModalTiposDeMassa';
-import ListaRetratril, { ListaRetratrilAgrupada, ListaRetratrilProps } from '../components/ListaRetratil';
+import { ListaRetratrilAgrupada, ListaRetratrilProps } from '../components/ListaRetratil';
 import ListaCatalogoPipelines from '../components/ListaCatalogoPipelines';
+import ListaCatalogoMassas from '../components/ListaCatalogoMassas';
 
 const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos Redux e React
     const dispatch = useDispatch();
-
-    //Atributos de controle
-    const notificacao = { toastInfo: toastInfo, toastOk: toastOk, toastErro: toastErro } as Notificacao;
+    
+    //Atributos de input do usuário
+    const [anexo, setAnexo] = useState<File | null>(null);
     const [conectionsCount, setConectionsCount] = useState<number>(0);
     const [jobsSucesso, setJobsSucesso] = useState<boolean | null>(null);
     const [pipelinesSucesso, setPipelinesSucesso] = useState<boolean | null>(null);
+    const [verModalSchedule, setVerModalSchedule] = useState<boolean>(false);
+    const modalScheduleRef = useRef<HTMLIonModalElement>(null);
+
+    //Atributos com estado gerenciado via Redux
     const isLoadingJobs = useSelector((state: RootState) => state.store.catalogoJobs.loading);
     const isLoadingPipelines = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
-    const isLoading = isLoadingJobs || isLoadingPipelines;
-
-    //Atributos de input do usuário
-    const [anexo, setAnexo] = useState<File | null>(null);
-    const [massaToView, setMassaToView] = useState<string>("");
-
-    //Atributos dos principais recursos da página
     const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalago);
-    const catalogoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
-    const catalogoMassas: MassaTabelaDTO[] = useSelector((state: RootState) => state.store.catalogoMassas.catalogo);
     const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.catalogoJobs.jobsSelecionados);
     const catalogoJobsSelecionados: JobInfoDTO[] = catalogoJobs.filter(
         (item) => jobsSelecionados.findIndex((id) => id === item.id) !== -1);
@@ -58,45 +51,9 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
     const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
 
-    //Ações ao carregar esta página
-    useIonViewWillEnter(() => {
-        if ((catalogoJobs.length < 1 || conectionsCount < 1) && !isLoading) coletarRecursos();
-    }, []);
-
-    //Botões
-    const butoes: ButtonLayoutProps[] = [ 
-        {
-            title: 'Atualizar',
-            icon: refresh,
-            trigger: () => coletarRecursos(),
-            disable: isLoading,
-        }, 
-        {
-            title: 'Nova Pipeline',
-            icon: layers,
-            trigger: () =>  modalNovaPipelineOn(),
-            disable: isLoading || catalogoJobs.length < 1,
-        },
-        {
-            title: 'Nova Schedule',
-            icon: cloudUpload,
-            trigger: () => uploadSchedule(),
-            disable: isLoading,
-        }, 
-        {
-            title: 'Ver Schedule',
-            icon: listOutline,
-            trigger: () => {
-                if (!modalRef || !modalRef.current) return;
-                modalRef.current.present();
-                setVerModalSchedule(true);
-                console.log(`Ativando modal Shedule (var: ${verModalSchedule})`);
-            },
-            disable: isLoading || catalogoJobs.length < 1,
-        },
-    ];
-
-    //Modal para criar nova Pipeline
+    //Atributos de utilidade
+    const isLoading = isLoadingJobs || isLoadingPipelines;
+    const notificacao = { toastInfo: toastInfo, toastOk: toastOk, toastErro: toastErro } as Notificacao;
     const [modalNovaPipelineOn, modalNovaPipelineOff] = useIonModal(
         DynamicModal,
         {
@@ -106,172 +63,10 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         }
     );
 
-    //Modal para ver registro de Massa
-    const [modalConfigMassaOn, modalConfigMassaOff] = useIonModal(
-        DynamicModal,
-        {
-            titulo: "Mapeamento de Massa",
-            elemento: <ModalConfigMassa 
-                    notificacao={notificacao} 
-                    massa={catalogoMassas.find(massa => massa.nome === massaToView)} 
-                />,
-            onDismiss: () => modalConfigMassaOff(),
-            //helpContent: <ModalTiposDeMassa />,
-        }
-    );
-
-    //Painel principal (direita) contendo os recursos selecionado no painel de opções (esquerda)
-    const conteudoPainelPrincipal = () => {
-        if (jobsSelecionados.length > 0) 
-            return exibirJobsSelecionados();
-
-        if (mainPipeline !== "") 
-            return <ConfigurarJobs toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />;
-
-        const mensagem = 'Use o painel lateral para vizualizar {Jobs} e {Pipelines}\n'
-            + 'Selecione um {Job}, fora da {Pipeline}, para analisá-lo\n'
-            + 'Selecione uma {Pipeline} para inserir {Jobs} ou configurar sua execução';
-        return <div className='position-absolute'>
-            <Informativo mensagem={mensagem} status='Normal' />
-        </div>;
-    }
-
-    //Listagem das Massas no Menu Lateral
-    const listarMassas = (
-        <IonList className='m-0 p-0'>
-        {
-            catalogoMassas.map((item, index) => {
-                const color = index % 2 === 0 ? 'medium' : 'none';
-                return (
-                    <IonItem key={index} lines='none'
-                        color={color}
-                        className='ion-align-items-top text-white small p-0 m-0'
-                        style={{ '--min-height': '32px' }}
-                        onClick={() => {
-                            setMassaToView(item.nome);
-                            modalConfigMassaOn();
-                        }}
-                    >
-                        <IonIcon color='primary'
-                            icon={open}
-                            size='small' 
-                            className='p-0 m-0 me-1'
-                            style={{ height: '16px', width: '17px', }}
-                        />
-                        <IonLabel className='p-0 m-0'>
-                            <span className='text-white font-monospace'>{item.nome}</span>
-                            <IonBadge color='secondary'
-                                className='ms-1 small fw-normal opacity-25'
-                            >
-                                {item.colunas.length}
-                            </IonBadge>
-                        </IonLabel>
-                    </IonItem>
-                );
-            })
-        }
-        </IonList>
-    );
-
-    function exibirJobsSelecionados() {
-        const fonteCodigo = 'font-monospace text-white fw-bold'
-        return catalogoJobsSelecionados.map((jobDto, index) =>
-            <IonCard key={index}>
-                <IonAccordionGroup>
-                    <IonAccordion value="first">
-                        <IonItem slot="header" color="primary" className='' >
-                            <IonCardHeader className='py-0'>
-                                <IonCardTitle className='text-dark py-0'>{jobDto.nome}</IonCardTitle>
-                            </IonCardHeader>
-                        </IonItem>
-                        <div className="glass rounded-0" slot="content">
-                            <IonCardContent className='glass-content'>
-                                <div className='small'>
-                                    <IonTitle color='primary' className='p-0'>Dados da Schedule</IonTitle>
-                                    <section className="mb-4">
-                                        <table className="table table-stripe">
-                                            <tbody className='text-white fw-bold'>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end' style={{ width: '0%' }}>Descrição:</td>
-                                                    <td className='' colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.descricao}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end'>Fase:</td>
-                                                    <td colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.fase}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end'>Programas:</td>
-                                                    <td colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.programa.join(", ")}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end'>Tabelas:</td>
-                                                    <td colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.tabelas.join(", ")}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end'>Máscara Carga:</td>
-                                                    <td colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.mascaraEntrada.join(", ")}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end'>Máscara Produto:</td>
-                                                    <td colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.mascaraSaida.join(", ")}</span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                        <IonTitle color='primary' className='p-0'>Dados de Queries</IonTitle>
-                                        {
-                                            jobDto.queries.map((queryItem, queryIndex) => {
-                                                return (
-                                                    <div className='text-white fw-bold border-bottom p-2' key={queryIndex}>
-                                                        <IonTitle color='secondary' className='w-100 h6'>
-                                                            {queryItem.nome}
-                                                        </IonTitle>
-                                                        <div className={`${fonteCodigo} mx-4`} >
-                                                            {queryItem.sql}
-                                                        </div>
-                                                    </div>
-                                                )
-                                            })
-                                        }
-                                    </section>
-                                </div>
-                            </IonCardContent>
-                        </div>
-                    </IonAccordion>
-                </IonAccordionGroup>
-            </IonCard>
-        );
-    }
-
-    //Co    nfigurações e propriedades da modal personalizada da Schedule  
-    const [verModalSchedule, setVerModalSchedule] = useState<boolean>(false);
-    const modalRef = useRef<HTMLIonModalElement>(null);
-
-    //Atualizando Pipelines e Jobs com base no banco
-    async function coletarRecursos() {
-        dispatch(loadingJobs(true));
-        dispatch(loadingPipelines(true));
-        //dispatch(loadingQueries(true));
-        //queries
-        await obterJobsBanco()
-            .then(() => obterPipelinesBanco())
-            .then(() => obterQueriesBanco())
-            .then(() => obterMassasBanco());
-        dispatch(loadingJobs(false));
-        dispatch(loadingPipelines(false));
-        //dispatch(loadingQueries(false));
-    }
+    //Ações ao carregar esta página
+    useIonViewWillEnter(() => {
+        if ((catalogoJobs.length < 1 || conectionsCount < 1) && !isLoading) coletarRecursos();
+    }, []);
 
     //Coletando arquivo da máquina local
     /*
@@ -287,6 +82,21 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             }
         }
     */
+
+    //Conjunto de Requisições para atualizar todos os recursos da página 
+    async function coletarRecursos() {
+        dispatch(loadingJobs(true));
+        dispatch(loadingPipelines(true));
+        //dispatch(loadingQueries(true));
+        //queries
+        await obterJobsBanco()
+            .then(() => obterPipelinesBanco())
+            .then(() => obterQueriesBanco())
+            .then(() => obterMassasBanco());
+        dispatch(loadingJobs(false));
+        dispatch(loadingPipelines(false));
+        //dispatch(loadingQueries(false));
+    }
 
     //Requisição para abrir a planilha schedule para obter os jobs
     async function uploadSchedule() {
@@ -408,13 +218,144 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         dispatch(loadingMassa(false));
     }
 
+    //Botões renderizados por esse componente
+    const butoes: ButtonLayoutProps[] = [ 
+        {
+            title: 'Atualizar',
+            icon: refresh,
+            trigger: () => coletarRecursos(),
+            disable: isLoading,
+        }, 
+        {
+            title: 'Nova Pipeline',
+            icon: layers,
+            trigger: () =>  modalNovaPipelineOn(),
+            disable: isLoading || catalogoJobs.length < 1,
+        },
+        {
+            title: 'Nova Schedule',
+            icon: cloudUpload,
+            trigger: () => uploadSchedule(),
+            disable: isLoading,
+        }, 
+        {
+            title: 'Ver Schedule',
+            icon: listOutline,
+            trigger: () => {
+                if (!modalScheduleRef || !modalScheduleRef.current) return;
+                modalScheduleRef.current.present();
+                setVerModalSchedule(true);
+                console.log(`Ativando modal Shedule (var: ${verModalSchedule})`);
+            },
+            disable: isLoading || catalogoJobs.length < 1,
+        },
+    ];
+
+    //Define conteúdo a ser exibido no painel principal (direita), com base nos recursos selecionado no painel de opções (esquerda)
+    const conteudoPainelPrincipal = () => {
+        if (jobsSelecionados.length > 0) 
+            return exibirJobsSelecionados();
+
+        if (mainPipeline !== "") 
+            return <ConfigurarJobs toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />;
+
+        const mensagem = 'Use o painel lateral para vizualizar {Jobs} e {Pipelines}\n'
+            + 'Selecione um {Job}, fora da {Pipeline}, para analisá-lo\n'
+            + 'Selecione uma {Pipeline} para inserir {Jobs} ou configurar sua execução';
+        return <div className='position-absolute'>
+            <Informativo mensagem={mensagem} status='Normal' />
+        </div>;
+    }
+
+    //Exibição no painel principal (direita) listagem de cards, com base na Schedule, dos Jobs selecionados no painel de opções (esquerda)
+    function exibirJobsSelecionados() {
+        const fonteCodigo = 'font-monospace text-white fw-bold'
+        return catalogoJobsSelecionados.map((jobDto, index) =>
+            <IonCard key={index}>
+                <IonAccordionGroup>
+                    <IonAccordion value="first">
+                        <IonItem slot="header" color="primary" className='' >
+                            <IonCardHeader className='py-0'>
+                                <IonCardTitle className='text-dark py-0'>{jobDto.nome}</IonCardTitle>
+                            </IonCardHeader>
+                        </IonItem>
+                        <div className="glass rounded-0" slot="content">
+                            <IonCardContent className='glass-content'>
+                                <div className='small'>
+                                    <IonTitle color='primary' className='p-0'>Dados da Schedule</IonTitle>
+                                    <section className="mb-4">
+                                        <table className="table table-stripe">
+                                            <tbody className='text-white fw-bold'>
+                                                <tr className='p-0 m-0'>
+                                                    <td className='text-end' style={{ width: '0%' }}>Descrição:</td>
+                                                    <td className='' colSpan={3}>
+                                                        <span className={fonteCodigo}>{jobDto.descricao}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr className='p-0 m-0'>
+                                                    <td className='text-end'>Fase:</td>
+                                                    <td colSpan={3}>
+                                                        <span className={fonteCodigo}>{jobDto.fase}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr className='p-0 m-0'>
+                                                    <td className='text-end'>Programas:</td>
+                                                    <td colSpan={3}>
+                                                        <span className={fonteCodigo}>{jobDto.programa.join(", ")}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr className='p-0 m-0'>
+                                                    <td className='text-end'>Tabelas:</td>
+                                                    <td colSpan={3}>
+                                                        <span className={fonteCodigo}>{jobDto.tabelas.join(", ")}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr className='p-0 m-0'>
+                                                    <td className='text-end'>Máscara Carga:</td>
+                                                    <td colSpan={3}>
+                                                        <span className={fonteCodigo}>{jobDto.mascaraEntrada.join(", ")}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr className='p-0 m-0'>
+                                                    <td className='text-end'>Máscara Produto:</td>
+                                                    <td colSpan={3}>
+                                                        <span className={fonteCodigo}>{jobDto.mascaraSaida.join(", ")}</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <IonTitle color='primary' className='p-0'>Dados de Queries</IonTitle>
+                                        {
+                                            jobDto.queries.map((queryItem, queryIndex) => {
+                                                return (
+                                                    <div className='text-white fw-bold border-bottom p-2' key={queryIndex}>
+                                                        <IonTitle color='secondary' className='w-100 h6'>
+                                                            {queryItem.nome}
+                                                        </IonTitle>
+                                                        <div className={`${fonteCodigo} mx-4`} >
+                                                            {queryItem.sql}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })
+                                        }
+                                    </section>
+                                </div>
+                            </IonCardContent>
+                        </div>
+                    </IonAccordion>
+                </IonAccordionGroup>
+            </IonCard>
+        );
+    }
+
     //Conteúdo principal caso existam dados na base
     function conteudo() {
 
         const listasRetratil: ListaRetratrilProps[] = [
             {titulo: 'Jobs', icon: cube, conteudo: <ListaCatalogoJobs />},
             {titulo: 'Pipelines', icon: layers, conteudo: <ListaCatalogoPipelines />},
-            {titulo: 'Gerador de Massa', icon: library, conteudo: listarMassas},
+            {titulo: 'Gerador de Massa', icon: library, conteudo: <ListaCatalogoMassas notificacao={notificacao} />},
         ];
 
         if (catalogoJobs.length < 1) {
@@ -449,13 +390,13 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             </IonLabel>
 
             {/* Modal personalizada da Schedule */}
-            <IonModal style={{'--min-width': '94%', '--min-height': '90%'}} isOpen={verModalSchedule} ref={modalRef}>
+            <IonModal style={{'--min-width': '94%', '--min-height': '90%'}} isOpen={verModalSchedule} ref={modalScheduleRef}>
                 <DynamicModal
                     titulo="Schedule Completa"
                     elemento={<Schedule />}
                     onDismiss={() => {
-                        if (!modalRef || !modalRef.current) return;
-                        modalRef.current.dismiss();
+                        if (!modalScheduleRef || !modalScheduleRef.current) return;
+                        modalScheduleRef.current.dismiss();
                         setVerModalSchedule(false);
                         console.log(`Desativando modal Shedule (var: ${verModalSchedule})`);
                     }}
