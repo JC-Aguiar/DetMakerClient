@@ -19,7 +19,7 @@ const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
 
     //Atributos de estado gerenciados via React
     const catalogoJobs: JobInfoDTO[] = useSelector(
-        (state: RootState) => state.store.catalogoJobs.catalago);
+        (state: RootState) => state.store.catalogoJobs.catalogo);
     const catalagoPipelines: PipelineInfoDTO[] = useSelector(
         (state: RootState) => state.store.catalogoPipelines.catalogo);
     const mainPipelineId: number = useSelector(

@@ -1,4 +1,4 @@
-import { IonBadge, IonCard, IonList, IonReorderGroup, IonRow, ItemReorderEventDetail, useIonModal, useIonViewDidEnter } from '@ionic/react';
+import { InputChangeEventDetail, IonBadge, IonCard, IonCol, IonInput, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, ItemReorderEventDetail, useIonModal, useIonViewDidEnter } from '@ionic/react';
 import JobCard from './JobCard';
 import { ban, flash, open, save, trash } from 'ionicons/icons';
 import { useRef } from 'react';
@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
 import { JobConfig, parseJobInfo, } from '../data/JobConfigDTO';
 import { useDispatch } from 'react-redux';
-import { reorderMainJobs, setMainJobs, setMainPipeline } from '../Store/Reducer/ReducerAtividade';
+import { UpdateMainJobsIfxdateProps, reorderMainJobs, setMainJobs, setMainPipeline, updateMainJobsIfxdate } from '../Store/Reducer/ReducerAtividade';
 import { UserDTO } from '../data/UserDTO';
 import { Notificacao } from './Noticacao';
 import DynamicModal from './DynamicModal';
@@ -15,6 +15,7 @@ import { BotaoProps, Botoes } from './Botao';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
 import { setPipelines } from '../Store/Reducer/ReducerPipelines';
 import * as axiosRequest from "../data/AxiosRequest";
+import { JobInfoDTO } from '../data/JobInfoDTO';
 
 
 const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
@@ -26,8 +27,8 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
 
     //Atributos com estado gerenciado via Redux
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
-    const catalagoPipelines: PipelineInfoDTO[] = useSelector(
-        (state: RootState) => state.store.catalogoPipelines.catalogo);
+    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
+    const catalogoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
     const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
     const mainPipelineId: number = useSelector((state: RootState) => state.store.configAtividade.mainPipelineId);
@@ -59,11 +60,11 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
         console.log(`[CONFIGURAR-JOBS]: Iniciando requisição 'Salvar Pipeline'.`);
         toastInfo("SALVAR PIPELINE: Em execução...", []);
         try {
-            const novaPipeline = catalagoPipelines.find(pipe => pipe.id === mainPipelineId);
+            const novaPipeline = catalogoPipelines.find(pipe => pipe.id === mainPipelineId);
             if (!novaPipeline) throw `Pipeline ID ${mainPipelineId} não encontrada no catálogo de Pipelines.`
 
             const resultado = await axiosRequest.atualizarPipeline(novaPipeline);
-            const catalogoPipelinesAtualizado = catalagoPipelines.slice()
+            const catalogoPipelinesAtualizado = catalogoPipelines.slice()
                 .map(pipe => {
                     if (pipe.id !== mainPipelineId) return pipe;
                     return novaPipeline;
@@ -76,6 +77,35 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
             toastErro(`SALVAR PIPELINE: ${error}`, []);
             console.error(`[CONFIGURAR-JOBS]: Requisição 'Salvar Pipeline' falhou.`);
         }
+    }
+
+    //Handler para definir a Data do Ciclo Globalmente para todos os Jobs
+    const preencherIfxdate = (event: CustomEvent<InputChangeEventDetail>) => {
+        const ifxdate = (event.target as HTMLInputElement).value
+            .trim()
+            .replace(/-/g, '');
+        if (ifxdate.length !== 8) return;
+        
+        const dados: UpdateMainJobsIfxdateProps = {
+            ifxdate: ifxdate,
+            jobs: [],
+        };
+        catalogoJobs.filter(item => mainJobs.some(mainJob => mainJob.id === item.id))
+            .forEach(item => {
+                const paramIndex = item.parametros.findIndex(
+                    param => param.toUpperCase().includes("AAAAMMDD")
+                );
+                const paramDescIndex = item.descricaoParametros.findIndex(
+                    param => param.toLowerCase().includes("data") 
+                        && param.toLowerCase().includes("ciclo")
+                );
+                if (paramIndex === paramDescIndex && paramIndex !== -1)
+                    dados.jobs.push({ id: item.id , parametro: paramIndex });
+            });
+
+
+        dispatch(updateMainJobsIfxdate(dados));
+        toastInfo(`Ifxdate global definido: ${ifxdate}. Total de Jobs atualizados: ${dados.jobs.length}.`, []);
     }
 
     //Faz o processo de reordenação visual se alinhar com a reordenação dos dados no Redux
@@ -117,7 +147,7 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
                             Total de jobs: {mainJobs.length}
                         </IonBadge>
                     </div>
-                    <div className='px-3 pb-2'>
+                    <div className='px-3 pb-md-2 pb-5'>
                         <Botoes botoes={botoes} />
                     </div>
                 </div>
@@ -125,6 +155,17 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
             <div className='py-5 mt-5 mb-3' />
             <IonRow className='ion-justify-content-center p-0 m-0 w-100'>
                 <IonList className='w-100 py-2 px-2'>
+                    <IonRow className='m-0 p-0 pb-2 ion-justify-content-end ion-align-items-center border-bottom'> 
+                        <span className='me-2'>Data do Ciclo Global</span>
+                        <IonItem className='glass m-0 me-2 p-0'>
+                            <IonInput inputmode='text'
+                                type='date'
+                                maxlength={500}
+                                className='text-white mx-2'
+                                onIonChange={(e) => preencherIfxdate(e)}
+                            />
+                        </IonItem>
+                    </IonRow>
                     <IonReorderGroup disabled={false} onIonItemReorder={reordenar} ref={reorderGroupRef} className='p-0 m-0' >
                     {
                         mainJobs.map(job => job.ordem)

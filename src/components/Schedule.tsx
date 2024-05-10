@@ -6,7 +6,7 @@ import { JobInfoDTO } from '../data/JobInfoDTO';
 import React from 'react';
 
 const Schedule: React.FC = () => {
-    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalago);
+    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
     //async function handlerCheckAll() {
     //    console.log(`[ESCOLHER-JOBS] Alterando check de todos os jobs para 'false'`);
     //    catalogoJobs.forEach((item) => dispatch( 

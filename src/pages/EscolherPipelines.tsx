@@ -42,7 +42,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
     //Atributos com estado gerenciado via Redux
     const isLoadingJobs = useSelector((state: RootState) => state.store.catalogoJobs.loading);
     const isLoadingPipelines = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
-    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalago);
+    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
     const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobsSelecionados);
     const catalogoJobsSelecionados: JobInfoDTO[] = catalogoJobs.filter(
         (item) => jobsSelecionados.findIndex((id) => id === item.id) !== -1);

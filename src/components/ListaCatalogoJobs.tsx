@@ -15,7 +15,7 @@ const ListaCatalogoJobs: React.FC = () => {
     const dispatch = useDispatch();
 
     //Atributos com estado gerenciado via Redux
-    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalago);
+    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
     const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobsSelecionados);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
     const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);

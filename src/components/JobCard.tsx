@@ -25,7 +25,7 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
     const dispatch = useDispatch();
     const jobExec = useSelector((state: RootState) => state.store.configAtividade.mainJobs[index]);
     const id = jobExec.id;
-    const jobInfo: JobInfoDTO = useSelector((state: RootState) => state.store.catalogoJobs.catalago)
+    const jobInfo: JobInfoDTO = useSelector((state: RootState) => state.store.catalogoJobs.catalogo)
         .filter((item) => item.id === id)[0];
     const [jobConfigurado, setJobConfigurado] = useState<JobConfig>({...jobExec});
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);

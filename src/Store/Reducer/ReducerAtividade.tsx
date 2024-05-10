@@ -10,6 +10,7 @@ const initialState = {
     mainPipeline: "", 
     mainPipelineId: -1,
     mainJobs: [],
+    mainIfxdate: "",
     jobsSelecionados: [],
 } as ReducerAtividadeProps;
 
@@ -22,6 +23,7 @@ export interface ReducerAtividadeProps {
     mainPipeline: string,
     mainPipelineId: number,
     mainJobs: JobConfig[],
+    mainIfxdate: string,
     jobsSelecionados: number[],
 }
 
@@ -42,6 +44,11 @@ export interface SetMainPipelineProps {
 export interface ReorderMainJobsProps {
     ordemAntiga: number,
     ordemNova: number,
+}
+
+export interface UpdateMainJobsIfxdateProps {
+    jobs: { id: number, parametro: number }[],
+    ifxdate: string,  
 }
 
 //Configurando ações 'configAtividade' para o reducer ReducerAtividade
@@ -89,6 +96,28 @@ const configAtividade = createSlice({
                     else if (item.ordem >= ordemNova && item.ordem < ordemAntiga) item.ordem += 1;
                     return item;
                 }).sort((item1, item2) => item1.ordem - item2.ordem);
+        },
+        updateMainJobsIfxdate: (state, action: PayloadAction<UpdateMainJobsIfxdateProps>) => {
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.updateMainJobsIfxdate!');
+            const {jobs, ifxdate} = action.payload;
+            state.mainIfxdate = ifxdate; 
+
+            state.mainJobs.map(mainJob => {
+                let jobIndex = -1;
+                for (let i = 0; i < jobs.length; i++) {
+                    if (jobs[i].id === mainJob.id) {
+                        jobIndex = i;
+                        break;
+                    }
+                }
+                if (jobIndex === -1) return mainJob;
+
+                const parametroIndex = jobs[jobIndex].parametro;
+                if (mainJob.argumentos.length < parametroIndex) return mainJob;
+                mainJob.argumentos[parametroIndex] = ifxdate;
+            });
+
+            logItemPilha(state.mainJobs);
         },
         updateOneMainJob: (state, action: PayloadAction<JobConfig>) => {
             console.log('[ReducerAtividade]: Acionado controlador configAtividade.updateOneMainJob!');
@@ -147,7 +176,8 @@ export const {
     setMainAmbiente, 
     setMainPipeline, 
     setMainJobs, 
-    updateOneMainJob, 
+    updateOneMainJob,
+    updateMainJobsIfxdate, 
     reorderMainJobs,
     addOneMainJob,
     removeOneMainJob,

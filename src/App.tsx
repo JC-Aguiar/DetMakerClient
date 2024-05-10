@@ -88,7 +88,7 @@ const App = () => {
     //setMenuOn(hideTabBarRoutes.some(route => location.pathname.includes(route)));
     const {jwt, user} = useSelector((state: RootState) => state.store.login);
     //const showMenu: boolean = useSelector((state: RootState) => state.store.tabMenu);
-    const catalagoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalago);
+    const catalagoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
     const mainAmbiente: string = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
     const escolherJobsOpt: boolean = catalagoJobs.length > 0;
     //const jobsCount: number = catalagoJobs.filter((item) => item.job.checked).length;

@@ -2,13 +2,13 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { JobInfoDTO } from '../../data/JobInfoDTO';
 
 const initialState = { 
-    catalago: [],
+    catalogo: [],
     loading: false,
 } as PilhaTYPE;
 
 //Interface para definir o tipo de objeto do reducer
 interface PilhaTYPE {
-    catalago: JobInfoDTO[],
+    catalogo: JobInfoDTO[],
     loading: boolean,
 }
 
@@ -23,8 +23,8 @@ const catalogoJobs = createSlice({
                 console.log('[ReducerJobs] Erro: payload inválido, pois não é um array.');
                 return { ...state };
             }
-            state.catalago = action.payload;
-            logCatalago(state.catalago);
+            state.catalogo = action.payload;
+            logCatalago(state.catalogo);
         },
         loadingJobs: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerJobs]: Acionado controlador catalogoJobs.loadingJobs!');
