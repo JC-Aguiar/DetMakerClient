@@ -1,5 +1,4 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { ComandoSQL } from '../../data/ComandoSQL';
 import { JobConfig } from '../../data/JobConfigDTO';
 
 //Valores iniciais do recuder
@@ -11,6 +10,7 @@ const initialState = {
     mainPipeline: "", 
     mainPipelineId: -1,
     mainJobs: [],
+    jobsSelecionados: [],
 } as ReducerAtividadeProps;
 
 //Interface das propriedades deste reducer
@@ -22,6 +22,7 @@ export interface ReducerAtividadeProps {
     mainPipeline: string,
     mainPipelineId: number,
     mainJobs: JobConfig[],
+    jobsSelecionados: number[],
 }
 
 //Interface das propriedades do controlador setMainAmbiente
@@ -36,6 +37,11 @@ export interface SetMainPipelineProps {
     id: number,
     nome: string,
     jobs: JobConfig[]
+}
+
+export interface ReorderMainJobsProps {
+    ordemAntiga: number,
+    ordemNova: number,
 }
 
 //Configurando ações 'configAtividade' para o reducer ReducerAtividade
@@ -61,53 +67,70 @@ const configAtividade = createSlice({
             state.mainPipelineId = action.payload.id;
             state.mainPipeline = action.payload.nome;
             state.mainJobs = action.payload.jobs.sort((item1, item2) => item1.ordem - item2.ordem);
+            state.jobsSelecionados = [];
         },
         setMainJobs: (state, action: PayloadAction<JobConfig[]>) => {
-            console.log('[ReducerAtividade] Acionado controlador pilhaJobs.setMainJobs!');
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.setMainJobs!');
             state.mainJobs = action.payload.sort((item1, item2) => item1.ordem - item2.ordem);
             logItemPilha(state.mainJobs);
+            state.jobsSelecionados = [];
         },
-        reorderMainJobs: (state, action: PayloadAction<{ ids: number[]} >) => {
-            console.log('[ReducerAtividade] Acionado controlador pilhaJobs.reorderMainJobs! \n' 
-                + `IDs dos Jobs a definir: ${action.payload.ids.join(", ")}.`
-            );
-            state.mainJobs = state.mainJobs.map((item) => {
-                const novaOrdem = action.payload.ids.findIndex((id) => id === item.id);
-                if (novaOrdem === -1) {
-                    console.log(`[ReducerAtividade] ID ${item.id} não encontrado dentre os IDs reordenados.`);
-                    return item
-                };
-                item.ordem = novaOrdem;
-                console.log(`[ReducerAtividade] ID ${item.id} com nova ordenação: Nº${item.ordem}.`);
-                return item;
-            });
-            //.sort((item1, item2) => item1.ordem - item2.ordem);
-            logItemPilha(state.mainJobs);
+        reorderMainJobs: (state, action: PayloadAction<ReorderMainJobsProps>) => {
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.reorderMainJobs!');
+            const {ordemAntiga, ordemNova} = action.payload;
+            console.log(`[ReducerAtividade]: Reordenando índice ${action.payload.ordemAntiga} para ${action.payload.ordemNova}.`);
+            console.log(`[ReducerAtividade]: Reordenando índice ${action.payload.ordemNova} para ${action.payload.ordemAntiga}.`);
+            //state.mainJobs[ordemAntiga].ordem = ordemNova;
+            //state.mainJobs[ordemNova].ordem -= 1;
+            state.mainJobs
+                .map(item => {
+                    if (item.ordem === ordemAntiga) item.ordem = ordemNova;
+                    else if (item.ordem <= ordemNova && item.ordem > ordemAntiga) item.ordem -= 1;
+                    else if (item.ordem >= ordemNova && item.ordem < ordemAntiga) item.ordem += 1;
+                    return item;
+                }).sort((item1, item2) => item1.ordem - item2.ordem);
         },
         updateOneMainJob: (state, action: PayloadAction<JobConfig>) => {
-            console.log('[ReducerAtividade] Acionado controlador pilhaJobs.updateOneMainJob!');
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.updateOneMainJob!');
             const novoJob = action.payload;
-            state.mainJobs = state.mainJobs.map((item) => {
-                if (item.id === novoJob.id) return novoJob;
-                return item;
-            });
+            if (state.mainJobs.length >= novoJob.ordem) 
+                state.mainJobs[novoJob.ordem] = novoJob;
+            logItemPilha(state.mainJobs);
+        },
+        addOneMainJob: (state, action: PayloadAction<JobConfig>) => {
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.addOneMainJob!');
+            state.mainJobs.push(action.payload);
             logItemPilha(state.mainJobs);
         },
         removeOneMainJob: (state, action: PayloadAction<number>) => {
-            console.log('[ReducerAtividade] Acionado controlador pilhaJobs.updateOneMainJob!');
-            const id = action.payload;
-            const index = state.mainJobs.findIndex(item => item.id === id);
-            if (index !== -1) {
-                state.mainJobs.splice(index, 1);
-            }
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.removeOneMainJob!');
+            state.mainJobs.splice(action.payload, 1);
             logItemPilha(state.mainJobs);
+        },
+        setViewJobs: (state, action: PayloadAction<number[]>) => {
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.setViewJobs!');
+            console.log(`[ReducerAtividade]: Usuário informou Jobs IDs: [${action.payload.join(", ")}].`);
+            state.jobsSelecionados = action.payload;
+            console.log(`[ReducerAtividade]: Jobs selecionados em memória: [${state.jobsSelecionados.join(", ")}].`);
+        },
+        addViewJobs: (state, action: PayloadAction<number>) => {
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.addViewJobs!');
+            console.log(`[ReducerAtividade]: Usuário informou Job ID: [${action.payload}].`);
+            state.jobsSelecionados.push(action.payload);
+            console.log(`[ReducerAtividade]: Jobs selecionados em memória: [${state.jobsSelecionados.join(", ")}].`);
+        },
+        removeViewJobs: (state, action: PayloadAction<number>) => {
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.removeViewJobs!');
+            console.log(`[ReducerAtividade]: Usuário informou Job ID: [${action.payload}].`);
+            state.jobsSelecionados = state.jobsSelecionados.filter((id) => id !== action.payload);
+            console.log(`[ReducerAtividade]: Jobs selecionados em memória: [${state.jobsSelecionados.join(", ")}].`);
         },
     },
 });
 
 //Exibe informações dos mainJobs
 function logItemPilha(jobs: JobConfig[]) {
-    console.log(`[ReducerAtividade] Main-Jobs em memória:` + '\n'
+    console.log(`[ReducerAtividade]: Main-Jobs em memória:` + '\n'
         + JSON.stringify(jobs)
         //+ jobs.map((item) => 
         //    ` - IDº${item.id} - Nº${item.ordem}` + '\n' +
@@ -120,4 +143,15 @@ function logItemPilha(jobs: JobConfig[]) {
 }
 
 export default configAtividade.reducer;
-export const { setMainAmbiente, setMainPipeline, setMainJobs, updateOneMainJob, reorderMainJobs, removeOneMainJob } = configAtividade.actions;
+export const { 
+    setMainAmbiente, 
+    setMainPipeline, 
+    setMainJobs, 
+    updateOneMainJob, 
+    reorderMainJobs,
+    addOneMainJob,
+    removeOneMainJob,
+    setViewJobs,
+    addViewJobs,
+    removeViewJobs,
+} = configAtividade.actions;

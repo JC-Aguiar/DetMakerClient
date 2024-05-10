@@ -14,15 +14,16 @@ import { FiltroSQL } from "../data/FiltroSQL";
 import Botao from "./Botao";
 
 export interface JobCardProps {
-    jobExec: JobConfig,
+    index: number,
+    //jobExec: JobConfig,
     //jobUserInput: JobConfig,
     notificacao: Notificacao,
-    callback: () => void
 }
 
-const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => {
+const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
     //Atributos principais de controle
     const dispatch = useDispatch();
+    const jobExec = useSelector((state: RootState) => state.store.configAtividade.mainJobs[index]);
     const id = jobExec.id;
     const jobInfo: JobInfoDTO = useSelector((state: RootState) => state.store.catalogoJobs.catalago)
         .filter((item) => item.id === id)[0];
@@ -440,7 +441,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobExec, notificacao, callback }) => 
                 <IonButton fill="clear" shape="round" size='large' onClick={() => modalParamOn({cssClass: 'modal-job-card'})} >
                     <IonIcon icon={settings} size='large' color='light' />
                 </IonButton>
-                <IonButton fill="clear" shape="round" size='large' onClick={ () => dispatch(removeOneMainJob(id)) }>
+                <IonButton fill="clear" shape="round" size='large' onClick={ () => dispatch(removeOneMainJob(jobExec.ordem)) }>
                     <IonIcon icon={trash} size='large' color='light' />
                 </IonButton>
             </IonItem>

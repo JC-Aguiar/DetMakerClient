@@ -1,4 +1,4 @@
-import { IonTextarea, IonButton, IonInput, IonLabel, IonItem, InputChangeEventDetail, TextareaChangeEventDetail, IonTitle, IonRow, IonCol } from "@ionic/react";
+import { IonTextarea, IonButton, IonInput, IonLabel, IonItem, InputChangeEventDetail, TextareaChangeEventDetail, IonTitle, IonRow, IonCol, IonBadge, IonIcon, useIonAlert } from "@ionic/react";
 import { useState } from "react";
 import { Notificacao } from "./Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,20 +15,15 @@ import { RelatorioInfoDTO } from "../data/RelatorioInfoDTO";
 import { UserInfoDTO } from "../data/UserInfoDTO";
 import { UserDTO } from "../data/UserDTO";
 import { useHistory } from "react-router";
-import Botao from "./Botao";
+import Botao, { BotaoProps, Botoes } from "./Botao";
+import { closeCircle } from "ionicons/icons";
 
 const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos Redux e React
     const dispatch = useDispatch();
     const history = useHistory();
 
-    //Atributos próprios
-    const [projetoId, setProjetoId] = useState<string>("");
-    const [projetoNome, setProjetoNome] = useState<string>("");
-    const [atividadeNome, setAtividadeNome] = useState<string>("");
-    const [configuracao, setConfiguracao] = useState<string>("");
-
-    //Atributos globais
+    //Atributos com estado gerenciado via Redux
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
     const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);  
@@ -38,6 +33,27 @@ const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         (state: RootState) => state.store.catalogoPipelines.catalogo)
         .find((item) => item.nome === mainPipeline)?.nome;
     const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
+
+    //Atributos com estado gerenciado via React
+    const [projetoId, setProjetoId] = useState<string>("");
+    const [projetoNome, setProjetoNome] = useState<string>("");
+    const [atividadeNome, setAtividadeNome] = useState<string>("");
+    const [configuracao, setConfiguracao] = useState<string>("");
+    const [jobsParaExec, setJobsParaExec] = useState<JobConfig[]>(mainJobs);
+    const [present] = useIonAlert();
+
+    //Handler para alertar ao usuário caso ele queira executar a Pipeline com Jobs a menos
+    const exibirAlerta = () => {
+        present({
+            header: 'ATENÇÃO!',
+            message: 'Alguns Jobs foram desmarcados. ' 
+                + 'Essa mudança refletirá no registro dessa Pipeline no banco. Deseja continuar?',
+            buttons: [
+                'Não',
+                { text: 'Sim', handler: (d) => executarPipeline() }
+            ],
+        });
+    };
 
     //Handler para preencher id do projeto
     const preencherProjetoId = (event: CustomEvent<InputChangeEventDetail>) => {
@@ -70,7 +86,10 @@ const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
     //Handler para valdiar os campos obrigatórios
     function camposPreenchidos(): boolean {
         if (!mainPipelineDescricao) return false;
-        return projetoId.trim().length > 0 && projetoNome.trim().length > 0 && atividadeNome.trim().length > 0;
+        return projetoId.trim().length > 0 
+            && projetoNome.trim().length > 0
+            && atividadeNome.trim().length > 0
+            && jobsParaExec.length > 0;
     }
 
     //Requisição para executar a Pipeline
@@ -144,6 +163,52 @@ const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         }
     }
 
+    //Botões a serem renderizar dentro da modal
+    const botoes: BotaoProps[] = [
+        {
+            texto: "RESTAURAR JOBS", 
+            handler: () => setJobsParaExec(mainJobs),  
+            disabled: mainJobs.length === jobsParaExec.length
+        },
+        {
+            texto: "EXECUTAR", 
+            handler: () => {
+                if (mainJobs.length !== jobsParaExec.length) exibirAlerta();
+                else executarPipeline();
+            },  
+            disabled: !camposPreenchidos()
+        },
+    ];
+
+    //Renderiza (ou não) a lista de Jobs a serem executados pela Pipeline 
+    const jobs = () => {
+        if (jobsParaExec.length < 1) return <></>; 
+        return (
+            <IonCol size='12' className='mx-0 px-0 '>
+                <IonRow className='glass px-3 pt-2'>
+                    <IonCol size='12' className="opacity-50">Jobs</IonCol>
+                    {
+                        jobsParaExec.map((item, index) => <IonCol key={index} size="6" className=""> 
+                            <IonBadge color='tertiary' className='ion-align-items-center font-monospace small w-100 text-start'>
+                                <span style={{backgroundColor: 'var(--ion-color-dark)'}} className='rounded text-white px-1'>
+                                    Nº{index+1}
+                                </span>
+                                <span className="ms-1">{item.nome}</span>
+                                <IonIcon icon={closeCircle} 
+                                    color="light"
+                                    className="btn btn-outline m-0 p-0 ms-1 mb-1" 
+                                    onClick={() => setJobsParaExec(jobsParaExec.filter((job, jobIndex) => jobIndex !== index)) } 
+                                />
+                            </IonBadge>
+                        </IonCol>
+                        )
+                    }
+                </IonRow>
+            </IonCol>
+        );
+    }
+
+    //Renderização deste componente 
     if (mainPipeline === "") return<></>;
     return (
         <div className="row justify-content-center px-3 mx-0">
@@ -203,9 +268,10 @@ const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                             />
                         </IonItem>
                     </IonCol>
+                    {jobs()}
                 </IonRow>
                 <IonRow className='py-3 ion-justify-content-end pe-1' >
-                    <Botao texto="EXECUTAR" handler={() => executarPipeline()}  disabled={!camposPreenchidos()} />
+                    <Botoes botoes={botoes} />
                 </IonRow>
             </div>
         </div>

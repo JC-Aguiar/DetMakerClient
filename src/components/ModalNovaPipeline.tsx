@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Notificacao } from "./Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
 import { setMainPipeline } from "../Store/Reducer/ReducerAtividade";
-import { setViewJobs } from "../Store/Reducer/ReducerJobs";
+import { setViewJobs } from "../Store/Reducer/ReducerAtividade";
 import { loadingPipelines, setPipelines } from "../Store/Reducer/ReducerPipelines";
 import { JobConfig, parseJobInfo } from "../data/JobConfigDTO";
 import { PipelineInfoDTO } from "../data/PIpelineInfoDTO";
@@ -26,7 +26,7 @@ const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         (state: RootState) => state.store.configAtividade.mainPipelineId);
 
     const jobsSelecionados: number[] = useSelector(
-        (state: RootState) => state.store.catalogoJobs.jobsSelecionados);
+        (state: RootState) => state.store.configAtividade.jobsSelecionados);
     const mainClienteId: number = useSelector(
         (state: RootState) => state.store.configAtividade.mainClienteId);
 
@@ -109,6 +109,7 @@ const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         dispatch(loadingPipelines(false));
     }
 
+    //Renderiza (ou não) a lista de Jobs selecionados para serem atributos á nova Pipeline
     const jobs = () => {
         if (jobsParaUso.length < 1) return <></>; 
         return (

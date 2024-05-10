@@ -1,8 +1,8 @@
-import { InputChangeEventDetail, IonBadge, IonIcon, IonInput, IonItem, IonLabel, IonList, IonRadio, IonRadioGroup, RadioGroupChangeEventDetail, } from "@ionic/react";
+import { InputChangeEventDetail, IonInput, IonList, IonRadio, IonRadioGroup, RadioGroupChangeEventDetail, } from "@ionic/react";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../Store/ReduxStore";
-import { setViewJobs } from "../Store/Reducer/ReducerJobs";
+import { setViewJobs } from "../Store/Reducer/ReducerAtividade";
 import { JobInfoDTO } from "../data/JobInfoDTO";
 import { setMainPipeline } from "../Store/Reducer/ReducerAtividade";
 import { closeCircle, search } from "ionicons/icons";
@@ -53,7 +53,6 @@ const ListaCatalogoPipelines: React.FC = () => {
             nome: userPipeline.nome,
             jobs: jobsMainPipline
         }));
-        dispatch(setViewJobs([]));
         //reordenar();
         //dispatch(setMainJobs(jobsMainPipline));
         //dispatch(setDadosProjeto(novaPipelineConfig));

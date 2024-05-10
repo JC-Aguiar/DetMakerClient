@@ -423,6 +423,32 @@ export async function salvarNovaPipeline(novaPipeline: PipelineInfoDTO): Promise
         });
 }
 
+//Requisição para atualizar Pipeline no banco
+export async function atualizarPipeline(pipeline: PipelineInfoDTO): Promise<string> {
+    const titulo = "ATUALIZAR PIPELINE";
+    requestStart(titulo);
+
+    //Instanciando Axios
+    let config: AxiosRequestConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/pipeline/update`,
+        data: pipeline,
+        headers: headers,
+        timeout: 10000,
+    };
+    //Executando requisiçãao
+    return await axios.request(config)
+        .then((response) => {
+            const mensagem: string = response.data;
+            requestSucesso(titulo, mensagem);
+            return mensagem;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
 //Requisição para executar a Pipeline
 export async function executarPipeline(body: PipelineExecDTO): Promise<RelatorioHistoricoDTO> {
     const titulo = "EXECUTAR PIPELINE";

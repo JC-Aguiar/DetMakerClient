@@ -43,7 +43,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
     const isLoadingJobs = useSelector((state: RootState) => state.store.catalogoJobs.loading);
     const isLoadingPipelines = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
     const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalago);
-    const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.catalogoJobs.jobsSelecionados);
+    const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobsSelecionados);
     const catalogoJobsSelecionados: JobInfoDTO[] = catalogoJobs.filter(
         (item) => jobsSelecionados.findIndex((id) => id === item.id) !== -1);
     const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
@@ -65,7 +65,8 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
 
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {
-        if ((catalogoJobs.length < 1 || conectionsCount < 1) && !isLoading) coletarRecursos();
+        //if ((catalogoJobs.length < 1 || conectionsCount < 1) && !isLoading) coletarRecursos();
+        if (conectionsCount === 0) coletarRecursos();
     }, []);
 
     //Coletando arquivo da máquina local

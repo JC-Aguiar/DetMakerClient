@@ -411,6 +411,14 @@ ion-note {
   color: var(--ion-color-medium-shade);
 }
 
+ion-toast {
+  --max-width: 95%;
+}
+
+ion-alert .alert-wrapper {
+  --background: var(--ion-color-tertiary);
+}
+
 ion-split-pane {
   /*--side-width: 24%; */
   /*--side-min-width: calc(min(5vw, 5px));*/
