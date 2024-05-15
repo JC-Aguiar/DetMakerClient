@@ -61,11 +61,7 @@ const ListaCatalogoPipelines: React.FC = () => {
     //Método para descelecionar a Pipeline do painel do Laboratório
     const cancelarMainPipeline = () => {
         if (mainPipeline === "") return;
-        dispatch(setMainPipeline({
-            id: -1,
-            nome: "", 
-            jobs: [] 
-        }));
+        dispatch(setMainPipeline());
     }
 
     //Tenta encontrar possíveis Pipelines para determinada máscara de pesquisa

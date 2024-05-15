@@ -89,12 +89,8 @@ const ListaCatalogoJobs: React.FC = () => {
                                 color={color}
                                 className='p-0 m-0 text-white small '
                                 style={{ '--min-height': '32px', cursor: `${mainPipeline === "" ? 'auto' : 'pointer'}`  }}
-                                onClick={(e) => {
-                                    //Acionamento deve estar disponível apenas se nenhuma Pipeline estiver selecionada
-                                    if (mainPipeline === "") return;
-                                    const novoJobConfig: JobConfig =  parseJobInfo(item, mainJobs.length);
-                                    dispatch(addOneMainJob(novoJobConfig));
-                            }}>
+                                onClick={(e) => dispatch(addOneMainJob(item))}
+                            >
                                 {identificarTipoBotao(item)}
                                 <IonLabel className='p-0 m-0 text-wrap' >
                                     <span className='font-monospace text-white text-break'>{item.nome}</span>

@@ -71,7 +71,7 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
 
     //Acionamento ao selecionar uma opção de Cliente
     function setClienteAmbiente(cliente: ClienteInfoDTO, ambiente: AmbienteInfoDTO): void {
-        console.log(`[ESCOLHER-CLIENTES]: Usuário selecionou Cliente: '${cliente}', Ambiente: '${ambiente}'.`);
+        console.log(`[ESCOLHER-CLIENTES]: Usuário selecionou Cliente: '${cliente.nome}', Ambiente: '${ambiente.nome}'.`);
         dispatch(setMainAmbiente(
             {
                 cliente: cliente.nome, 
@@ -84,7 +84,7 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
 
     const cardsDeClientes = () => catalogoClientes.map((cliente, indexCliente) =>
         <SwiperSlide key={indexCliente} className=''>
-             <IonRow id="card-filme" className='ion-justify-content-center mb-4'>
+             <IonRow key={indexCliente} id="card-filme" className='ion-justify-content-center mb-4'>
                 <IonCol size='12' sizeMd='6' id="filme-texto" className="glass m-2">
                     <IonThumbnail>
                         <IonImg id="filme-capa" alt="Logo do cliente" src={`data:image/png;base64,${cliente.banner}`} className=''/>
@@ -103,7 +103,7 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
                                         && mainAmbiente === ambiente.nome 
                                         ? radioButtonOn : radioButtonOff;
                                     return (
-                                        <IonItem key={indexAmbiente} lines='none'
+                                        <IonItem key={indexCliente * 10 + indexAmbiente} lines='none'
                                             color='#'
                                             className='p-0 m-0 align-items-center text-white w-100'
                                             style={{ '--min-height': '32px' }}
@@ -120,16 +120,16 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
                                                     Ambiente {ambiente.nome}
                                                 </p>
                                                 <p className='lh-1 p-0 m-0'>
-                                                    <div className='text-white p-0 mx-1'>
+                                                    <span className='text-white p-0 mx-1'>
                                                         <span>STP: </span> 
                                                         <span className='font-monospace'>{ambiente.ftp.conexao}</span>
-                                                    </div>
+                                                    </span>
                                                 </p>
                                                 <p className='lh-1 p-0 m-0'>
-                                                    <div className='text-white p-0 mx-1'>
+                                                    <span className='text-white p-0 mx-1'>
                                                         <span>BANCO: </span> 
                                                         <span className='font-monospace'>{ambiente.banco.conexao}</span>
-                                                    </div>
+                                                    </span>
                                                 </p>
                                             </IonLabel>
                                         </IonItem>

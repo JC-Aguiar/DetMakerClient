@@ -1,6 +1,6 @@
-import { InputChangeEventDetail, IonBadge, IonCard, IonCol, IonInput, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, ItemReorderEventDetail, useIonModal, useIonViewDidEnter } from '@ionic/react';
+import { InputChangeEventDetail, IonBadge, IonCard, IonCol, IonInput, IonItem, IonLabel, IonList, IonReorder, IonReorderGroup, IonRow, ItemReorderEventDetail, useIonAlert, useIonModal, useIonViewDidEnter } from '@ionic/react';
 import JobCard from './JobCard';
-import { ban, flash, open, save, trash } from 'ionicons/icons';
+import { arrowUndo, ban, flash, open, save, trash } from 'ionicons/icons';
 import { useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Store/ReduxStore';
@@ -24,6 +24,8 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
 
     //Atributos com estado gerenciado via React
     const reorderGroupRef = useRef<HTMLIonReorderGroupElement>(null);
+    const inputIfxdateRef = useRef<HTMLIonInputElement>(null);
+    const [alerta] = useIonAlert();
 
     //Atributos com estado gerenciado via Redux
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
@@ -79,6 +81,42 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
         }
     }
 
+    //Handler que avisa e reseta todas as configurações dos Jobs
+    const resetarJobsPipeline = () => {
+        alerta({
+            header: 'RESETAR JOBS',
+            message: 'Todas as configurações dos Jobs serão desfeitas. Deseja continuar?',
+            buttons: [
+                'Não',
+                { 
+                    text: 'Sim', 
+                    handler: (d) => {
+                        const pipeline = catalogoPipelines.find(pipe => pipe.id === mainPipelineId);
+                        if (!pipeline) return;
+                        dispatch(setMainPipeline());
+                        const jobsMainPipline: JobConfig[] = [];
+                        pipeline.jobs.forEach((pipelineJob, index) => {
+                            const atividadeJobs = catalogoJobs.find((jobDto) => jobDto.nome === pipelineJob);
+                            if (!atividadeJobs) {
+                                console.log(`[CONFIGURAR JOBS]: Nenhum dos Jobs informados na Pipeline selecionada '
+                                    + ('${pipeline.nome}') foram identificados no catálogo de Jobs.`);
+                                return;
+                            }
+                            const configJob: JobConfig = parseJobInfo(atividadeJobs, index);
+                            jobsMainPipline.push(configJob);
+                        });
+                        dispatch(setMainPipeline({
+                            id: pipeline.id,
+                            nome: pipeline.nome,
+                            jobs: jobsMainPipline
+                        }));
+                        toastInfo("Jobs resetados.", []);
+                    }
+                }
+            ],
+        });
+    }   
+
     //Handler para definir a Data do Ciclo Globalmente para todos os Jobs
     const preencherIfxdate = (event: CustomEvent<InputChangeEventDetail>) => {
         const ifxdate = (event.target as HTMLInputElement).value
@@ -90,6 +128,7 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
             ifxdate: ifxdate,
             jobs: [],
         };
+
         catalogoJobs.filter(item => mainJobs.some(mainJob => mainJob.id === item.id))
             .forEach(item => {
                 const paramIndex = item.parametros.findIndex(
@@ -103,7 +142,6 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
                     dados.jobs.push({ id: item.id , parametro: paramIndex });
             });
 
-
         dispatch(updateMainJobsIfxdate(dados));
         toastInfo(`Ifxdate global definido: ${ifxdate}. Total de Jobs atualizados: ${dados.jobs.length}.`, []);
     }
@@ -111,8 +149,8 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
     //Faz o processo de reordenação visual se alinhar com a reordenação dos dados no Redux
     function reordenar(event: CustomEvent<ItemReorderEventDetail>) {
         //Valida se a referência ao IonReorderGroup existe
-        const itens = reorderGroupRef?.current?.children;
-        if (!itens) return;
+        //const itens = reorderGroupRef?.current?.children;
+        //if (!itens) return;
 
         //Métodos `from` e `to` contêm os índices (antes e depois) do item movido
         const indiceAtual = event.detail.from;
@@ -122,14 +160,26 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
         event.detail.complete();
 
         dispatch(reorderMainJobs({ ordemAntiga: indiceAtual, ordemNova: indiceNovo }));
+
+        /*
+        const novosJobs = mainJobs.map(job => ({...job}));
+        const jobMovido = novosJobs[indiceAtual];
+        console.log(`[CONFIG-JOBS]: Reordenando MainJob [ID ${jobMovido.id}] '${jobMovido.nome}', `
+            + `do Nº ${indiceAtual} para Nº ${indiceNovo}.`);
+
+        novosJobs.splice(indiceAtual, 1);
+        novosJobs.splice(indiceNovo, 0, jobMovido);
+        novosJobs.forEach((item, index) => item.ordem = index);
+        dispatch(setMainJobs(novosJobs));
+        */
     }
 
     //Botoes contendo as opções para cada Pipeline
     const botoes: BotaoProps[] = [
         {icon: flash, texto: "Executar",  handler: () => modalConfigPipelineOn()},
-        {icon: save,  texto: "Salvar",    handler: () => atualizarPipeline()},
-        {icon: open,  texto: "Ver Dados", handler: () => null},
-        {icon: ban,   texto: "Cancelar",  handler: () => null},
+        {icon: save, texto: "Salvar",    handler: () => atualizarPipeline()},
+        //{icon: open, texto: "Ver Dados", handler: () => null},
+        {icon: arrowUndo, texto: "Resetar",  handler: () => resetarJobsPipeline()},
         {icon: trash, texto: "Apagar",    handler: () => null},
     ];
 
@@ -162,20 +212,35 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
                                 type='date'
                                 maxlength={500}
                                 className='text-white mx-2'
+                                ref={inputIfxdateRef}
                                 onIonChange={(e) => preencherIfxdate(e)}
                             />
                         </IonItem>
                     </IonRow>
-                    <IonReorderGroup disabled={false} onIonItemReorder={reordenar} ref={reorderGroupRef} className='p-0 m-0' >
+                    
+                    {/* ref={reorderGroupRef}  */}
+                    <IonReorderGroup disabled={false} onIonItemReorder={reordenar} className='p-0 m-0' >
                     {
-                        mainJobs.map(job => job.ordem)
-                            .map(ordem => ({ ordem })) 
-                            .sort((item1, item2) => item1.ordem - item2.ordem)
-                            .map(item => <JobCard key={item.ordem} 
-                                    index={item.ordem} //jobExec={item}
+                        mainJobs
+                            //.map(job => job.ordem)
+                            //.map(ordem => ({ ordem })) 
+                            //.sort((item1, item2) => item1.ordem - item2.ordem)
+                            .map((item, index) => 
+                                /*
+                                <IonItem key={index}>
+                                    <IonLabel>Nº{item.ordem+1} - [ID {item.id}] {item.nome}</IonLabel>
+                                    <IonReorder slot="end"></IonReorder>
+                                </IonItem>
+                                */  
+                                
+                                <JobCard key={index} 
+                                    index={index} 
+                                    //jobConfig={item}
+                                    //jobInfo={}
                                     notificacao={{ toastInfo, toastOk, toastErro } as Notificacao}
                                 />
-                        )
+                                
+                            )
                     }
                     </IonReorderGroup>
                 </IonList>

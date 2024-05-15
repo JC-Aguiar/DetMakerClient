@@ -24,12 +24,12 @@ const catalogoQueries = createSlice({
             }
             console.log('[ReducerQueries]: Acionado controlador catalogoQueries.setQueries!');
             state.catalogo = action.payload;
-            logClientes(state.catalogo);
+            //logQueries(state.catalogo);
         },
         addQueries: (state, action: PayloadAction<QueryInfoDTO>) => {
             console.log('[ReducerQueries]: Acionado controlador catalogoQueries.addQueries!');
             state.catalogo.push(action.payload);
-            logClientes(state.catalogo);
+            //logQueries(state.catalogo);
         },
         loadingQueries: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerQueries]: Acionado controlador catalogoQueries.loadingQueries!');
@@ -40,7 +40,7 @@ const catalogoQueries = createSlice({
 });
 
 //Exibe informações da item-pilah pelos controladores
-function logClientes(clientes: QueryInfoDTO[]) {
+function logQueries(clientes: QueryInfoDTO[]) {
     console.log(`[ReducerQueries] Catálogo de Queries em memória:` + '\n' + clientes.map(
         (item) => ` - ID: ${item.id}` + '\n' 
                 + ` - Nome: ${item.nome}`

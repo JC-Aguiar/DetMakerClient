@@ -329,7 +329,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                                         {
                                             jobDto.queries.map((queryItem, queryIndex) => {
                                                 return (
-                                                    <div className='text-white fw-bold border-bottom p-2' key={queryIndex}>
+                                                    <div className='text-white fw-bold border-bottom p-2' key={index * 10 + queryIndex}>
                                                         <IonTitle color='secondary' className='w-100 h6'>
                                                             {queryItem.nome}
                                                         </IonTitle>

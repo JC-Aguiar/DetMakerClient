@@ -24,12 +24,12 @@ const catalogoMassas = createSlice({
             }
             console.log('[ReducerMassas]: Acionado controlador catalogoMassas.setMassas!');
             state.catalogo = action.payload;
-            logClientes(state.catalogo);
+            //logClientes(state.catalogo);
         },
         addMassa: (state, action: PayloadAction<MassaTabelaDTO>) => {
             console.log('[ReducerMassas]: Acionado controlador catalogoMassas.addMassa!');
             state.catalogo.push(action.payload);
-            logClientes(state.catalogo);
+            //logClientes(state.catalogo);
         },
         loadingMassa: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerMassas]: Acionado controlador catalogoMassas.loadingMassa!');
@@ -40,7 +40,7 @@ const catalogoMassas = createSlice({
 });
 
 //Exibe informações da item-pilah pelos controladores
-function logClientes(clientes: MassaTabelaDTO[]) {
+function logMassas(clientes: MassaTabelaDTO[]) {
     console.log(`[ReducerMassas] Catálogo de Massas em memória:` + '\n' + clientes.map(
         (item) => ` - Nome ${item.nome}` + '\n' 
                 + ` - Quant. Colunas: ${item.colunas.length}`

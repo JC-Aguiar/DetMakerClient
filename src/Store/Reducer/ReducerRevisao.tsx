@@ -38,20 +38,20 @@ const relatorios = createSlice({
             state.value = action.payload;
             state.idsLocked = state.value.evidencias.filter((item) => checkEvidenciaPronta(item))
                 .map((item) => item.id);
-            logRelatorio(state);
+            logRevisao(state);
         },
         removeRevisao: (state) => {
             console.log('[ReducerRevisao] Acionado controlador relatorios.removeRelatorio! \n');
             state.value = null;
             state.idsLocked = [];
-            logRelatorio(state);
+            logRevisao(state);
         },
         setTestcaseExpectativa: (state, action: PayloadAction<SetTestcaseExpectativaTYPE>) => {
             console.log('[ReducerRevisao] Acionado controlador relatorios.setTestcaseExpectativa! \n');
             let {index, valor} = action.payload;
             valor = (valor === null || valor === undefined) ? "" : valor;
             if (state.value) state.value.evidencias[index].comentario = valor;
-            logRelatorio(state);
+            logRevisao(state);
         },
         setTestcaseResultado: (state, action: PayloadAction<SetTestcaseResultadoTYPE>) => {
             console.log('[ReducerRevisao] Acionado controlador relatorios.setTestcaseResultado! \n');
@@ -63,7 +63,7 @@ const relatorios = createSlice({
                 state.value.evidencias[index].resultado = resultado;
                 state.value.evidencias[index].revisor = revisor;
             }
-            logRelatorio(state);
+            logRevisao(state);
         },
         setTestcaseLock: (state, action: PayloadAction<number[]>) => {
             console.log('[ReducerRevisao] Acionado controlador relatorios.setTestcaseLock! \n');
@@ -75,12 +75,12 @@ const relatorios = createSlice({
                 }
                 return false;
             });
-            logRelatorio(state);
+            logRevisao(state);
         },
     },
 });
 
-function logRelatorio(state: ReducerRevisaoProps) {
+function logRevisao(state: ReducerRevisaoProps) {
     if(!state.value) {
         console.log('[ReducerRevisao] Relatório: null');
         return;

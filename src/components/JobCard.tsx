@@ -23,9 +23,10 @@ export interface JobCardProps {
 const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
     //Atributos principais de controle
     const dispatch = useDispatch();
-    const jobExec = useSelector((state: RootState) => state.store.configAtividade.mainJobs[index]);
-    const id = jobExec.id;
-    const jobInfo: JobInfoDTO = useSelector((state: RootState) => state.store.catalogoJobs.catalogo)
+    const jobExec: JobConfig | undefined = useSelector((state: RootState) => state.store.configAtividade.mainJobs)[index];
+    const id = jobExec != undefined ? jobExec.id : -1;
+    const nome = jobExec !== undefined ? jobExec.nome : "";
+    const jobInfo: JobInfoDTO | undefined = useSelector((state: RootState) => state.store.catalogoJobs.catalogo)
         .filter((item) => item.id === id)[0];
     const [jobConfigurado, setJobConfigurado] = useState<JobConfig>({...jobExec});
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
@@ -52,8 +53,8 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
 
     //Método chamado quando este componente fica visível
     useEffect(() => {
-        console.log(`[CARD-JOB] JobConfig: ${JSON.stringify(jobExec)}`);
-        console.log(`[CARD-JOB] Queries: ${JSON.stringify(jobExec.queries)}`);
+        //console.log(`[CARD-JOB] JobConfig: ${JSON.stringify(jobExec)}`);
+        //console.log(`[CARD-JOB] Queries: ${JSON.stringify(jobExec.queries)}`);
         //console.log(`[CARD-JOB] jobExec.queries:  ${jobExec.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
         //console.log(`[CARD-JOB] jobUserInput.queries: ${jobConfigurado.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
     }, [jobExec]); 
@@ -124,7 +125,7 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
     }
 
     //Método de tratamento dos inputs do usuário para as Cargas
-    function preencherCarga(e: React.ChangeEvent<HTMLInputElement>, index: number) {
+    const preencherCarga = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         try {
             const file = e.target.files?.[0];
             if (!file) {
@@ -176,23 +177,10 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
         }
     }
 
-    //Método de tratamento para remoer arquivos de Cargas
-    function removerCarga(index: number) {
-        
-        if (jobConfigurado.cargas.length < index) return;
-        console.log(`[CARD-JOB]: Usuário solicitou remover arquivo para carga[${index}] do Job '${jobInfo.nome}'.`);
-        console.log(`[CARD-JOB]: Removendo arquivo '${jobConfigurado.cargas[index].nome}'.`);
-        const novasCargas = [...jobConfigurado.cargas];
-        novasCargas[index] = {
-            nome: "",
-            conteudo: "",
-            tipo: "",
-        };
-        setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
-    }
-
     //Exibindo dados do Job no card
-    function informacoes() {
+    const informacoes = () => {
+        if (!jobInfo || !jobExec) return;
+        
         const sessaoes: JSX.Element[] = [];
         
         if (jobInfo.executarAposJob.length > 0)
@@ -208,7 +196,7 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
                 {labelTitulo('INFORMAÇÕES', `job${id}-param`)}
                 <div className="glass mx-4 mt-1 mb-4 pt-2 pb-4 px-2">
                     {
-                        sessaoes.map(item => <div>{item}</div>)
+                        sessaoes.map((item, index) => <div key={index}>{item}</div>)
                     }
                 </div>
             </>
@@ -216,8 +204,8 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
     }
 
     //Exibindo os campos de Parâmetros
-    function camposInputParametros() {
-        if (jobExec.argumentos.length < 1) return;
+    const camposInputParametros = () => {
+        if (!jobExec || jobExec.argumentos.length < 1 || !jobInfo) return;
         return (
             <div className="px-1 mb-2">
                 {labelTitulo('PARÂMETROS DE ENTRADA', `job${id}-param`)}
@@ -245,6 +233,7 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
 
     //Mecânica auxiliar para identificar e exibir as queries (veja mais no método 'camposInputQueries')
     const inputQuerysManual = (cmdSql: ComandoSQL, index: number) => {
+        if (!jobInfo || !jobExec) return;
         return (
             <div className="px-1 mt-2 mb-2" key={index}>
                 <div className="position-relative text-center mx-3 mt-1 mb-4">
@@ -271,7 +260,8 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
 
     //Exibindo os campos de Queries 
     const camposInputQueries = () => {
-        if (jobExec.queries.length < 1) return null;
+        if (!jobInfo || !jobExec || jobExec.queries.length < 1) return null;
+        
         //Gerando preenchimento dinâmico para as ConfigQuery's cadastradas
         const queriesDinamicas = jobConfigurado.queries
             .filter((cmdSql) => cmdSql.dinamico)
@@ -319,8 +309,9 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
     }
 
     //Exibindo campos de Cargas do Job
-    function camposInputCargas() {
-        if (!jobInfo.mascaraEntrada || jobInfo.mascaraEntrada.length === 0 || jobConfigurado.cargas.length === 0) return;
+    const camposInputCargas = () => {
+        if (!jobInfo || !jobExec || !jobInfo.mascaraEntrada || jobInfo.mascaraEntrada.length === 0 || jobConfigurado.cargas.length === 0) 
+            return;
         return (
             <div className="px-1 mb-2">
                 {labelTitulo('CARGAS DE CONSUMO', `job${id}-carga`)}
@@ -379,7 +370,7 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
         {
             titulo: <>
                         <span className="badge bg-white me-1 text-primary">ID {id}</span>
-                        {jobExec.nome}
+                        {nome}
                     </>,
             elemento: <div className="p-2">
                         {informacoes()}
@@ -394,28 +385,8 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
         }
     );
 
-    //const abrirModalInfo = async () => {
-    //    if (jobInfo.tabelas.length < 1) {
-    //        modalParamOn();
-    //        return;
-    //    }
-    //    console.log(`[CARD-JOB]: Iniciando requisição 'Obter ConfigQueries'.`);
-    //    notificacao.toastInfo("OBTER QUERIES: Em execução...", []);
-    //    try {
-    //        const resultado: ComandoSQL[] = await axiosRequest.getJobConfigQueries(id);
-    //        notificacao.toastOk(`OBTER QUERIES: Total de ${resultado.length} registro(s) obtido(s).`, []);
-    //        setJobConfigurado( {...jobConfigurado, queries: resultado} );
-    //        console.log(`[CARD-JOB]: Requisição 'Obter ConfigQueries' funcionou.`);
-    //    }
-    //    catch (error) {
-    //        notificacao.toastErro(`OBTER QUERIES: ${error} Mas você pode criar e preencher queries manualmente.`, []);
-    //        console.error(`[CARD-JOB]: Requisição 'Obter ConfigQueries' falhou.`);
-    //    }
-    //    modalParamOn();
-    //}
-
     //Renderização do componente
-    if (!jobExec) return null;
+    if (!jobExec || !jobInfo) return null;
     return (
         <IonRow className="ion-align-items-center ion-justify-content-between w-100">
             <IonItem className="w-100 border-bottom" lines="none">
@@ -423,7 +394,7 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
                     <IonReorder slot="start" className='w-100 ion-align-items-center'>
                         <IonItem className='container w-100 p-0 m-0' lines='none' >
                             <span><IonIcon icon={reorderFour} /></span>
-                            <span><small className="text-white p-0 m-0 h6">Nº{jobExec.ordem+1}</small></span>
+                            <span><small className="text-white p-0 m-0 h6">Nº{jobExec.ordem}</small></span>
                             <span><IonIcon icon={reorderFour} /></span>
                             <IonCard target="_self" className="w-100 border border-2 px-1 py-1 h6" color="tertiary">
                                 <span>
@@ -441,7 +412,7 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
                 <IonButton fill="clear" shape="round" size='large' onClick={() => modalParamOn({cssClass: 'modal-job-card'})} >
                     <IonIcon icon={settings} size='large' color='light' />
                 </IonButton>
-                <IonButton fill="clear" shape="round" size='large' onClick={ () => dispatch(removeOneMainJob(jobExec.ordem)) }>
+                <IonButton fill="clear" shape="round" size='large' onClick={ () => dispatch(removeOneMainJob(index)) }>
                     <IonIcon icon={trash} size='large' color='light' />
                 </IonButton>
             </IonItem>

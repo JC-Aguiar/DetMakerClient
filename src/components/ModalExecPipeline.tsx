@@ -40,11 +40,11 @@ const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
     const [atividadeNome, setAtividadeNome] = useState<string>("");
     const [configuracao, setConfiguracao] = useState<string>("");
     const [jobsParaExec, setJobsParaExec] = useState<JobConfig[]>(mainJobs);
-    const [present] = useIonAlert();
+    const [alerta] = useIonAlert();
 
     //Handler para alertar ao usuário caso ele queira executar a Pipeline com Jobs a menos
     const exibirAlerta = () => {
-        present({
+        alerta({
             header: 'ATENÇÃO!',
             message: 'Alguns Jobs foram desmarcados. ' 
                 + 'Essa mudança refletirá no registro dessa Pipeline no banco. Deseja continuar?',

@@ -25,7 +25,7 @@ const catalogoPipelines = createSlice({
             }
             console.log('[ReducerPipelines]: Acionado controlador catalogoPipelines.setPipeline!');
             state.catalogo = action.payload;
-            logPipeline(state);
+            //logPipeline(state);
         },
         loadingPipelines: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerPipelines]: Acionado controlador catalogoPipelines.loadingPipelines!');

@@ -24,7 +24,6 @@ const catalogoJobs = createSlice({
                 return { ...state };
             }
             state.catalogo = action.payload;
-            logCatalago(state.catalogo);
         },
         loadingJobs: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerJobs]: Acionado controlador catalogoJobs.loadingJobs!');
@@ -34,12 +33,6 @@ const catalogoJobs = createSlice({
     },
 });
 
-//Exibe informações 
-function logCatalago(jobs: JobInfoDTO[]) {
-    console.log(`[ReducerJobs] Catálogo de Jobs em memória:` + '\n'
-        + jobs.map((item) => ` - (ID ${item.id}) Nome: ${item.nome}` + '\n')
-    );
-}
 
 export default catalogoJobs.reducer;
 export const { setJobs, loadingJobs } = catalogoJobs.actions;
