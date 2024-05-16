@@ -5,14 +5,12 @@ import { AmbienteInfoDTO } from '../../data/AmbienteInfoDTO';
 //Valores iniciais do Reducer
 const initialState = { 
     catalogo: [],
-    clienteSelecionado: -1,
     loading: false,
 } as ReducerClientesProps;
 
 //Interface para definir o tipo de objeto do reducer
 interface ReducerClientesProps {
     catalogo: ClienteInfoDTO[],
-    clienteSelecionado: number,
     loading: boolean,
 }
 
@@ -53,6 +51,7 @@ const catalogoClientes = createSlice({
         loadingClientes: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerClientes]: Acionado controlador catalogoClientes.loadingClientes!');
             state.loading = action.payload;
+            if (state.loading) state.catalogo = [];
             console.log(`[ReducerClientes]: Catalogo de Pipelines ${state.loading ? 'está carregando..' : 'pronto'}.`);
         },
     },

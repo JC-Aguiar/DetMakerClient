@@ -34,6 +34,7 @@ const catalogoRelatorios = createSlice({
         loadingRelatorios: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerRelatorios]: Acionado controlador catalogoRelatorios.loadingRelatorios!');
             state.loading = action.payload;
+            if (state.loading) state.catalogo = [];
             console.log(`[ReducerRelatorios]: Catalogo de Relatorios ${state.loading ? 'está carregando..' : 'pronto'}.`);
         },
     },

@@ -34,6 +34,7 @@ const catalogoMassas = createSlice({
         loadingMassa: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerMassas]: Acionado controlador catalogoMassas.loadingMassa!');
             state.loading = action.payload;
+            if (state.loading) state.catalogo = [];
             console.log(`[ReducerMassas]: Catalogo de Relatorios ${state.loading ? 'está carregando..' : 'pronto'}.`);
         },
     },

@@ -1,5 +1,4 @@
 import { IonCol, IonContent, IonIcon, IonImg, IonItem, IonLabel, IonList, IonRow, IonThumbnail, IonTitle, useIonModal, useIonViewWillEnter, } from '@ionic/react';
-import { useHistory } from 'react-router';
 import { useState } from 'react';
 import { addCircle, personAdd, radioButtonOff, radioButtonOn, refresh, } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,24 +17,26 @@ import Carregando from '../components/Carregando';
 import { AmbienteInfoDTO } from '../data/AmbienteInfoDTO';
 import { Notificacao } from '../components/Noticacao';
 import Botao from '../components/Botao';
-import axios from 'axios';
 import ModalNovoAmbiente from '../components/ModalNovoAmbiente';
 import DynamicModal from '../components/DynamicModal';
 import ModalNovoCliente from '../components/ModalNovoCliente';
+import { setJobs } from '../Store/Reducer/ReducerJobs';
+import { setPipelines } from '../Store/Reducer/ReducerPipelines';
+import { setQueries } from '../Store/Reducer/ReducerQueries';
+import { setMassas } from '../Store/Reducer/ReducerMassas';
 
 const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos úteis
     const dispatch = useDispatch();
-    const history = useHistory();
     const [conectionsCount, setConectionsCount] = useState<number>(0);
     const catalogoClientes = useSelector((state: RootState) => state.store.catalogoClientes.catalogo);
     const isLoading = useSelector((state: RootState) => state.store.catalogoClientes.loading);
     const mainCliente = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
     const mainAmbiente = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
 
+    //Atributos relacionados a modals
     const [clienteId, setClienteId] = useState<number>(-1);
-    const [modalNovoClienteOn, modalNovoClienteOff] = useIonModal(
-        DynamicModal,
+    const [modalNovoClienteOn, modalNovoClienteOff] = useIonModal(DynamicModal,
         {
             titulo: "Criar Novo Cliente",
             elemento: <ModalNovoCliente
@@ -45,8 +46,7 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
             onDismiss: () => modalNovoClienteOff()
         }
     );
-    const [modalNovoAmbienteOn, modalNovoAmbienteOff] = useIonModal(
-        DynamicModal,
+    const [modalNovoAmbienteOn, modalNovoAmbienteOff] = useIonModal(DynamicModal,
         {
             titulo: "Criar Novo Ambiente",
             elemento: <ModalNovoAmbiente
@@ -83,18 +83,27 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
     async function coletarRecursos() {
         if (isLoading) return;
 
-        console.log(`[ESCOLHER-CLIENTES]: Iniciando requisição 'Consultar Clientes'.`);
         toastInfo("CONSULTAR CLIENTES: Em execução...", []);
         dispatch(loadingClientes(true));
+        /*
+        dispatch(setMainAmbiente({
+            cliente: "",
+            clienteId: -1, 
+            ambiente: "",
+            ambienteId: -1
+        }));
+        dispatch(setJobs([]));
+        dispatch(setPipelines([]));
+        dispatch(setQueries([]));
+        dispatch(setMassas([]));
+        */
         try {
             const clientes: ClienteInfoDTO[] = await axiosRequest.getAllClientes();
             dispatch(setClientes(clientes));
             toastOk("CONSULTAR CLIENTES: Realizado com sucesso.", []);
-            console.log(`[ESCOLHER-PIPELINES]: Requisição 'Consultar Clientes' funcionou.`);
         }
         catch (error) {
             toastErro(`CONSULTAR CLIENTES: ${error}`, []);
-            console.error(`[ESCOLHER-PIPELINES]: Requisição 'Consultar Clientes' falhou.`);
         }
         dispatch(loadingClientes(false));
     }
@@ -127,7 +136,6 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
                         <IonTitle color='#' className='text-white m-0 py-3 text-center w-100'>
                             <span id="filme-title" className='h3 align-middle'>{cliente.nome}</span>
                         </IonTitle>
-                        {/*setClienteAmbiente(cliente.nome, e.detail.value)*/}                
                         {listarAmbientes(cliente, indexCliente)}
                         <IonRow className='ion-justify-content-center'>
                             <Botao texto='Novo Ambiente' 
@@ -155,9 +163,8 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
             <IonList className='m-3 p-2 glass'>
             {
                 cliente.ambientes.map((ambiente, indexAmbiente) => {
-                    const checked = mainCliente === cliente.nome 
-                        && mainAmbiente === ambiente.nome 
-                        ? radioButtonOn : radioButtonOff;
+                    const checked = (mainCliente === cliente.nome && mainAmbiente === ambiente.nome) ? 
+                        radioButtonOn : radioButtonOff;
                     return (
                         <IonItem key={indexCliente * 10 + indexAmbiente} lines='none'
                             color='#'

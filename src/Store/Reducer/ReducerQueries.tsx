@@ -34,6 +34,7 @@ const catalogoQueries = createSlice({
         loadingQueries: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerQueries]: Acionado controlador catalogoQueries.loadingQueries!');
             state.loading = action.payload;
+            if (state.loading) state.catalogo = [];
             console.log(`[ReducerQueries]: Catalogo de Relatorios ${state.loading ? 'está carregando..' : 'pronto'}.`);
         },
     },

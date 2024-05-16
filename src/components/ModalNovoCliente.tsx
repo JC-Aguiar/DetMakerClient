@@ -96,7 +96,7 @@ const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({ notificacao, onSave
         <div className="container justify-content-center mt-1 px-5">
             <div className='glass px-3'>
                 <div className='h5 text-center text-white py-2 mt-2 mb-4'>
-                    Preencha os dados abaixo para criar novo Ambiente
+                    Preencha os dados abaixo para criar novo Cliente
                 </div>
                 <div className='text-primary'>
                     <IonRow className='p-0 m-0 w-100 ion-align-items-center'>

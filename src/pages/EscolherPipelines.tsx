@@ -1,5 +1,5 @@
 import { IonAccordion, IonAccordionGroup, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonItem, IonLabel, IonMenu, IonModal, IonSplitPane, IonTitle, useIonModal, useIonViewWillEnter } from '@ionic/react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cloudUpload, cube, layers, library, listOutline, refresh } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from '../Store/ReduxStore';
@@ -8,7 +8,6 @@ import { loadingJobs, setJobs } from '../Store/Reducer/ReducerJobs';
 import DynamicModal from '../components/DynamicModal';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
 import { loadingPipelines, setPipelines } from '../Store/Reducer/ReducerPipelines';
-import { JobConfig } from '../data/JobConfigDTO';
 import { Notificacao } from '../components/Noticacao';
 import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/ButtonLayout';
 import ConfigurarJobs from '../components/ConfigurarJobs';
@@ -26,18 +25,19 @@ import { loadingMassa, setMassas } from '../Store/Reducer/ReducerMassas';
 import { ListaRetratrilAgrupada, ListaRetratrilProps } from '../components/ListaRetratil';
 import ListaCatalogoPipelines from '../components/ListaCatalogoPipelines';
 import ListaCatalogoMassas from '../components/ListaCatalogoMassas';
+import ModalNovoJob from '../components/ModalNovoJob';
 
 const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos Redux e React
     const dispatch = useDispatch();
     
     //Atributos de input do usuário
-    const [anexo, setAnexo] = useState<File | null>(null);
     const [conectionsCount, setConectionsCount] = useState<number>(0);
     const [jobsSucesso, setJobsSucesso] = useState<boolean | null>(null);
     const [pipelinesSucesso, setPipelinesSucesso] = useState<boolean | null>(null);
     const [verModalSchedule, setVerModalSchedule] = useState<boolean>(false);
     const modalScheduleRef = useRef<HTMLIonModalElement>(null);
+    const novaScheduleRef = useRef<HTMLInputElement>(null);
 
     //Atributos com estado gerenciado via Redux
     const isLoadingJobs = useSelector((state: RootState) => state.store.catalogoJobs.loading);
@@ -46,9 +46,8 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
     const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobsSelecionados);
     const catalogoJobsSelecionados: JobInfoDTO[] = catalogoJobs.filter(
         (item) => jobsSelecionados.findIndex((id) => id === item.id) !== -1);
-    const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
-    const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);  
-    const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
+    const mainClienteId = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
+    const mainCliente = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
 
     //Atributos de utilidade
@@ -62,32 +61,34 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             onDismiss: () => modalNovaPipelineOff(),
         }
     );
+    const [modalNovoJobOn, modalNovoJobOff] = useIonModal(
+        DynamicModal,
+        {
+            titulo: "Criar Novo Job",
+            elemento: <ModalNovoJob notificacao={{toastInfo, toastOk, toastErro}} />,
+            onDismiss: () => modalNovoJobOff(),
+        }
+    );
 
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {
         //if ((catalogoJobs.length < 1 || conectionsCount < 1) && !isLoading) coletarRecursos();
-        if (conectionsCount === 0) coletarRecursos();
-    }, []);
+        //if (conectionsCount === 0) 
+        //toastInfo(`CLIENTE: ${mainCliente} (ID ${mainClienteId})`, []);
+        coletarRecursos();
+    }, [mainClienteId, mainCliente]);
 
-    //Coletando arquivo da máquina local
-    /*
-        function getFile(event: React.ChangeEvent<HTMLInputElement>) {
-            const selectedFile = event.target.files?.[0];
-            if (selectedFile != null) {
-                setAnexo(selectedFile);
-                setEnviar(true);
-            }
-            else {
-                setAnexo(null);
-                setEnviar(false);
-            }
-        }
-    */
+/*
+    useEffect(() => {
+        toastInfo("OPA. MUDOU!", []);
+    }, [mainClienteId, mainCliente]);
+*/
 
     //Conjunto de Requisições para atualizar todos os recursos da página 
     async function coletarRecursos() {
         dispatch(loadingJobs(true));
         dispatch(loadingPipelines(true));
+        dispatch(setMainPipeline());
         //dispatch(loadingQueries(true));
         //queries
         await obterJobsBanco()
@@ -100,121 +101,90 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
     }
 
     //Requisição para abrir a planilha schedule para obter os jobs
-    async function uploadSchedule() {
+    async function uploadSchedule(event: React.ChangeEvent<HTMLInputElement>) {
+        const selectedFile = event.target.files?.[0];
+        if (!selectedFile) {
+            toastErro("Nenhum arquivo selecionado.", []);
+            return;
+        }
         try {
-            if (!anexo) {
-                console.log("[ESCOLHER-PIPELINES]: Nenhum arquivo para envio.");
-                return
-            };
-            console.log(`[ESCOLHER-PIPELINES]: Iniciando requisição 'Abrir Planilha'.`);
-            modalNovaPipelineOff();
-            toastInfo("ABRIR PLANILHA: Em execução...", []);
-
-            const formData = new FormData();
-            formData.append('file', anexo);
-            const jobsBanco: JobInfoDTO[] = await axiosRequest.openSchedule(mainAmbienteId, anexo);
-            dispatch(setJobs(jobsBanco));
-            dispatch(setMainPipeline({ id: -1, nome: "", jobs: [] }));            
-            dispatch(setMainJobs([]));
-
-            toastOk("ABRIR PLANILHA: Realizado com sucesso.", []);
-            console.log(`[ESCOLHER-PIPELINES]: Requisição 'Abrir Planilha' funcionou.`);
-
-            //console.log(`[APP] Navegando para: ${axiosRequest.URL_JOBS}`);
-            //history.push(axiosRequest.URL_JOBS);
+            toastInfo("CARREGAR SCHEDULE: Em execução...", []);
+            //const formData = new FormData();
+            //formData.append('file', selectedFile);
+            const mensagem = await axiosRequest.openSchedule(mainClienteId, selectedFile);
+            toastOk(`CARREGAR SCHEDULE: ${mensagem}.`, []);
+            coletarRecursos();
         }
         catch (error) {
-            toastErro(`ABRIR PLANILHA: ${error}`, []);
-            console.error(`[ESCOLHER-PIPELINES]: Requisição 'Abrir Planilha' falhou.`);
+            toastErro(`CARREGAR SCHEDULE: ${error}`, []);
         }
+        novaScheduleRef.current!.files = null;
     }
 
     //Requisição para obter os jobs diretamente do banco
     async function obterJobsBanco() {
-        console.log(`[ESCOLHER-PIPELINES]: Iniciando requisição 'Download Jobs'.`);
-        //modalGetPipelinesOff();
-        //modalNovaPipelineOff();
-        toastInfo("DOWNLOAD JOBS: Em execução...", []);
+        toastInfo(`DOWNLOAD JOBS: Coletando Jobs do Cliente '${mainCliente}' (ID ${mainClienteId}).`, []);
         setJobsSucesso(null);
         setConectionsCount(c => c+1);
+        dispatch(setJobs([]));
         try {
-            const novosJobs: JobInfoDTO[] = (await axiosRequest.getAllJobs(mainClienteId));
+            const novosJobs: JobInfoDTO[] = await axiosRequest.getAllJobs(mainClienteId);
             dispatch(setJobs(novosJobs));
-            //const jobsPipeline = (mainPipelineIndex > -1 && aplicarPipeline) ? catalagoPipelines[mainPipelineIndex].jobs : [];
-            //console.log(`[APP] Navegando para: ${axiosRequest.URL_JOBS}`);
-            //history.push(axiosRequest.URL_JOBS);
             setJobsSucesso(true);
             toastOk("DOWNLOAD JOBS: Realizado com sucesso.", []);
-            console.log(`[ESCOLHER-PIPELINES]: Requisição 'Download Jobs' funcionou.`);
         }
         catch (error) {
             setJobsSucesso(false);
             toastErro(`DOWNLOAD JOBS: ${error}`, []);
-            console.error(`[ESCOLHER-PIPELINES]: Requisição 'Download Jobs' falhou.`);
         }
     }
 
     //Requisição para obter todas as pipelines do banco
     async function obterPipelinesBanco() {
-        console.log(`[ESCOLHER-PIPELINES]: Iniciando requisição 'Download Pipelines'.`);
         toastInfo("DOWNLOAD PIPELINES: Em execução...", []);
         setPipelinesSucesso(null);
-        dispatch(setMainPipeline({
-            id: -1,
-            nome: "",
-            jobs: []
-        }));
+        dispatch(setPipelines([]));
+        dispatch(setMainPipeline());
         try {
             const pipelines: PipelineInfoDTO[] = await axiosRequest.getAllPipelines(mainClienteId);
             dispatch(setPipelines(pipelines));
-
-            //history.push('/det-maker/select/');
-            //modalGetPipelinesOn();
             setPipelinesSucesso(true);
             toastOk("DOWNLOAD PIPELINES: Realizado com sucesso.", []);
-            console.log(`[ESCOLHER-PIPELINES]: Requisição 'Download Pipelines' funcionou.`);
         }
         catch (error) {
             setPipelinesSucesso(false);
             toastErro(`DOWNLOAD PIPELINES: ${error}`, []);
-            console.error(`[ESCOLHER-PIPELINES]: Requisição 'Download Pipelines' falhou.`);
         }
     }
 
     //Requisição para obter todas as Config-Queries do banco
     async function obterQueriesBanco() {
-        console.log(`[ESCOLHER-PIPELINES]: Iniciando requisição 'Download Config-Queries'.`);
         toastInfo("DOWNLOAD QUERIES: Em execução...", []);
-        //setQueries([]); Apagar recursos antes de uma nova coleta ou não?
+        dispatch(setQueries([]));
         dispatch(loadingQueries(true));
         try {
             const queriesBanco: QueryInfoDTO[] = await axiosRequest.getAllConfigQueries(mainClienteId);
             dispatch(setQueries(queriesBanco));
             toastOk("DOWNLOAD QUERIES: Realizado com sucesso.", []);
-            console.log(`[ESCOLHER-PIPELINES]: Requisição 'Download Config-Queries' funcionou.`);
         }
         catch (error) {
             toastErro(`DOWNLOAD QUERIES: ${error}`, []);
-            console.error(`[ESCOLHER-PIPELINES]: Requisição 'Download Config-Queries' falhou.`);
         }
         dispatch(loadingQueries(false));
     }
 
     //Requisição para obter todas as MassaTabelaDTO's do banco
     async function obterMassasBanco() {
-        console.log(`[ESCOLHER-PIPELINES]: Iniciando requisição 'Download Massas'.`);
         toastInfo("DOWNLOAD MASSAS: Em execução...", []);
-        //setMassas([]); Apagar recursos antes de uma nova coleta ou não?
         dispatch(loadingMassa(true));
+        dispatch(setMassas([]));
         try {
             const massasBanco: MassaTabelaDTO[] = await axiosRequest.getAllMassas(mainClienteId);
             dispatch(setMassas(massasBanco));
             toastOk("DOWNLOAD MASSAS: Realizado com sucesso.", []);
-            console.log(`[ESCOLHER-PIPELINES]: Requisição 'Download Massas' funcionou.`);
         }
         catch (error) {
             toastErro(`DOWNLOAD MASSAS: ${error}`, []);
-            console.error(`[ESCOLHER-PIPELINES]: Requisição 'Download Massas' falhou.`);
         }
         dispatch(loadingMassa(false));
     }
@@ -228,6 +198,12 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             disable: isLoading,
         }, 
         {
+            title: 'Novo Job',
+            icon: cube,
+            trigger: () =>  modalNovoJobOn(),
+            disable: isLoading,
+        },
+        {
             title: 'Nova Pipeline',
             icon: layers,
             trigger: () =>  modalNovaPipelineOn(),
@@ -236,7 +212,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         {
             title: 'Nova Schedule',
             icon: cloudUpload,
-            trigger: () => uploadSchedule(),
+            trigger: () => novaScheduleRef.current!.click(),
             disable: isLoading,
         }, 
         {
@@ -389,6 +365,20 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                 {layoutGrupoBotoes(butoes)}
                 {conteudo()}
             </IonLabel>
+
+            {/* Input invisível, para coletar Schedule dos Jobs a carregar no banco */}
+            <form action="/upload" method="post" encType="multipart/form-data" hidden>
+                <label htmlFor="formFile" className="form-label" hidden/>
+                <input className="form-control" 
+                    type="file" 
+                    id="formFile" 
+                    accept=".xlsx"
+                    multiple={false}
+                    ref={novaScheduleRef}
+                    onChange={async e => await uploadSchedule(e)} 
+                    hidden
+                />
+            </form>
 
             {/* Modal personalizada da Schedule */}
             <IonModal style={{'--min-width': '94%', '--min-height': '90%'}} isOpen={verModalSchedule} ref={modalScheduleRef}>

@@ -84,7 +84,7 @@ const ModalNovoAmbiente: React.FC<ModalNovoAmbienteProps> = ({ clienteId, notifi
         dispatch(loadingClientes(false));
     }
 
-    //Renderização do componente "10.129.226.159:1521/CCSSIDEV"
+    //Renderização do componente
     return <>
         <div className="container justify-content-center mt-1 px-5">
             <div className='glass px-3'>

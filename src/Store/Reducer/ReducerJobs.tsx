@@ -28,6 +28,7 @@ const catalogoJobs = createSlice({
         loadingJobs: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerJobs]: Acionado controlador catalogoJobs.loadingJobs!');
             state.loading = action.payload;
+            if (state.loading) state.catalogo = [];
             console.log(`[ReducerJobs]: Catalogo de Jobs ${state.loading ? 'está carregando..' : 'pronto'}.`);
         },
     },

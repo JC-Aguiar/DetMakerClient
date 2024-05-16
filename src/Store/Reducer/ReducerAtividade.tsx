@@ -30,10 +30,16 @@ export interface ReducerAtividadeProps {
 
 //Interface das propriedades do controlador setMainAmbiente
 export interface SetMainAmbienteProps {
-    cliente: string;
+    cliente: string,
     clienteId: number, 
-    ambiente: string;
-    ambienteId: number;
+    ambiente: string,
+    ambienteId: number,
+}
+const setMainAmbientePropsDefault: SetMainAmbienteProps = {
+    cliente: "",
+    clienteId: -1, 
+    ambiente: "",
+    ambienteId: -1
 }
 
 export interface SetMainPipelineProps {
@@ -58,7 +64,7 @@ const configAtividade = createSlice({
     initialState,
     reducers: {
         setMainAmbiente: (state, action: PayloadAction<SetMainAmbienteProps>) => {
-            const { cliente, clienteId,  ambiente,  ambienteId} = action.payload;
+            const {cliente, clienteId,  ambiente,  ambienteId} = action.payload;
             console.log('[ReducerAtividade]: Acionado controlador configAtividade.setMainAmbiente!');
             console.log(`[ReducerAtividade]: Definindo Cliente [ID ${clienteId}] '${cliente}', `
                 + `Ambiente [ID ${ambienteId}] '${ambiente}'.`

@@ -30,6 +30,7 @@ const catalogoPipelines = createSlice({
         loadingPipelines: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerPipelines]: Acionado controlador catalogoPipelines.loadingPipelines!');
             state.loading = action.payload;
+            if (state.loading) state.catalogo = [];
             console.log(`[ReducerPipelines]: Catalogo de Pipelines ${state.loading ? 'está carregando..' : 'pronto'}.`);
         },
     },

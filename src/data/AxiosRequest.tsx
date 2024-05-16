@@ -217,7 +217,7 @@ export async function saveNovoAmbiente(clienteId: number, novoAmbiente: Ambiente
 }
 
 //Requisição para abrir planilha Schedule
-export async function openSchedule(ambienteId: number, arquivoXlsx: File): Promise<JobInfoDTO[]> {
+export async function openSchedule(clienteId: number, arquivoXlsx: File): Promise<string> {
     const titulo = "ABRIR SCHEDULE";
     requestStart(titulo);
 
@@ -235,14 +235,13 @@ export async function openSchedule(ambienteId: number, arquivoXlsx: File): Promi
     });
     data.append('file', blob);
 
-    throw "Falta desenvolver a coleta do nome da planilha";
-    const planilhaNome = "TODO"; //TODO!
+    const planilhaNome = "DIÁRIO";
 
     //Preparando requisição
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/job/ambiente/${ambienteId}/read/xlsx/planilha/${planilhaNome}`,
+        url: `${REQUEST_URL}/job/read/xlsx/planilha/${planilhaNome}/cliente/${clienteId}`, // /ambiente/${ambienteId}/read/xlsx/planilha/${planilhaNome}
         headers: headersXlsx,
         timeout: 30000,
         data: data
