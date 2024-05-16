@@ -1,5 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { ClienteInfoDTO } from '../../data/ClienteInfoDTO';
+import { AmbienteInfoDTO } from '../../data/AmbienteInfoDTO';
 
 //Valores iniciais do Reducer
 const initialState = { 
@@ -15,6 +16,11 @@ interface ReducerClientesProps {
     loading: boolean,
 }
 
+export interface AddAmbienteProps {
+    clienteId: number,
+    ambiente: AmbienteInfoDTO,
+}
+
 //Controlador reducer para item-pilha
 const catalogoClientes = createSlice({
     name: 'catalogoClientes',
@@ -28,7 +34,21 @@ const catalogoClientes = createSlice({
             }
             console.log('[ReducerClientes]: Acionado controlador catalogoClientes.setClientes!');
             state.catalogo = action.payload;
-            logClientes(state.catalogo);
+            //logClientes(state.catalogo);
+        },
+        addAmbiente: (state, action: PayloadAction<AddAmbienteProps>) => {
+            console.log('[ReducerClientes]: Acionado controlador catalogoClientes.addAmbiente!');
+            const {clienteId, ambiente} = action.payload;
+            if (clienteId === -1 || ambiente.id === -1) {
+                console.log('[ReducerClientes]: ID inválido!');
+                return;
+            }
+            const index = state.catalogo.findIndex(item => item.id === clienteId);
+            if (index === -1) {
+                console.log('[ReducerClientes]: Usuário não identificado!');
+                return;
+            }
+            state.catalogo[index].ambientes.push(ambiente);
         },
         loadingClientes: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerClientes]: Acionado controlador catalogoClientes.loadingClientes!');
@@ -47,4 +67,4 @@ function logClientes(clientes: ClienteInfoDTO[]) {
 }
 
 export default catalogoClientes.reducer;
-export const { setClientes, loadingClientes } = catalogoClientes.actions;
+export const { setClientes, loadingClientes, addAmbiente } = catalogoClientes.actions;

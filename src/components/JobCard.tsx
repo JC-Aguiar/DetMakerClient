@@ -325,22 +325,21 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
                             return <div key={index} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
                                 {badgeInfo(item, 0, -50)}
                                 <form action="/upload" method="post" encType="multipart/form-data" className="" >
-
-                                <label htmlFor="formFile" className="form-label">
-                                    <span className="px-2 bg-transparent d-flex" style={{color: `var(--ion-color-primary)`}}>
-                                        Arquivo Atual: 
-                                        <IonBadge color='dark' className="mx-1 px-2 mb-0 font-monospace">
-                                            {arquivoNome}
-                                        </IonBadge>
-                                    </span>
-                                </label>
-                                <input className="form-control" 
-                                    type="file" 
-                                    id="formFile" 
-                                    accept=".log, .txt, .err, .gz"
-                                    multiple={false}
-                                    onChange={e => preencherCarga(e, index)} 
-                                />
+                                    <label htmlFor="formFile" className="form-label">
+                                        <span className="px-2 bg-transparent d-flex" style={{color: `var(--ion-color-primary)`}}>
+                                            Arquivo Atual: 
+                                            <IonBadge color='dark' className="mx-1 px-2 mb-0 font-monospace">
+                                                {arquivoNome}
+                                            </IonBadge>
+                                        </span>
+                                    </label>
+                                    <input className="form-control" 
+                                        type="file" 
+                                        id="formFile" 
+                                        accept=".log, .txt, .err, .gz"
+                                        multiple={false}
+                                        onChange={e => preencherCarga(e, index)} 
+                                    />
                                 </form>
                             </div>
                         }

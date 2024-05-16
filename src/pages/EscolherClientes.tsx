@@ -1,7 +1,7 @@
-import { IonCol, IonContent, IonIcon, IonImg, IonItem, IonLabel, IonList, IonRow, IonThumbnail, IonTitle, useIonViewWillEnter, } from '@ionic/react';
+import { IonCol, IonContent, IonIcon, IonImg, IonItem, IonLabel, IonList, IonRow, IonThumbnail, IonTitle, useIonModal, useIonViewWillEnter, } from '@ionic/react';
 import { useHistory } from 'react-router';
 import { useState } from 'react';
-import { personAdd, radioButtonOff, radioButtonOn, refresh, } from 'ionicons/icons';
+import { addCircle, personAdd, radioButtonOff, radioButtonOn, refresh, } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { SetMainAmbienteProps, setMainAmbiente } from '../Store/Reducer/ReducerAtividade';
 import { RootState } from '../Store/ReduxStore';
@@ -17,6 +17,11 @@ import Informativo from '../components/Informativo';
 import Carregando from '../components/Carregando';
 import { AmbienteInfoDTO } from '../data/AmbienteInfoDTO';
 import { Notificacao } from '../components/Noticacao';
+import Botao from '../components/Botao';
+import axios from 'axios';
+import ModalNovoAmbiente from '../components/ModalNovoAmbiente';
+import DynamicModal from '../components/DynamicModal';
+import ModalNovoCliente from '../components/ModalNovoCliente';
 
 const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos úteis
@@ -27,6 +32,31 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
     const isLoading = useSelector((state: RootState) => state.store.catalogoClientes.loading);
     const mainCliente = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
     const mainAmbiente = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
+
+    const [clienteId, setClienteId] = useState<number>(-1);
+    const [modalNovoClienteOn, modalNovoClienteOff] = useIonModal(
+        DynamicModal,
+        {
+            titulo: "Criar Novo Cliente",
+            elemento: <ModalNovoCliente
+                    notificacao={{toastInfo, toastOk, toastErro}} 
+                    onSave={() => { coletarRecursos(); modalNovoClienteOff(); }} 
+                />,
+            onDismiss: () => modalNovoClienteOff()
+        }
+    );
+    const [modalNovoAmbienteOn, modalNovoAmbienteOff] = useIonModal(
+        DynamicModal,
+        {
+            titulo: "Criar Novo Ambiente",
+            elemento: <ModalNovoAmbiente
+                    clienteId={clienteId} 
+                    notificacao={{toastInfo, toastOk, toastErro}} 
+                    onSave={() => modalNovoAmbienteOff()} 
+                />,
+            onDismiss: () => modalNovoAmbienteOff(),
+        }
+    );
 
     //Atributos de botões
     const botaoAtualizar = {
@@ -39,7 +69,7 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
     const botaoNovoCliente = {
         title: 'Novo Cliente',
         icon: personAdd,
-        trigger: () =>  null,
+        trigger: () =>  modalNovoClienteOn(),
         disable: isLoading,
     } as ButtonLayoutProps;
 
@@ -82,6 +112,8 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
         ));
     }
 
+
+    //Renderiza cada card de cada Cliente disponível no catálogo
     const cardsDeClientes = () => catalogoClientes.map((cliente, indexCliente) =>
         <SwiperSlide key={indexCliente} className=''>
              <IonRow key={indexCliente} id="card-filme" className='ion-justify-content-center mb-4'>
@@ -96,52 +128,73 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
                             <span id="filme-title" className='h3 align-middle'>{cliente.nome}</span>
                         </IonTitle>
                         {/*setClienteAmbiente(cliente.nome, e.detail.value)*/}                
-                        <IonList className='m-3 p-2 glass'>
-                            {
-                                cliente.ambientes.map((ambiente, indexAmbiente) => {
-                                    const checked = mainCliente === cliente.nome 
-                                        && mainAmbiente === ambiente.nome 
-                                        ? radioButtonOn : radioButtonOff;
-                                    return (
-                                        <IonItem key={indexCliente * 10 + indexAmbiente} lines='none'
-                                            color='#'
-                                            className='p-0 m-0 align-items-center text-white w-100'
-                                            style={{ '--min-height': '32px' }}
-                                        >
-                                            <IonIcon icon={checked} 
-                                                color="primary" 
-                                                size='large'
-                                                className='btn border-0 p-0 pe-1' 
-                                                style={{ transform: 'scale(1.2) translate(0.25px, 1.75px)' }}
-                                                onClick={(e) => setClienteAmbiente(cliente, ambiente)}
-                                            />
-                                            <IonLabel className='px-1 py-2 m-0 rounded rounded-3'>
-                                                <p className='lh-1 p-0 m-0 mx-1 mt-1 fw-bold text-white '>
-                                                    Ambiente {ambiente.nome}
-                                                </p>
-                                                <p className='lh-1 p-0 m-0'>
-                                                    <span className='text-white p-0 mx-1'>
-                                                        <span>STP: </span> 
-                                                        <span className='font-monospace'>{ambiente.ftp.conexao}</span>
-                                                    </span>
-                                                </p>
-                                                <p className='lh-1 p-0 m-0'>
-                                                    <span className='text-white p-0 mx-1'>
-                                                        <span>BANCO: </span> 
-                                                        <span className='font-monospace'>{ambiente.banco.conexao}</span>
-                                                    </span>
-                                                </p>
-                                            </IonLabel>
-                                        </IonItem>
-                                    );
-                                })
-                            }
-                        </IonList>
+                        {listarAmbientes(cliente, indexCliente)}
+                        <IonRow className='ion-justify-content-center'>
+                            <Botao texto='Novo Ambiente' 
+                                icon={addCircle} 
+                                handler={() => {
+                                    setClienteId(cliente.id);
+                                    modalNovoAmbienteOn();
+                                }} 
+                            />
+                        </IonRow>
                     </IonContent>
                 </IonCol>
             </IonRow>
         </SwiperSlide>
     );
+
+    //Renderiza (ou não) a lista dos Ambientes no card de cada Cliente
+    const listarAmbientes = (cliente: ClienteInfoDTO, indexCliente: number) => {
+        if (cliente.ambientes.length < 1) return(
+            <div className='m-3 p-2 opacity-50'>
+                Cliente sem ambientes disponíveis
+            </div>
+        );
+        return(
+            <IonList className='m-3 p-2 glass'>
+            {
+                cliente.ambientes.map((ambiente, indexAmbiente) => {
+                    const checked = mainCliente === cliente.nome 
+                        && mainAmbiente === ambiente.nome 
+                        ? radioButtonOn : radioButtonOff;
+                    return (
+                        <IonItem key={indexCliente * 10 + indexAmbiente} lines='none'
+                            color='#'
+                            className='p-0 m-0 align-items-center text-white w-100'
+                            style={{ '--min-height': '32px' }}
+                        >
+                            <IonIcon icon={checked} 
+                                color="primary" 
+                                size='large'
+                                className='btn border-0 p-0 pe-1' 
+                                style={{ transform: 'scale(1.2) translate(0.25px, 1.75px)' }}
+                                onClick={(e) => setClienteAmbiente(cliente, ambiente)}
+                            />
+                            <IonLabel className='px-1 py-2 m-0 rounded rounded-3'>
+                                <p className='lh-1 p-0 m-0 mx-1 mt-1 fw-bold text-white '>
+                                    Ambiente {ambiente.nome}
+                                </p>
+                                <p className='lh-1 p-0 m-0'>
+                                    <span className='text-white p-0 mx-1'>
+                                        <span>STP: </span> 
+                                        <span className='font-monospace'>{ambiente.ftp.conexao}</span>
+                                    </span>
+                                </p>
+                                <p className='lh-1 p-0 m-0'>
+                                    <span className='text-white p-0 mx-1'>
+                                        <span>BANCO: </span> 
+                                        <span className='font-monospace'>{ambiente.banco.conexao}</span>
+                                    </span>
+                                </p>
+                            </IonLabel>
+                        </IonItem>
+                    );
+                })
+            }
+            </IonList>
+        );
+    }
 
     if (isLoading) return <Carregando />;
     if (catalogoClientes.length < 1) {

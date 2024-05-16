@@ -30,3 +30,20 @@ export interface JobInfoDTO {
     //Atributos de uso do front:
     //checked: boolean;
 }
+
+/**
+ * Indentifica o parametro relacionado à Data do Ciclo (Ifxdate)
+ * @param jobInfo {@link JobInfoDTO} 
+ * @returns número do índice do parametro relacionado com à Data do Ciclo (Ifxdate) ou -1 caso não possua
+ */  
+export const getIndexParametroComIfxdate = (jobInfo: JobInfoDTO): number => {
+    const paramIndex = jobInfo.parametros.findIndex(
+        param => param.toUpperCase().includes("AAAAMMDD")
+    );
+    const paramDescIndex = jobInfo.descricaoParametros.findIndex(
+        param => param.toLowerCase().includes("data") 
+            && param.toLowerCase().includes("ciclo")
+    );
+    if (paramIndex === paramDescIndex && paramIndex !== -1) return paramIndex;
+    return -1;
+}

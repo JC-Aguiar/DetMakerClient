@@ -15,7 +15,7 @@ import { BotaoProps, Botoes } from './Botao';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
 import { setPipelines } from '../Store/Reducer/ReducerPipelines';
 import * as axiosRequest from "../data/AxiosRequest";
-import { JobInfoDTO } from '../data/JobInfoDTO';
+import { JobInfoDTO, getIndexParametroComIfxdate } from '../data/JobInfoDTO';
 
 
 const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
@@ -131,14 +131,8 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
 
         catalogoJobs.filter(item => mainJobs.some(mainJob => mainJob.id === item.id))
             .forEach(item => {
-                const paramIndex = item.parametros.findIndex(
-                    param => param.toUpperCase().includes("AAAAMMDD")
-                );
-                const paramDescIndex = item.descricaoParametros.findIndex(
-                    param => param.toLowerCase().includes("data") 
-                        && param.toLowerCase().includes("ciclo")
-                );
-                if (paramIndex === paramDescIndex && paramIndex !== -1)
+                const paramIndex = getIndexParametroComIfxdate(item);
+                if (paramIndex !== -1)
                     dados.jobs.push({ id: item.id , parametro: paramIndex });
             });
 
@@ -250,3 +244,4 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
 };
 
 export default ConfigurarJobs;
+

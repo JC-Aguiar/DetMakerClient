@@ -14,6 +14,8 @@ import { ClienteInfoDTO } from './ClienteInfoDTO';
 import { QueryInfoDTO } from './QueryInfoDTO';
 import { MassaTabelaDTO } from './MassaTabelaDTO';
 import { MassaPreparada } from './MassaPreparada';
+import { AmbienteInfoDTO } from './AmbienteInfoDTO';
+import { ClienteNovoDTO } from './ClienteNovoDTO';
 
 const EM_TESTE = true;
 
@@ -113,7 +115,6 @@ export async function getAccessToken(code: string): Promise<JwtDTO> {
     return await axios
         .post(GOOGLE_TOKEN_URL, data)
         .then((response) => {
-            requestSucesso(titulo, response.data);
             return response.data;
         })
         .catch((erro) => {
@@ -133,7 +134,6 @@ export async function getUserInfo(accessToken: string): Promise<UserDTO> {
     return await axios
         .get(GOOGLE_PROFILE_INFO, { headers: headers })
         .then((response) => {
-            requestSucesso(titulo, response.data);
             return response.data;
         })
         .catch((erro) => {
@@ -158,9 +158,58 @@ export async function getAllClientes(): Promise<ClienteInfoDTO[]> {
     return await axios
         .request(config)
         .then((response) => {
-            const json: ClienteInfoDTO[] = response.data;
-            requestSucesso(titulo, json);
-            return json;
+            return response.data;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para criar novo Cliente no banco
+export async function saveNovoCliente(cliente: ClienteNovoDTO): Promise<ClienteInfoDTO> {
+    const titulo = "CRIANDO NOVO CLIENTE";
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/cliente`,
+        headers: headers,
+        timeout: 30000,
+        data: cliente
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            return response.data;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para criar novo Ambiente no banco
+export async function saveNovoAmbiente(clienteId: number, novoAmbiente: AmbienteInfoDTO): Promise<AmbienteInfoDTO> {
+    const titulo = "CRIANDO NOVO AMBIENTE";
+    requestStart(titulo);
+    novoAmbiente.id = -1;
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/cliente/${clienteId}/new/ambiente`,
+        headers: headers,
+        timeout: 30000,
+        data: novoAmbiente
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -202,9 +251,7 @@ export async function openSchedule(ambienteId: number, arquivoXlsx: File): Promi
     return await axios
         .request(config)
         .then((response) => {
-            const json: JobInfoDTO[] = response.data;
-            requestSucesso(titulo, json);
-            return json;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -228,9 +275,7 @@ export async function getAllPipelines(clienteId: number): Promise<PipelineInfoDT
     return await axios
         .request(config)
         .then((response) => {
-            const json: PipelineInfoDTO[] = response.data;
-            requestSucesso(titulo, json);
-            return json;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -254,9 +299,7 @@ export async function getAllJobs(clienteId: number): Promise<JobInfoDTO[]> {
     return await axios
         .request(config)
         .then((response) => {
-            const json: JobInfoDTO[] = response.data;
-            requestSucesso(titulo, json);
-            return json;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -280,9 +323,7 @@ export async function getUmRelatorio(id: number): Promise<RelatorioResumoDTO> {
     return await axios
         .request(config)
         .then((response) => {
-            const relatorio: RelatorioResumoDTO = response.data;
-            requestSucesso(titulo, relatorio);
-            return relatorio;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -306,9 +347,7 @@ export async function getAllMassas(clienteId: number): Promise<MassaTabelaDTO[]>
     return await axios
         .request(config)
         .then((response) => {
-            const json: MassaTabelaDTO[] = response.data;
-            requestSucesso(titulo, json);
-            return json;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -333,9 +372,7 @@ export async function testarMassa(massa: MassaTabelaDTO, clienteId: number): Pro
     return await axios
         .request(config)
         .then((response) => {
-            const json: MassaPreparada[] = response.data;
-            requestSucesso(titulo, json);
-            return json;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -362,9 +399,7 @@ export async function getAllRelatorios(ambienteId: number): Promise<RelatorioRes
     return await axios
         .request(config)
         .then((response) => {
-            const json: RelatorioResumoDTO[] = response.data.content;
-            requestSucesso(titulo, json);
-            return json;
+            return response.data.content;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -388,9 +423,7 @@ export async function reexecutarRelatorio(id: number): Promise<RelatorioHistoric
     return await axios
         .request(config)
         .then((response) => {
-            const resutlado: RelatorioHistoricoDTO = response.data;
-            requestSucesso(titulo, resutlado);
-            return resutlado;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -414,9 +447,7 @@ export async function salvarNovaPipeline(novaPipeline: PipelineInfoDTO): Promise
     //Executando requisiçãao
     return await axios.request(config)
         .then((response) => {
-            const json: PipelineInfoDTO = response.data;
-            requestSucesso(titulo, json);
-            return json;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -440,9 +471,7 @@ export async function atualizarPipeline(pipeline: PipelineInfoDTO): Promise<stri
     //Executando requisiçãao
     return await axios.request(config)
         .then((response) => {
-            const mensagem: string = response.data;
-            requestSucesso(titulo, mensagem);
-            return mensagem;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -520,9 +549,7 @@ export async function reexecutarPilha(pipelineNome: string): Promise<Blob> {
     //Executando requisiçãao
     return await axios.request(config)
         .then((response) => {
-            const fileBlob = response.data;
-            requestSucesso(titulo, fileBlob);
-            return fileBlob;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -552,9 +579,7 @@ export async function saveRevisaoEvidencia(evidencias: EvidenciaRevisadaDTO[]): 
     //Executando requisiçãao
     return await axios.request(config)
         .then((response) => {
-            const mensagem: EvidenciasRevisadasDTO = response.data;
-            requestSucesso(titulo, mensagem);
-            return mensagem;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -577,9 +602,7 @@ export async function getUmaRevisao(id: number): Promise<RelatorioHistoricoDTO> 
     //Executando requisiçãao
     return await axios.request(config)
         .then((response) => {
-            const mensagem: RelatorioHistoricoDTO = response.data;
-            requestSucesso(titulo, mensagem);
-            return mensagem;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -628,9 +651,7 @@ export async function getAllConfigQueries(clienteId: number): Promise<QueryInfoD
     return await axios
         .request(config)
         .then((response) => {
-            const lista: QueryInfoDTO[] = response.data;
-            requestSucesso(titulo, lista);
-            return lista;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -654,9 +675,7 @@ export async function getJobConfigQueries(jobId: number): Promise<ComandoSQL[]> 
     return await axios
         .request(config)
         .then((response) => {
-            const lista: ComandoSQL[] = response.data;
-            requestSucesso(titulo, lista);
-            return lista;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);
@@ -681,7 +700,6 @@ export async function validarQuery(ambienteId: number, comandoSql: ComandoSQL | 
     //Executando requisiçãao
     return await axios.request(config)
         .then((response) => {
-            requestSucesso(titulo, response.data);
             return response.data;
         })
         .catch((error: AxiosError) => {

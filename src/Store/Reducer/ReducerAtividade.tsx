@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { JobConfig, parseJobInfo } from '../../data/JobConfigDTO';
-import { JobInfoDTO } from '../../data/JobInfoDTO';
+import { JobInfoDTO, getIndexParametroComIfxdate } from '../../data/JobInfoDTO';
 
 //Valores iniciais do recuder
 const initialState = {
@@ -89,6 +89,7 @@ const configAtividade = createSlice({
             console.log('[ReducerAtividade]: Acionado controlador configAtividade.setMainJobs!');
             state.mainJobs = action.payload.sort((item1, item2) => item1.ordem - item2.ordem);
             state.jobsSelecionados = [];
+            state.mainIfxdate = "";
             //logItemPilha(state.mainJobs);
         },
         reorderMainJobs: (state, action: PayloadAction<ReorderMainJobsProps>) => {
@@ -138,10 +139,18 @@ const configAtividade = createSlice({
             //logItemPilha(state.mainJobs);
         },
         addOneMainJob: (state, action: PayloadAction<JobInfoDTO>) => {
-            console.log('[ReducerAtividade]: Acionado controlador configAtividade.addOneMainJob!');
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.addOneMainJob!'
+                + `Adicionando a lsita de MainJobs o Job: [ID ${action.payload.id}] ${action.payload.nome}.`
+            );
             //Acionamento deve estar disponível apenas se nenhuma Pipeline estiver selecionada
             if (state.mainPipeline === "") return;
+
             const novoJobConfig: JobConfig =  parseJobInfo(action.payload, state.mainJobs.length);
+            const paramIndex = getIndexParametroComIfxdate(action.payload);
+            if (paramIndex !== -1 && novoJobConfig.argumentos.length > paramIndex) {
+                novoJobConfig.argumentos[paramIndex] = state.mainIfxdate;
+                console.log(`[ReducerAtividade]: Parametro[${paramIndex}] definido para Data do Ciclo (${state.mainIfxdate}).`);
+            }
             state.mainJobs.push(novoJobConfig);
             //logItemPilha(state.mainJobs);
         },

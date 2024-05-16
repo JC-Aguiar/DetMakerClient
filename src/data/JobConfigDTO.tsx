@@ -16,6 +16,12 @@ export interface JobCarga {
     tipo: string,
 }
 
+/**
+ * Converte {@link JobInfoDTO} em {@link JobConfig}
+ * @param infoDto {@link JobInfoDTO}
+ * @param ordem {@link Number} em que o Job possuirá  
+ * @returns objeto {@link JobConfig}
+ */
 export function parseJobInfo(infoDto: JobInfoDTO, ordem : number = -1): JobConfig {
     return {
         ordem: ordem,
