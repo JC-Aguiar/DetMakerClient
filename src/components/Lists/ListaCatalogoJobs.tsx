@@ -1,13 +1,13 @@
 import { InputChangeEventDetail, IonBadge, IonCheckbox, IonIcon, IonInput, IonItem, IonLabel, IonList } from "@ionic/react";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../Store/ReduxStore";
-import { addOneMainJob, addViewJobs, removeViewJobs, setViewJobs } from "../Store/Reducer/ReducerAtividade";
-import { JobInfoDTO } from "../data/JobInfoDTO";
-import { setMainJobs } from "../Store/Reducer/ReducerAtividade";
+import { RootState } from "../../Store/ReduxStore";
+import { addOneMainJob, addViewJobs, removeViewJobs, setViewJobs } from "../../Store/Reducer/ReducerAtividade";
+import { JobInfoDTO } from "../../data/JobInfoDTO";
+import { setMainJobs } from "../../Store/Reducer/ReducerAtividade";
 import { addCircleOutline, closeCircle, search } from "ionicons/icons";
-import { JobConfig, parseJobInfo } from "../data/JobConfigDTO";
-import ItemLista from "./ItemLista";
+import { JobConfig, parseJobInfo } from "../../data/JobConfigDTO";
+import ItemLista from "../Core/ItemLista";
 
 
 const ListaCatalogoJobs: React.FC = () => {

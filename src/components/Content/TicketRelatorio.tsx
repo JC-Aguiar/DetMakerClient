@@ -1,16 +1,16 @@
 import { IonButton, IonIcon, IonBadge, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonRow } from "@ionic/react";
 import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, cubeOutline, eye, flag, flash, layers, newspaperOutline, pricetagOutline, document } from "ionicons/icons";
-import * as axiosRequest from "../data/AxiosRequest";
+import * as axiosRequest from "../../data/AxiosRequest";
 import { useDispatch, useSelector } from "react-redux";
-import { RelatorioResumoDTO } from "../data/RelatorioResumoDTO";
-import { offsetDateTimeParaString } from "../App";
-import { addRelatorio } from "../Store/Reducer/ReducerRelatorios";
-import { removeRevisao, addRevisao } from "../Store/Reducer/ReducerRevisao";
-import { RelatorioHistoricoDTO } from "../data/RelatorioHistoricoDTO";
-import { Notificacao } from "./Noticacao";
+import { RelatorioResumoDTO } from "../../data/RelatorioResumoDTO";
+import { offsetDateTimeParaString } from "../../App";
+import { addRelatorio } from "../../Store/Reducer/ReducerRelatorios";
+import { removeRevisao, addRevisao } from "../../Store/Reducer/ReducerRevisao";
+import { RelatorioHistoricoDTO } from "../../data/RelatorioHistoricoDTO";
+import { Notificacao } from "../Core/Noticacao";
 import { useHistory } from "react-router";
-import { RootState } from "../Store/ReduxStore";
-import { UserDTO } from "../data/UserDTO";
+import { RootState } from "../../Store/ReduxStore";
+import { UserDTO } from "../../data/UserDTO";
 
 export interface ModalConfigQueryProps {
     relatorio: RelatorioResumoDTO,

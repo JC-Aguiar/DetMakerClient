@@ -1,21 +1,21 @@
 import { IonTextarea, IonButton, IonInput, IonLabel, IonItem, InputChangeEventDetail, TextareaChangeEventDetail, IonTitle, IonRow, IonCol, IonBadge, IonIcon, useIonAlert } from "@ionic/react";
 import { useState } from "react";
-import { Notificacao } from "./Noticacao";
+import { Notificacao } from "../Core/Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
-import { JobConfig } from "../data/JobConfigDTO";
-import { PipelineInfoDTO } from "../data/PIpelineInfoDTO";
-import { RootState } from "../Store/ReduxStore";
-import * as axiosRequest from "../data/AxiosRequest";
-import { setRelatorios } from "../Store/Reducer/ReducerRelatorios";
-import { removeRevisao, addRevisao } from "../Store/Reducer/ReducerRevisao";
-import { JobExecuteDTO, parseJobConfigParaJobExecute } from "../data/JobExecuteDTO";
-import { PipelineExecDTO } from "../data/PipelineExecDTO";
-import { RelatorioHistoricoDTO } from "../data/RelatorioHistoricoDTO";
-import { RelatorioInfoDTO } from "../data/RelatorioInfoDTO";
-import { UserInfoDTO } from "../data/UserInfoDTO";
-import { UserDTO } from "../data/UserDTO";
+import { JobConfig } from "../../data/JobConfigDTO";
+import { PipelineInfoDTO } from "../../data/PIpelineInfoDTO";
+import { RootState } from "../../Store/ReduxStore";
+import * as axiosRequest from "../../data/AxiosRequest";
+import { setRelatorios } from "../../Store/Reducer/ReducerRelatorios";
+import { removeRevisao, addRevisao } from "../../Store/Reducer/ReducerRevisao";
+import { JobExecuteDTO, parseJobConfigParaJobExecute } from "../../data/JobExecuteDTO";
+import { PipelineExecDTO } from "../../data/PipelineExecDTO";
+import { RelatorioHistoricoDTO } from "../../data/RelatorioHistoricoDTO";
+import { RelatorioInfoDTO } from "../../data/RelatorioInfoDTO";
+import { UserInfoDTO } from "../../data/UserInfoDTO";
+import { UserDTO } from "../../data/UserDTO";
 import { useHistory } from "react-router";
-import Botao, { BotaoProps, Botoes } from "./Botao";
+import Botao, { BotaoProps, Botoes } from "../Core/Botao";
 import { closeCircle } from "ionicons/icons";
 
 const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
@@ -123,7 +123,7 @@ const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                 return parseJobConfigParaJobExecute(item);
             });
             const body: PipelineExecDTO = {
-                pipeline: pipelineDto,              //TODO: informação repetida aqui
+                pipeline: pipelineDto,
                 relatorio: relatorioDto,
                 jobs: jobsDto,
                 userInfo: {

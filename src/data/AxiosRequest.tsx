@@ -217,7 +217,7 @@ export async function saveNovoAmbiente(clienteId: number, novoAmbiente: Ambiente
 }
 
 //Requisição para abrir planilha Schedule
-export async function openSchedule(clienteId: number, arquivoXlsx: File): Promise<string> {
+export async function openSchedule(clienteId: number, arquivoXlsx: File, userEmail: string): Promise<string> {
     const titulo = "ABRIR SCHEDULE";
     requestStart(titulo);
 
@@ -241,7 +241,7 @@ export async function openSchedule(clienteId: number, arquivoXlsx: File): Promis
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/job/read/xlsx/planilha/${planilhaNome}/cliente/${clienteId}`, // /ambiente/${ambienteId}/read/xlsx/planilha/${planilhaNome}
+        url: `${REQUEST_URL}/job/read/xlsx/planilha/${planilhaNome}/cliente/${clienteId}usuario/${userEmail}`,
         headers: headersXlsx,
         timeout: 30000,
         data: data
@@ -267,6 +267,30 @@ export async function getAllPipelines(clienteId: number): Promise<PipelineInfoDT
         method: 'get',
         maxBodyLength: Infinity,
         url: `${REQUEST_URL}/pipeline/cliente/${clienteId}`,
+        headers: headers,
+        timeout: 30000,
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            return response.data;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para deletar uma Pipeline no banco
+export async function deletePipeline(clienteId: number, pipelineNome: string): Promise<string> {
+    const titulo = "DELETANDO PIPELINE";
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'DELETE',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/pipeline/clientId/${clienteId}/pipeline/${pipelineNome}`,
         headers: headers,
         timeout: 30000,
     };

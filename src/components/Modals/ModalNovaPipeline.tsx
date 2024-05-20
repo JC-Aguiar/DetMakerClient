@@ -1,17 +1,17 @@
 import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonLabel, IonItem } from "@ionic/react";
 import { closeCircle, save, trash } from "ionicons/icons";
 import { useState } from "react";
-import { Notificacao } from "./Noticacao";
+import { Notificacao } from "../Core/Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
-import { setMainPipeline } from "../Store/Reducer/ReducerAtividade";
-import { setViewJobs } from "../Store/Reducer/ReducerAtividade";
-import { loadingPipelines, setPipelines } from "../Store/Reducer/ReducerPipelines";
-import { JobConfig, parseJobInfo } from "../data/JobConfigDTO";
-import { PipelineInfoDTO } from "../data/PIpelineInfoDTO";
-import { JobInfoDTO } from "../data/JobInfoDTO";
-import { RootState } from "../Store/ReduxStore";
-import * as axiosRequest from "../data/AxiosRequest";
-import Botao from "./Botao";
+import { setMainPipeline } from "../../Store/Reducer/ReducerAtividade";
+import { setViewJobs } from "../../Store/Reducer/ReducerAtividade";
+import { loadingPipelines, setPipelines } from "../../Store/Reducer/ReducerPipelines";
+import { JobConfig, parseJobInfo } from "../../data/JobConfigDTO";
+import { PipelineInfoDTO } from "../../data/PIpelineInfoDTO";
+import { JobInfoDTO } from "../../data/JobInfoDTO";
+import { RootState } from "../../Store/ReduxStore";
+import * as axiosRequest from "../../data/AxiosRequest";
+import Botao from "../Core/Botao";
 
 const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos para usar recursos Redux e React

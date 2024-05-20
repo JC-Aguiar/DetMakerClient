@@ -1,8 +1,8 @@
 import { IonContent, IonRow } from '@ionic/react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../Store/ReduxStore';
+import { RootState } from '../../Store/ReduxStore';
 import ScheduleJob from './ScheduleJob';
-import { JobInfoDTO } from '../data/JobInfoDTO';
+import { JobInfoDTO } from '../../data/JobInfoDTO';
 import React from 'react';
 
 const Schedule: React.FC = () => {

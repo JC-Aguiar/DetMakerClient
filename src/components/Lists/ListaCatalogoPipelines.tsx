@@ -1,14 +1,14 @@
 import { InputChangeEventDetail, IonInput, IonList, IonRadio, IonRadioGroup, RadioGroupChangeEventDetail, } from "@ionic/react";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../Store/ReduxStore";
-import { setViewJobs } from "../Store/Reducer/ReducerAtividade";
-import { JobInfoDTO } from "../data/JobInfoDTO";
-import { setMainPipeline } from "../Store/Reducer/ReducerAtividade";
+import { RootState } from "../../Store/ReduxStore";
+import { setViewJobs } from "../../Store/Reducer/ReducerAtividade";
+import { JobInfoDTO } from "../../data/JobInfoDTO";
+import { setMainPipeline } from "../../Store/Reducer/ReducerAtividade";
 import { closeCircle, search } from "ionicons/icons";
-import { JobConfig, parseJobInfo } from "../data/JobConfigDTO";
-import { PipelineInfoDTO } from "../data/PIpelineInfoDTO";
-import ItemLista from "./ItemLista";
+import { JobConfig, parseJobInfo } from "../../data/JobConfigDTO";
+import { PipelineInfoDTO } from "../../data/PIpelineInfoDTO";
+import ItemLista from "../Core/ItemLista";
 
 
 const ListaCatalogoPipelines: React.FC = () => {

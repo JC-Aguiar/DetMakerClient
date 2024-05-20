@@ -3,19 +3,20 @@ import JobCard from './JobCard';
 import { arrowUndo, ban, flash, open, save, trash } from 'ionicons/icons';
 import { useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../Store/ReduxStore';
-import { JobConfig, parseJobInfo, } from '../data/JobConfigDTO';
+import { RootState } from '../../Store/ReduxStore';
+import { JobConfig, parseJobInfo, } from '../../data/JobConfigDTO';
 import { useDispatch } from 'react-redux';
-import { UpdateMainJobsIfxdateProps, reorderMainJobs, setMainJobs, setMainPipeline, updateMainJobsIfxdate } from '../Store/Reducer/ReducerAtividade';
-import { UserDTO } from '../data/UserDTO';
-import { Notificacao } from './Noticacao';
-import DynamicModal from './DynamicModal';
-import ModalExecPipeline from './ModalExecPipeline';
-import { BotaoProps, Botoes } from './Botao';
-import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
-import { setPipelines } from '../Store/Reducer/ReducerPipelines';
-import * as axiosRequest from "../data/AxiosRequest";
-import { JobInfoDTO, getIndexParametroComIfxdate } from '../data/JobInfoDTO';
+import { UpdateMainJobsIfxdateProps, reorderMainJobs, setMainJobs, setMainPipeline, updateMainJobsIfxdate } from '../../Store/Reducer/ReducerAtividade';
+import { UserDTO } from '../../data/UserDTO';
+import { Notificacao } from '../Core/Noticacao';
+import DynamicModal from '../Core/DynamicModal';
+import ModalExecPipeline from '../Modals/ModalExecPipeline';
+import { BotaoProps, Botoes } from '../Core/Botao';
+import { PipelineInfoDTO } from '../../data/PIpelineInfoDTO';
+import { removePipeline, setPipelines } from '../../Store/Reducer/ReducerPipelines';
+import * as axiosRequest from "../../data/AxiosRequest";
+import { JobInfoDTO, getIndexParametroComIfxdate } from '../../data/JobInfoDTO';
+import { pipeline } from 'stream';
 
 
 const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
@@ -29,6 +30,7 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
 
     //Atributos com estado gerenciado via Redux
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
+    const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
     const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
     const catalogoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
     const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
@@ -59,11 +61,11 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
 
     //Requisição para atualizar no banco a Pipeline atual
     async function atualizarPipeline() {
-        console.log(`[CONFIGURAR-JOBS]: Iniciando requisição 'Salvar Pipeline'.`);
         toastInfo("SALVAR PIPELINE: Em execução...", []);
         try {
             const novaPipeline = catalogoPipelines.find(pipe => pipe.id === mainPipelineId);
-            if (!novaPipeline) throw `Pipeline ID ${mainPipelineId} não encontrada no catálogo de Pipelines.`
+            if (!novaPipeline) 
+                throw `Pipeline ID ${mainPipelineId} não encontrada no catálogo de Pipelines.`
 
             const resultado = await axiosRequest.atualizarPipeline(novaPipeline);
             const catalogoPipelinesAtualizado = catalogoPipelines.slice()
@@ -73,11 +75,27 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
                 });
             dispatch(setPipelines(catalogoPipelinesAtualizado));
             toastOk(`SALVAR PIPELINE: ${resultado}.`, []);
-            console.log(`[CONFIGURAR-JOBS]: Requisição 'Salvar Pipeline' funcionou.`);
         }
         catch (error) {
             toastErro(`SALVAR PIPELINE: ${error}`, []);
-            console.error(`[CONFIGURAR-JOBS]: Requisição 'Salvar Pipeline' falhou.`);
+        }
+    }
+
+    //Requisição para apagar a Main Pipeline
+    async function deletarMainPipeline() {
+        const pipeline = catalogoPipelines.find(pipe => pipe.id === mainPipelineId);
+        if (!pipeline) return;
+
+        toastInfo(`DELETAR PIPELINE '${mainPipeline}': Em execução...`, []);
+        dispatch(setMainPipeline());
+        dispatch(removePipeline(mainPipelineId));
+        try {
+            const resultado = await axiosRequest.deletePipeline(mainClienteId, mainPipeline);
+            toastOk(`DELETAR PIPELINE '${mainPipeline}': ${resultado}.`, []);
+        }
+        catch (error) {
+            toastErro(`DELETAR PIPELINE '${mainPipeline}': ${error}.`, []);
+            dispatch(setPipelines( [...catalogoPipelines, pipeline] ));
         }
     }
 
@@ -174,7 +192,7 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
         {icon: save, texto: "Salvar",    handler: () => atualizarPipeline()},
         //{icon: open, texto: "Ver Dados", handler: () => null},
         {icon: arrowUndo, texto: "Resetar",  handler: () => resetarJobsPipeline()},
-        {icon: trash, texto: "Apagar",    handler: () => null},
+        {icon: trash, texto: "Apagar",    handler: () => deletarMainPipeline()},
     ];
 
     //Renderização do componente
@@ -215,26 +233,15 @@ const ConfigurarJobs: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }
                     {/* ref={reorderGroupRef}  */}
                     <IonReorderGroup disabled={false} onIonItemReorder={reordenar} className='p-0 m-0' >
                     {
-                        mainJobs
-                            //.map(job => job.ordem)
-                            //.map(ordem => ({ ordem })) 
-                            //.sort((item1, item2) => item1.ordem - item2.ordem)
-                            .map((item, index) => 
-                                /*
-                                <IonItem key={index}>
-                                    <IonLabel>Nº{item.ordem+1} - [ID {item.id}] {item.nome}</IonLabel>
-                                    <IonReorder slot="end"></IonReorder>
-                                </IonItem>
-                                */  
-                                
-                                <JobCard key={index} 
-                                    index={index} 
-                                    //jobConfig={item}
-                                    //jobInfo={}
-                                    notificacao={{ toastInfo, toastOk, toastErro } as Notificacao}
-                                />
-                                
-                            )
+                        mainJobs.map((item, index) => 
+                            <JobCard key={index} 
+                                index={index} 
+                                //jobConfig={item}
+                                //jobInfo={}
+                                notificacao={{ toastInfo, toastOk, toastErro } as Notificacao}
+                            />
+                            
+                        )
                     }
                     </IonReorderGroup>
                 </IonList>

@@ -1,13 +1,13 @@
 import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonLabel, IonItem } from "@ionic/react";
 import { closeCircle, flag, save, trash } from "ionicons/icons";
 import { useRef, useState } from "react";
-import { Notificacao } from "./Noticacao";
+import { Notificacao } from "../Core/Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from "../Store/ReduxStore";
-import * as axiosRequest from "../data/AxiosRequest";
-import Botao from "./Botao";
-import { addAmbiente, loadingClientes } from "../Store/Reducer/ReducerClientes";
-import { AmbienteInfoDTO } from "../data/AmbienteInfoDTO";
+import { RootState } from "../../Store/ReduxStore";
+import * as axiosRequest from "../../data/AxiosRequest";
+import Botao from "../Core/Botao";
+import { addAmbiente, loadingClientes } from "../../Store/Reducer/ReducerClientes";
+import { AmbienteInfoDTO } from "../../data/AmbienteInfoDTO";
 
 export interface ModalNovoAmbienteProps {
     clienteId:  number,

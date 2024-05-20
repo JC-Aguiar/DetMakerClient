@@ -1,5 +1,5 @@
 import { IonCol, IonRow, IonCard, IonGrid, IonIcon, IonTitle, IonBadge } from "@ionic/react";
-import { massaColunaTipos } from "../data/MassaColunaTipo";
+import { massaColunaTipos } from "../../data/MassaColunaTipo";
 import { personCircle } from "ionicons/icons";
 
 const ModalTiposDeMassa: React.FC = () => {

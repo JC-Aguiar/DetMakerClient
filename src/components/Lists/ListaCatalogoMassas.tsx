@@ -1,13 +1,13 @@
 import { InputChangeEventDetail, IonInput, IonList, useIonModal } from "@ionic/react";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "../Store/ReduxStore";
+import { RootState } from "../../Store/ReduxStore";
 import { open, search } from "ionicons/icons";
-import ItemLista from "./ItemLista";
-import DynamicModal from "./DynamicModal";
-import { MassaTabelaDTO } from "../data/MassaTabelaDTO";
-import ModalConfigMassa from "./ModalConfigMassa";
-import { Notificacao } from "./Noticacao";
+import ItemLista from "../Core/ItemLista";
+import DynamicModal from "../Core/DynamicModal";
+import { MassaTabelaDTO } from "../../data/MassaTabelaDTO";
+import ModalConfigMassa from "../Modals/ModalConfigMassa";
+import { Notificacao } from "../Core/Noticacao";
 
 export interface ListaCatalogoMassasProps {
     notificacao: Notificacao;

@@ -1,17 +1,18 @@
 import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonReorder, IonRow, IonTextarea, TextareaChangeEventDetail, useIonModal } from "@ionic/react";
 import React, { useEffect, useState } from "react";
-import { JobConfig } from "../data/JobConfigDTO";
-import { ComandoSQL } from "../data/ComandoSQL";
+import { JobCarga, JobConfig } from "../../data/JobConfigDTO";
+import { ComandoSQL } from "../../data/ComandoSQL";
 import { reorderFour, save, settings, shieldCheckmark, trash } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../Store/ReduxStore";
-import * as axiosRequest from "../data/AxiosRequest";
-import { Notificacao } from "./Noticacao";
-import DynamicModal from "./DynamicModal";
-import { JobInfoDTO } from "../data/JobInfoDTO";
-import { removeOneMainJob, updateOneMainJob } from "../Store/Reducer/ReducerAtividade";
-import { FiltroSQL } from "../data/FiltroSQL";
-import Botao from "./Botao";
+import { RootState } from "../../Store/ReduxStore";
+import * as axiosRequest from "../../data/AxiosRequest";
+import { Notificacao } from "../Core/Noticacao";
+import DynamicModal from "../Core/DynamicModal";
+import { JobInfoDTO } from "../../data/JobInfoDTO";
+import { removeOneMainJob, updateOneMainJob } from "../../Store/Reducer/ReducerAtividade";
+import { FiltroSQL } from "../../data/FiltroSQL";
+import Botao from "../Core/Botao";
+import Uploader from "../Core/Uploader";
 
 export interface JobCardProps {
     index: number,
@@ -125,44 +126,48 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
     }
 
     //Método de tratamento dos inputs do usuário para as Cargas
-    const preencherCarga = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const preencherCarga = (files: FileList | null) => {
         try {
-            const file = e.target.files?.[0];
-            if (!file) {
-                console.log(`[CARD-JOB]: Usuário solicitou remover arquivo para carga[${index}] do Job '${jobInfo.nome}'.`);
-                console.log(`[CARD-JOB]: Removendo arquivo '${jobConfigurado.cargas[index].nome}'.`);
+            if (!files || files.length < 1) {
+                notificacao.toastOk(`Removido os arquivos de carga do Job '${jobInfo.nome}'.`, []);
+                /*
                 const novasCargas = [...jobConfigurado.cargas];
                 novasCargas[index] = {
                     nome: "",
                     conteudo: "",
                     tipo: "",
                 };
-                setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
-                notificacao.toastOk(`Nenhum arquivo será anexado para carga Nº${index}.`, []);
+                */
+                setJobConfigurado({ ...jobConfigurado, cargas: [] });
                 return;
             }
-
-            console.log(`[CARD-JOB]: Usuário enaminhou arquivo para carga[${index}] do Job '${jobInfo.nome}'.`);
-            console.log(`[CARD-JOB]: Anexando arquivo '${file.name}'.`);
-            const maxByteSize = 1 ; // 1MB
-            if (file.size > (maxByteSize * 1024 * 1024))
-                throw `Tamanho do arquivo excede o limite de ${maxByteSize}MB.`;
-
-            const reader = new FileReader();
-            reader.onload = () => {
-                const novasCargas = [...jobConfigurado.cargas];
-                novasCargas[index] = {
-                    nome: file.name,
-                    conteudo: reader.result as string,
-                    tipo: file.type,
+            const novasCargas = [...jobConfigurado.cargas];
+            let sucessos = 0;
+            for (let index = 0; index < files.length; index++) {
+                const file = files?.[index];
+                console.log(`[CARD-JOB]: Anexando arquivo '${file.name}'.`);
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const cargaNova: JobCarga = {
+                        nome: file.name,
+                        conteudo: reader.result as string,
+                        tipo: file.type,
+                    };
+                    if (novasCargas.length <= index)
+                        novasCargas.push(cargaNova);
+                    else
+                        novasCargas[index] = cargaNova;
                 };
-                setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
-            };
-            reader.readAsText(file);
-            notificacao.toastOk(`Arquivo '${file.name}' carregado com sucesso.`, []);
+                reader.readAsText(file);
+                //notificacao.toastOk(`Arquivo '${file.name}' carregado com sucesso.`, []);
+                console.log(`[CARD-JOB]: Arquivo '${file.name}' anexado com sucesso.`);
+                sucessos++;
+            }
+            setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
+            notificacao.toastInfo(`Job '${jobInfo.nome}': ${sucessos}/${files.length} das carga(s) carregadas com sucesso.`, []);
         }
         catch (error: unknown) {
-            e.target.value = '';
+            //e.target.value = '';
             let errorMessage: string;
 
             if (typeof error === "string")
@@ -265,7 +270,7 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
         //Gerando preenchimento dinâmico para as ConfigQuery's cadastradas
         const queriesDinamicas = jobConfigurado.queries
             .filter((cmdSql) => cmdSql.dinamico)
-            .filter((cmdSql) => cmdSql.filtros.length > 0)
+            //.filter((cmdSql) => cmdSql.filtros.length > 0)
             .map((cmdSql, queryIndex) =>
                 <div key={queryIndex} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
                     <IonIcon icon={shieldCheckmark}
@@ -310,39 +315,20 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
 
     //Exibindo campos de Cargas do Job
     const camposInputCargas = () => {
-        if (!jobInfo || !jobExec || !jobInfo.mascaraEntrada || jobInfo.mascaraEntrada.length === 0 || jobConfigurado.cargas.length === 0) 
+        if (!jobInfo || !jobExec || !jobInfo.mascaraEntrada || jobInfo.mascaraEntrada.length === 0) 
             return;
         return (
             <div className="px-1 mb-2">
                 {labelTitulo('CARGAS DE CONSUMO', `job${id}-carga`)}
                 {
-                    //form-label
-                    jobInfo.mascaraEntrada.map((item, index) => 
-                        {
-                            const arquivoNome = (jobExec.cargas[index].nome.length > 0) ?
-                                jobExec.cargas[index].nome : null;
-
-                            return <div key={index} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
-                                {badgeInfo(item, 0, -50)}
-                                <form action="/upload" method="post" encType="multipart/form-data" className="" >
-                                    <label htmlFor="formFile" className="form-label">
-                                        <span className="px-2 bg-transparent d-flex" style={{color: `var(--ion-color-primary)`}}>
-                                            Arquivo Atual: 
-                                            <IonBadge color='dark' className="mx-1 px-2 mb-0 font-monospace">
-                                                {arquivoNome}
-                                            </IonBadge>
-                                        </span>
-                                    </label>
-                                    <input className="form-control" 
-                                        type="file" 
-                                        id="formFile" 
-                                        accept=".log, .txt, .err, .gz"
-                                        multiple={false}
-                                        onChange={e => preencherCarga(e, index)} 
-                                    />
-                                </form>
-                            </div>
-                        }
+                    jobInfo.mascaraEntrada.map((item, index) => <Uploader 
+                            key={index} 
+                            accept=".log, .txt, .gz" 
+                            arquivosAtuais={jobExec.cargas.map(item => item.nome)}
+                            multiple={true}
+                            titulo={item}
+                            trigger={(arquivos) => preencherCarga(arquivos)}
+                        />
                     )
                 }
             </div>

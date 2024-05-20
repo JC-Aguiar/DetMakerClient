@@ -1,11 +1,11 @@
 import { IonAvatar, IonBadge, IonCol, IonFab, IonGrid, IonIcon, IonRow } from "@ionic/react";
 import { close, } from "ionicons/icons";
-import { UserDTO } from "../data/UserDTO";
+import { UserDTO } from "../../data/UserDTO";
 import { useDispatch, useSelector } from "react-redux";
-import { setJwt, setUser } from '../Store/Reducer/ReducerUser';
-import { RootState } from "../Store/ReduxStore";
+import { setJwt, setUser } from '../../Store/Reducer/ReducerUser';
+import { RootState } from "../../Store/ReduxStore";
 import { useHistory } from "react-router";
-import { URL_LOGIN } from "../data/AxiosRequest";
+import { URL_LOGIN } from "../../data/AxiosRequest";
 //import { show, hide } from '../Store/Reducer/ReducerTabMenu';
 
 interface AvatarProps {

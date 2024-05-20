@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux";
-import { JobInfoDTO } from "../data/JobInfoDTO";
-import { validarExibirData } from "../App";
+import { JobInfoDTO } from "../../data/JobInfoDTO";
+import { validarExibirData } from "../../App";
 import { IonBadge, IonCol, IonLabel, IonRow, IonText } from "@ionic/react";
 
 export interface ScheduleJobProps {

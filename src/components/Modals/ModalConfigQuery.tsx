@@ -1,7 +1,7 @@
 import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon } from "@ionic/react";
 import { save, shieldCheckmark, close } from "ionicons/icons";
 import { useState } from "react";
-import { ComandoSQL } from "../data/ComandoSQL";
+import { ComandoSQL } from "../../data/ComandoSQL";
 
 export interface ModalConfigQueryProps {
     configQuery: ComandoSQL,

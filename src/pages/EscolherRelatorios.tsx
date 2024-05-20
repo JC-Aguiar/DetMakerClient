@@ -3,15 +3,15 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from "../Store/ReduxStore";
-import { Notificacao } from "../components/Noticacao";
+import { Notificacao } from "../components/Core/Noticacao";
 import { RelatorioResumoDTO } from "../data/RelatorioResumoDTO";
 import { loadingRelatorios, setRelatorios } from "../Store/Reducer/ReducerRelatorios";
 import { refresh } from "ionicons/icons";
-import { layoutGrupoBotoes, ButtonLayoutProps } from "../components/ButtonLayout";
+import { layoutGrupoBotoes, ButtonLayoutProps } from "../components/Core/ButtonLayout";
 import { PipelineInfoDTO } from "../data/PIpelineInfoDTO";
-import Carregando from "../components/Carregando";
-import Informativo from "../components/Informativo";
-import TicketRelatorio from "../components/TicketRelatorio";
+import Carregando from "../components/Core/Carregando";
+import Informativo from "../components/Core/Informativo";
+import TicketRelatorio from "../components/Content/TicketRelatorio";
 
 
 const EscolherRelatorios: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {

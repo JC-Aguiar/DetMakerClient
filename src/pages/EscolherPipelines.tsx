@@ -5,27 +5,27 @@ import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from '../Store/ReduxStore';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadingJobs, setJobs } from '../Store/Reducer/ReducerJobs';
-import DynamicModal from '../components/DynamicModal';
+import DynamicModal from '../components/Core/DynamicModal';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
 import { loadingPipelines, setPipelines } from '../Store/Reducer/ReducerPipelines';
-import { Notificacao } from '../components/Noticacao';
-import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/ButtonLayout';
-import ConfigurarJobs from '../components/ConfigurarJobs';
+import { Notificacao } from '../components/Core/Noticacao';
+import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/Core/ButtonLayout';
+import ConfigurarJobs from '../components/Content/ConfigurarJobs';
 import { JobInfoDTO } from '../data/JobInfoDTO';
 import { setMainPipeline, setMainJobs } from '../Store/Reducer/ReducerAtividade';
-import ListaCatalogoJobs from '../components/ListaCatalogoJobs';
-import Schedule from '../components/Schedule';
-import Informativo from '../components/Informativo';
-import Carregando from '../components/Carregando';
+import ListaCatalogoJobs from '../components/Lists/ListaCatalogoJobs';
+import Schedule from '../components/Content/Schedule';
+import Informativo from '../components/Core/Informativo';
+import Carregando from '../components/Core/Carregando';
 import { QueryInfoDTO } from '../data/QueryInfoDTO';
 import { loadingQueries, setQueries } from '../Store/Reducer/ReducerQueries';
-import ModalNovaPipeline from '../components/ModalNovaPipeline';
+import ModalNovaPipeline from '../components/Modals/ModalNovaPipeline';
 import { MassaTabelaDTO } from '../data/MassaTabelaDTO';
 import { loadingMassa, setMassas } from '../Store/Reducer/ReducerMassas';
-import { ListaRetratrilAgrupada, ListaRetratrilProps } from '../components/ListaRetratil';
-import ListaCatalogoPipelines from '../components/ListaCatalogoPipelines';
-import ListaCatalogoMassas from '../components/ListaCatalogoMassas';
-import ModalNovoJob from '../components/ModalNovoJob';
+import { ListaRetratrilAgrupada, ListaRetratrilProps } from '../components/Core/ListaRetratil';
+import ListaCatalogoPipelines from '../components/Lists/ListaCatalogoPipelines';
+import ListaCatalogoMassas from '../components/Lists/ListaCatalogoMassas';
+import ModalNovoJob from '../components/Modals/ModalNovoJob';
 
 const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos Redux e React
@@ -49,6 +49,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
     const mainClienteId = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
     const mainCliente = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
+    const userEmail: string | undefined = useSelector((state: RootState) => state.store.login.user?.email);
 
     //Atributos de utilidade
     const isLoading = isLoadingJobs || isLoadingPipelines;
@@ -111,7 +112,8 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             toastInfo("CARREGAR SCHEDULE: Em execução...", []);
             //const formData = new FormData();
             //formData.append('file', selectedFile);
-            const mensagem = await axiosRequest.openSchedule(mainClienteId, selectedFile);
+            const email = userEmail ? userEmail : "DET-MAKER";
+            const mensagem = await axiosRequest.openSchedule(mainClienteId, selectedFile, email);
             toastOk(`CARREGAR SCHEDULE: ${mensagem}.`, []);
             coletarRecursos();
         }

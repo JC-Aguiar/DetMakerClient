@@ -1,12 +1,12 @@
 import { ComandoSQL } from "./ComandoSQL";
-import { JobConfig } from "./JobConfigDTO";
+import { JobCarga, JobConfig } from "./JobConfigDTO";
 
 export interface JobExecuteDTO {
     id: number
     ordem: number;
     argumentos: string;
     queries: ComandoSQL[];
-    cargas: File[];
+    cargas: JobCarga[];
 }
 
 export function parseJobConfigParaJobExecute(configDto: JobConfig): JobExecuteDTO {
@@ -15,9 +15,10 @@ export function parseJobConfigParaJobExecute(configDto: JobConfig): JobExecuteDT
         ordem: configDto.ordem,
         argumentos: configDto.argumentos.join(" "),
         queries: configDto.queries,
-        cargas: Array.from(configDto.cargas).map(item => {
+        cargas: configDto.cargas
+        /*Array.from(configDto.cargas).map(item => {
             const fileBlob = new Blob([item.conteudo], { type: item.tipo });
             return new File([fileBlob], item.nome, { type: item.tipo });
-        }),
+        }),*/
     } as JobExecuteDTO;
 }

@@ -11,11 +11,11 @@ import { UserDTO } from '../data/UserDTO';
 import { EvidenciaRevisadaDTO } from '../data/EvidenciaRevisadaDTO';
 import * as axiosRequest from '../data/AxiosRequest';
 import { EvidenciasRevisadasDTO } from '../data/AxiosRequest';
-import { Notificacao } from '../components/Noticacao';
+import { Notificacao } from '../components/Core/Noticacao';
 import dayjs from 'dayjs';
 import { offsetDateTimeParaString } from '../App';
 import { useHistory } from 'react-router';
-import { layoutGrupoBotoes, ButtonLayoutProps } from '../components/ButtonLayout';
+import { layoutGrupoBotoes, ButtonLayoutProps } from '../components/Core/ButtonLayout';
 import { exitCode } from 'process';
 
 

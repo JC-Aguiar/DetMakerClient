@@ -27,6 +27,12 @@ const catalogoPipelines = createSlice({
             state.catalogo = action.payload;
             //logPipeline(state);
         },
+        removePipeline: (state, action: PayloadAction<number>) => {
+            console.log('[ReducerPipelines]: Acionado controlador catalogoPipelines.removePipeline!\n'
+                + `Tentando remover Pipeline ID ${action.payload}.`
+            );
+            state.catalogo = state.catalogo.filter(item => item.id !== action.payload);
+        },
         loadingPipelines: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerPipelines]: Acionado controlador catalogoPipelines.loadingPipelines!');
             state.loading = action.payload;
@@ -49,4 +55,4 @@ function logPipeline(state: ReducerPipelineProps) {
 }
 
 export default catalogoPipelines.reducer;
-export const { setPipelines, loadingPipelines } = catalogoPipelines.actions;
+export const { setPipelines, removePipeline, loadingPipelines } = catalogoPipelines.actions;

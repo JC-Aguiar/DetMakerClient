@@ -1,5 +1,5 @@
 import { IonImg } from '@ionic/react';
-import sphere from '../resources/blurry-sphere7.png';
+import sphere from '../../resources/blurry-sphere7.png';
 
 const Fundo: React.FC = (props: any) => {
 

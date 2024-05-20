@@ -1,15 +1,15 @@
 import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonLabel, IonItem } from "@ionic/react";
 import { alertCircle, closeCircle, flag, reorderThree, save, trash } from "ionicons/icons";
 import { useRef, useState } from "react";
-import { Notificacao } from "./Noticacao";
+import { Notificacao } from "../Core/Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from "../Store/ReduxStore";
-import * as axiosRequest from "../data/AxiosRequest";
-import Botao from "./Botao";
-import { addAmbiente, loadingClientes } from "../Store/Reducer/ReducerClientes";
-import { ClienteInfoDTO } from "../data/ClienteInfoDTO";
-import { ClienteNovoDTO } from "../data/ClienteNovoDTO";
-import { JobInfoDTO } from "../data/JobInfoDTO";
+import { RootState } from "../../Store/ReduxStore";
+import * as axiosRequest from "../../data/AxiosRequest";
+import Botao from "../Core/Botao";
+import { addAmbiente, loadingClientes } from "../../Store/Reducer/ReducerClientes";
+import { ClienteInfoDTO } from "../../data/ClienteInfoDTO";
+import { ClienteNovoDTO } from "../../data/ClienteNovoDTO";
+import { JobInfoDTO } from "../../data/JobInfoDTO";
 
 export interface ModalNovoJobProps {
     notificacao: Notificacao;

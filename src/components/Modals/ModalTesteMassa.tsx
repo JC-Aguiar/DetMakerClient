@@ -1,5 +1,5 @@
 import { IonCol, IonRow, IonCard, IonGrid, IonTitle, IonBadge } from "@ionic/react";
-import { MapObject, MassaPreparada } from "../data/MassaPreparada";
+import { MapObject, MassaPreparada } from "../../data/MassaPreparada";
 
 export interface ModalTesteMassaProps {
     massa: MassaPreparada[],

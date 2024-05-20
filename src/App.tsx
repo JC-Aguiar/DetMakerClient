@@ -35,15 +35,15 @@ import { RootState } from './Store/ReduxStore';
 import RevisarRelatorio from './pages/RevisarRelatorio';
 import { validarJwt } from './data/JwtDTO';
 import { validarUser } from './data/UserDTO';
-import Avatar from './components/Avatar';
-import DynamicPage from './components/DynamicPage';
-import { Notificacao } from './components/Noticacao';
+import Avatar from './components/Core/Avatar';
+import DynamicPage from './components/Core/DynamicPage';
+import { Notificacao } from './components/Core/Noticacao';
 import { URL_CLIENTES, URL_PIPELINES, URL_RELATORIOS, URL_DET, URL_LOGIN } from './data/AxiosRequest';
 import { createBrowserHistory } from "history";
 import { JobInfoDTO } from './data/JobInfoDTO';
 import EscolherClientes from './pages/EscolherClientes';
 import EscolherRelatorios from './pages/EscolherRelatorios';
-import Fundo from './components/Fundo';
+import Fundo from './components/Core/Fundo';
 
 /* Recursos de uso comum */
 
