@@ -1,19 +1,8 @@
-import { IonButton, IonLabel, IonItem, IonContent, IonCol, IonRow, IonCard, IonInput, IonGrid, IonSelect, IonSelectOption, InputChangeEventDetail, TextareaChangeEventDetail, SelectChangeEventDetail, IonFabButton, IonIcon, IonTitle, IonPopover, useIonModal, IonModal, IonToggle, ToggleChangeEventDetail, IonText, IonBadge } from "@ionic/react";
+import { IonButton, IonLabel, IonItem, IonCol, IonRow, IonCard, IonInput, IonGrid, IonSelect, IonSelectOption, InputChangeEventDetail, TextareaChangeEventDetail, SelectChangeEventDetail, IonIcon, IonTitle, useIonModal, IonModal, IonToggle, } from "@ionic/react";
 import { useRef, useState } from "react";
-import { Notificacao } from "../Core/Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
-import { JobConfig } from "../../data/JobConfigDTO";
-import { PipelineInfoDTO } from "../../data/PIpelineInfoDTO";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
-import { setRelatorios } from "../../Store/Reducer/ReducerRelatorios";
-import { removeRevisao, addRevisao } from "../../Store/Reducer/ReducerRevisao";
-import { JobExecuteDTO, parseJobConfigParaJobExecute } from "../../data/JobExecuteDTO";
-import { PipelineExecDTO } from "../../data/PipelineExecDTO";
-import { RelatorioHistoricoDTO } from "../../data/RelatorioHistoricoDTO";
-import { RelatorioInfoDTO } from "../../data/RelatorioInfoDTO";
-import { UserInfoDTO } from "../../data/UserInfoDTO";
-import { UserDTO } from "../../data/UserDTO";
 import { MassaTabelaDTO } from "../../data/MassaTabelaDTO";
 import { massaColunaTipos } from "../../data/MassaColunaTipo";
 import { MassaColunaDTO } from "../../data/MassaColunaDTO";
@@ -23,15 +12,15 @@ import DynamicModal from "../Core/DynamicModal";
 import ModalTiposDeMassa from "./ModalTiposDeMassa";
 import { MassaPreparada } from "../../data/MassaPreparada";
 import ModalTesteMassa from "./ModalTesteMassa";
+import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
 
 export interface ModalConfigMassaProps {
     massa: MassaTabelaDTO | undefined,
-    notificacao: Notificacao
 }
 
-const ModalConfigMassa: React.FC<ModalConfigMassaProps & DynamicModalContent> = ({massa, notificacao}) => {
+const ModalConfigMassa: React.FC<ModalConfigMassaProps & DynamicModalContent> = ({ massa }) => {
     //Atrbiutos Redux e React
-    //const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
     //Atributos próprios
     //const [projetoId, setProjetoId] = useState<string>("");
@@ -123,8 +112,11 @@ const ModalConfigMassa: React.FC<ModalConfigMassaProps & DynamicModalContent> = 
         const value = (event.target as HTMLInputElement).value.trim();
         const tipo = massaColunaTipos.find(tipo => tipo.nomeTipo === value)
         if (!tipo) {
-            console.warn(`[MODAL-CONFIG-MASSA] Não encontrado tipo '${value}'`);
-            notificacao.toastErro(`Não encontrado tipo '${value}'`, []);
+            dispatch(addMensagem({ 
+                id: `Set_Massa_Tipo@${Date.now()}`, 
+                texto: `Não encontrado Massa tipo '${value}'`,
+                status: 'INFO'
+            }));
             return;
         }
         const novaMassa = massaConfig!.map((item, massaIndex) => {
@@ -173,30 +165,35 @@ const ModalConfigMassa: React.FC<ModalConfigMassaProps & DynamicModalContent> = 
     }
 
     const testarMassa = async () => {
+        const mensagenId = `Check_Massa@${Date.now()}`;
+        dispatch(addMensagem({ 
+            id: mensagenId, 
+            texto: `Testando nova Massa.`,
+            status: 'INFO'
+        }));
+
         try {
-            console.log(`[MODAL CONFIG-MASSA]: Iniciando requisição 'Testar Massa'.`);
-            notificacao.toastInfo("TESTAR MASSA: Em execução...", []);
             const tabelaDto: MassaTabelaDTO = {
                 nome: massa!.nome,
                 colunas: massaConfig,
                 usaPessoa: usaPessoaConfig
             };
             setMassaGerada(await axiosRequest.testarMassa(tabelaDto, mainClienteId));
-            const buttons = [{
-                text: 'Ver Massa',
-                role: 'Ver Massa',
-                handler: () => {
-                    if (!testeRef || !testeRef.current) return;
-                    setVerModalTeste(true);
-                    testeRef.current.present();
-                },
-            }];
-            notificacao.toastOk("TESTAR MASSA: Realizado com sucesso.", buttons);
-            console.log(`[MODAL CONFIG-MASSA]: Requisição 'Testar Massa' funcionou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagenId, 
+                complmento: `Sucesso.`,
+                status: 'OK'
+            }));
+            if (!testeRef || !testeRef.current) return;
+            setVerModalTeste(true);
+            testeRef.current.present();
         }
         catch (error) {
-            notificacao.toastErro(`ABRIR PLANILHA: ${error}`, []);
-            console.error(`[MODAL CONFIG-MASSA]: Requisição 'Testar Massa' falhou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagenId, 
+                complmento: `${error}.`,
+                status: 'ERROR'
+            }));
         }
     }
 

@@ -13,6 +13,7 @@ const initialState = {
     mainJobs: [],
     mainIfxdate: "",
     jobsSelecionados: [],
+    mensagens: [],
 } as ReducerAtividadeProps;
 
 //Interface das propriedades deste reducer
@@ -26,6 +27,16 @@ export interface ReducerAtividadeProps {
     mainJobs: JobConfig[],
     mainIfxdate: string,
     jobsSelecionados: number[],
+    mensagens: AtividadeMensagemTYPE[],
+}
+
+//Interface das mensagens a serem exibidas e armazenadas no ReducerAtividadeProps
+export interface AtividadeMensagemTYPE {
+    id: string,
+    texto: string;
+    alvo: string;
+    status: "INFO" | "OK" | "ERROR";
+    url?: string;
 }
 
 //Interface das propriedades do controlador setMainAmbiente
@@ -35,6 +46,22 @@ export interface SetMainAmbienteProps {
     ambiente: string,
     ambienteId: number,
 }
+
+//Interface do Reducer 'addMensagem'  
+export interface AddMensagemProps {
+    id: string,
+    texto: string;
+    status: "INFO" | "OK" | "ERROR";
+    url?: string;
+}
+
+//Interface do Reducer 'atualizarMensagemStatus'  
+export interface AtualizarMensagemStatusProps {
+    id: string,
+    complmento?: string,
+    status: "INFO" | "OK" | "ERROR"
+}
+
 const setMainAmbientePropsDefault: SetMainAmbienteProps = {
     cliente: "",
     clienteId: -1, 
@@ -42,17 +69,20 @@ const setMainAmbientePropsDefault: SetMainAmbienteProps = {
     ambienteId: -1
 }
 
+//Interface do Reducer 'setMainPipelineProps'
 export interface SetMainPipelineProps {
     id: number,
     nome: string,
     jobs: JobConfig[]
 }
 
+//Interface do Reducer 'reorderMainJobsProps'
 export interface ReorderMainJobsProps {
     ordemAntiga: number,
     ordemNova: number,
 }
 
+//Interface do Reducer 'updateMainJobsIfxdate'
 export interface UpdateMainJobsIfxdateProps {
     jobs: { id: number, parametro: number }[],
     ifxdate: string,  
@@ -195,6 +225,38 @@ const configAtividade = createSlice({
             state.jobsSelecionados = state.jobsSelecionados.filter((id) => id !== action.payload);
             console.log(`[ReducerAtividade]: Jobs selecionados em memória: [${state.jobsSelecionados.join(", ")}].`);
         },
+        addMensagem: (state, action: PayloadAction<AddMensagemProps>) => {
+            console.log('[ReducerAtividade] Acionado controlador configAtividade.addMensagem!');
+            state.mensagens.unshift({
+                ...action.payload, alvo: `${state.mainCliente} ${state.mainAmbiente}`
+            });
+            if (state.mensagens.length === 51) {
+                console.log('[ReducerAtividade] Número de mensagens acima de 50. Removendo índice 0!');
+                state.mensagens.pop();
+            } 
+        },
+        atualizarMensagem: (state, action: PayloadAction<AtualizarMensagemStatusProps>) => {
+            console.log('[ReducerAtividade] Acionado controlador configAtividade.atualizarMensagemStatus!\n' 
+                + `Atualizando mensagem ID ${action.payload} para status '${action.payload.status}'.`
+            );
+            const index = state.mensagens.findIndex(item => item.id === action.payload.id);
+            if (index === -1) return;
+            
+            state.mensagens[index].status = action.payload.status;
+            if (action.payload.complmento)
+                state.mensagens[index].texto += " " + action.payload.complmento;
+        },
+        removerMensagem: (state, action: PayloadAction<string>) => {
+            console.log('[ReducerAtividade] Acionado controlador configAtividade.removerMensagem!\n' 
+                + `Removendo mensagem ID ${action.payload}.`
+            );
+            const index = state.mensagens.findIndex(item => item.id === action.payload);
+            if (index !== -1) state.mensagens.splice(index, 1);
+        },
+        resetarMensagens: (state, action: PayloadAction) => {
+            console.log('[ReducerAtividade] Acionado controlador configAtividade.resetarMensagens!');
+            state.mensagens = [];
+        },
     },
 });
 
@@ -225,4 +287,8 @@ export const {
     setViewJobs,
     addViewJobs,
     removeViewJobs,
+    addMensagem, 
+    atualizarMensagem, 
+    removerMensagem, 
+    resetarMensagens
 } = configAtividade.actions;

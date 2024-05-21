@@ -1,6 +1,5 @@
 import { IonTextarea, IonButton, IonInput, IonLabel, IonItem, InputChangeEventDetail, TextareaChangeEventDetail, IonTitle, IonRow, IonCol, IonBadge, IonIcon, useIonAlert } from "@ionic/react";
 import { useState } from "react";
-import { Notificacao } from "../Core/Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
 import { JobConfig } from "../../data/JobConfigDTO";
 import { PipelineInfoDTO } from "../../data/PIpelineInfoDTO";
@@ -17,8 +16,9 @@ import { UserDTO } from "../../data/UserDTO";
 import { useHistory } from "react-router";
 import Botao, { BotaoProps, Botoes } from "../Core/Botao";
 import { closeCircle } from "ionicons/icons";
+import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
 
-const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
+const ModalExecPipeline: React.FC = () => {
     //Atrbiutos Redux e React
     const dispatch = useDispatch();
     const history = useHistory();
@@ -94,13 +94,17 @@ const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
 
     //Requisição para executar a Pipeline
     async function executarPipeline() {
-        console.log(`[CONFIGURAR-JOBS]: Iniciando requisição 'Executar Pipeline'.`);
-        //modalConfigPipelineOff();
+        const mensagemId = `Run_Pipeline@${Date.now()}`;
         if (!camposPreenchidos || !mainPipelineDescricao) {
             console.log('[CONFIGURAR-JOBS]: Preencha os campos antes de executar a Pipeline!');
             return;
         };
-        toastInfo("EXECUTAR PIPELINE: Em execução...", []);
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: `Executando Pipeline '${mainPipeline}'.`,
+            status: 'INFO'
+        }));
+        
         try {
             const pipelineDto: PipelineInfoDTO = {
                 id: mainPipelineId,
@@ -117,11 +121,7 @@ const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                 configuracao: configuracao,
                 testeTipo: "Unitário",
             };
-            console.log('[CONFIGURAR-JOBS]: Copvnertendo JobConfig para JobExecuteDTO...');
-            const jobsDto: JobExecuteDTO[] = mainJobs.map((item) => {
-                //console.log(JSON.stringify(item));
-                return parseJobConfigParaJobExecute(item);
-            });
+            const jobsDto: JobExecuteDTO[] = mainJobs.map((item) => parseJobConfigParaJobExecute(item));
             const body: PipelineExecDTO = {
                 pipeline: pipelineDto,
                 relatorio: relatorioDto,
@@ -152,14 +152,18 @@ const ModalExecPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             ];
             dispatch(setRelatorios([]));
             //dispatch(loadingRelatorios(false));
-            toastOk("EXECUTAR PIPELINE: Realizada com sucesso.", buttons);
-            console.log(`[CONFIGURAR-JOBS]: Requisição 'Executar Pipeline' funcionou.`);
-            
-            
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `Sucesso.`,
+                status: 'OK'
+            }));
         }
         catch (error) {
-            toastErro(`EXECUTAR PIPELINE: ${error}`, []);
-            console.error(`[CONFIGURAR-JOBS]: Requisição 'Executar Pipeline' falhou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `${error}.`,
+                status: 'ERROR'
+            }));
         }
     }
 

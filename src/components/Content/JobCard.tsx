@@ -6,10 +6,9 @@ import { reorderFour, save, settings, shieldCheckmark, trash } from "ionicons/ic
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
-import { Notificacao } from "../Core/Noticacao";
 import DynamicModal from "../Core/DynamicModal";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
-import { removeOneMainJob, updateOneMainJob } from "../../Store/Reducer/ReducerAtividade";
+import { addMensagem, atualizarMensagem, removeOneMainJob, updateOneMainJob } from "../../Store/Reducer/ReducerAtividade";
 import { FiltroSQL } from "../../data/FiltroSQL";
 import Botao from "../Core/Botao";
 import Uploader from "../Core/Uploader";
@@ -18,10 +17,9 @@ export interface JobCardProps {
     index: number,
     //jobExec: JobConfig,
     //jobUserInput: JobConfig,
-    notificacao: Notificacao,
 }
 
-const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
+const JobCard: React.FC<JobCardProps> = ({ index }) => {
     //Atributos principais de controle
     const dispatch = useDispatch();
     const jobExec: JobConfig | undefined = useSelector((state: RootState) => state.store.configAtividade.mainJobs)[index];
@@ -31,6 +29,7 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
         .filter((item) => item.id === id)[0];
     const [jobConfigurado, setJobConfigurado] = useState<JobConfig>({...jobExec});
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
+    const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
     
     //Atributos para padrões de estilização
     const textoCodigo = (texto: string, info: string) => {
@@ -127,17 +126,14 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
 
     //Método de tratamento dos inputs do usuário para as Cargas
     const preencherCarga = (files: FileList | null) => {
+        const mensagemId = `Set_Cargas@${Date.now()}`;
         try {
             if (!files || files.length < 1) {
-                notificacao.toastOk(`Removido os arquivos de carga do Job '${jobInfo.nome}'.`, []);
-                /*
-                const novasCargas = [...jobConfigurado.cargas];
-                novasCargas[index] = {
-                    nome: "",
-                    conteudo: "",
-                    tipo: "",
-                };
-                */
+                dispatch(addMensagem({ 
+                    id: mensagemId, 
+                    texto: `Pipeline '${mainPipeline}' - Job '${jobInfo.nome}': Arquivos de carga removidos.`,
+                    status: 'INFO'
+                }));
                 setJobConfigurado({ ...jobConfigurado, cargas: [] });
                 return;
             }
@@ -159,15 +155,19 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
                         novasCargas[index] = cargaNova;
                 };
                 reader.readAsText(file);
-                //notificacao.toastOk(`Arquivo '${file.name}' carregado com sucesso.`, []);
                 console.log(`[CARD-JOB]: Arquivo '${file.name}' anexado com sucesso.`);
                 sucessos++;
             }
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `Pipeline '${mainPipeline}' - Job '${jobInfo.nome}': Total de ${sucessos}/${files.length} de carga(s) carregadas com sucesso.`,
+                status: 'INFO'
+            }));
             setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
-            notificacao.toastInfo(`Job '${jobInfo.nome}': ${sucessos}/${files.length} das carga(s) carregadas com sucesso.`, []);
         }
-        catch (error: unknown) {
+        catch (error) {
             //e.target.value = '';
+            /*
             let errorMessage: string;
 
             if (typeof error === "string")
@@ -176,9 +176,13 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
               errorMessage = error.message;
             else
               errorMessage = String(error);
-
-            console.warn(errorMessage);
-            notificacao.toastErro(errorMessage, []);
+            */
+            //console.warn(errorMessage);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `Pipeline '${mainPipeline}' - Job '${jobInfo.nome}': Erro no processo de carga. ${error}`,
+                status: 'INFO'
+            }));
         }
     }
 
@@ -337,16 +341,26 @@ const JobCard: React.FC<JobCardProps> = ({ index, notificacao }) => {
 
     //Faz a validação da query já preenchida (tanto manual, quanto autmática)
     const validarQuery = async (comandoSql: ComandoSQL | string) => {
-        console.log(`[CARD-JOB]: Iniciando requisição 'Validar ConfigQuery'.`);
-        notificacao.toastInfo("VALIDAR QUERY: Em execução...", []);
+        const mensagemId = `Check_Query@${Date.now()}`;
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: `Pipeline '${mainPipeline}' - Job '${jobInfo.nome}': Validando query.`,
+            status: 'INFO'
+        }));
         try {
             const resultado: string = await axiosRequest.validarQuery(mainAmbienteId, comandoSql);
-            notificacao.toastOk(`VALIDAR SQL: ${resultado}`, []);
-            console.log(`[CARD-JOB]: Requisição 'Validar ConfigQuery' funcionou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `${resultado}`,
+                status: 'OK'
+            }));
         }
         catch (error) {
-            notificacao.toastErro(`VALIDAR QUERY: ${error}`, []);
-            console.error(`[CARD-JOB]: Requisição 'Validar ConfigQuery' falhou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `${error}`,
+                status: 'ERROR'
+            }));
         }
     }
 

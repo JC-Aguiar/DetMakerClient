@@ -7,13 +7,8 @@ import ItemLista from "../Core/ItemLista";
 import DynamicModal from "../Core/DynamicModal";
 import { MassaTabelaDTO } from "../../data/MassaTabelaDTO";
 import ModalConfigMassa from "../Modals/ModalConfigMassa";
-import { Notificacao } from "../Core/Noticacao";
 
-export interface ListaCatalogoMassasProps {
-    notificacao: Notificacao;
-}
-
-const ListaCatalogoMassas: React.FC<ListaCatalogoMassasProps> = ({ notificacao }) => {
+const ListaCatalogoMassas: React.FC = () => {
     //Atributos com estado gerenciado via Redux
     const catalogoMassas: MassaTabelaDTO[] = useSelector((state: RootState) => state.store.catalogoMassas.catalogo);
 
@@ -24,10 +19,7 @@ const ListaCatalogoMassas: React.FC<ListaCatalogoMassasProps> = ({ notificacao }
         DynamicModal,
         {
             titulo: "Mapeamento de Massa",
-            elemento: <ModalConfigMassa 
-                    notificacao={notificacao} 
-                    massa={catalogoMassas.find(massa => massa.nome === massaToView)} 
-                />,
+            elemento: <ModalConfigMassa massa={catalogoMassas.find(massa => massa.nome === massaToView)} />,
             onDismiss: () => modalConfigMassaOff(),
             //helpContent: <ModalTiposDeMassa />,
         }

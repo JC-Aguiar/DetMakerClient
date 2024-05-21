@@ -1,28 +1,22 @@
-import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonLabel, IonItem } from "@ionic/react";
-import { alertCircle, closeCircle, flag, reorderThree, save, trash } from "ionicons/icons";
-import { useRef, useState } from "react";
+import { IonIcon, IonRow, IonBadge, IonCol, IonInput, IonItem } from "@ionic/react";
+import { alertCircle, reorderThree, save, } from "ionicons/icons";
+import { useRef } from "react";
 import { Notificacao } from "../Core/Noticacao";
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from "../../Store/ReduxStore";
-import * as axiosRequest from "../../data/AxiosRequest";
+import { useDispatch } from 'react-redux';
 import Botao from "../Core/Botao";
-import { addAmbiente, loadingClientes } from "../../Store/Reducer/ReducerClientes";
-import { ClienteInfoDTO } from "../../data/ClienteInfoDTO";
-import { ClienteNovoDTO } from "../../data/ClienteNovoDTO";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
+import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
 
 export interface ModalNovoJobProps {
-    notificacao: Notificacao;
     onSave?: () => void;
 }
 
-const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ notificacao, onSave = () => null }) => {
+const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
     //Atrbiutos para usar recursos Redux e React
     const dispatch = useDispatch();
 
-    //Atibutos de estado gerenciados via Redux
-
     //Atributos de referência
+    /*
     const nomeRef = useRef<HTMLIonInputElement>(null);
     const executarAposJobRef = useRef<HTMLIonInputElement>(null);
     const grupoConcorrenciaRef = useRef<HTMLIonInputElement>(null);
@@ -46,6 +40,7 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ notificacao, onSave = () =>
     const dataAtualizacaoRef = useRef<HTMLIonInputElement>(null);
     const atualizadoPorRef = useRef<HTMLIonInputElement>(null);
     const queriesRef = useRef<HTMLIonInputElement>(null);
+    */
     const dividirTexto = (valor: string) => valor.replace(/, /g, ";").split(";");
 
     //Defiindo atributos para gerar os campos de input, com base no JobInfoDTO
@@ -213,11 +208,14 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ notificacao, onSave = () =>
         }
     ];
     
-    //Atributos úteis
-    const { toastInfo, toastOk, toastErro } = notificacao;
-
     //Requisição para criar novo mapa de Job para este Cliente
     function criarNovoJob() {
+        const mensagemId = `New_Job@${Date.now()}`;
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: 'Criando novo Job.',
+            status: 'INFO'
+        }));
         try {
             const pendente = elementosCore.find(item => item.obrigatorio && item.ref.current!.value!.toString().length < 1);
             if (pendente) {
@@ -229,7 +227,11 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ notificacao, onSave = () =>
             //onSave();
         }
         catch (error) {
-            toastErro(`Erro ao tentar criar novo Job: ${error}`, []);
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `${error}.`,
+                status: "ERROR",
+            }));
         }
     }
 

@@ -2,7 +2,7 @@ import { IonCol, IonContent, IonIcon, IonImg, IonItem, IonLabel, IonList, IonRow
 import { useState } from 'react';
 import { addCircle, personAdd, radioButtonOff, radioButtonOn, refresh, } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { SetMainAmbienteProps, setMainAmbiente } from '../Store/Reducer/ReducerAtividade';
+import { setMainAmbiente } from '../Store/Reducer/ReducerAtividade';
 import { RootState } from '../Store/ReduxStore';
 import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/Core/ButtonLayout';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -20,10 +20,7 @@ import Botao from '../components/Core/Botao';
 import ModalNovoAmbiente from '../components/Modals/ModalNovoAmbiente';
 import DynamicModal from '../components/Core/DynamicModal';
 import ModalNovoCliente from '../components/Modals/ModalNovoCliente';
-import { setJobs } from '../Store/Reducer/ReducerJobs';
-import { setPipelines } from '../Store/Reducer/ReducerPipelines';
-import { setQueries } from '../Store/Reducer/ReducerQueries';
-import { setMassas } from '../Store/Reducer/ReducerMassas';
+import { addMensagem, atualizarMensagem } from '../Store/Reducer/ReducerAtividade';
 
 const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
     //Atrbiutos úteis
@@ -83,7 +80,12 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
     async function coletarRecursos() {
         if (isLoading) return;
 
-        toastInfo("CONSULTAR CLIENTES: Em execução...", []);
+        const mensagemId = `Get_Clients@${Date.now()}`;
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: `Obtendo catálogo de cliente.`,
+            status: 'INFO'
+        }));
         dispatch(loadingClientes(true));
         /*
         dispatch(setMainAmbiente({
@@ -100,10 +102,18 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
         try {
             const clientes: ClienteInfoDTO[] = await axiosRequest.getAllClientes();
             dispatch(setClientes(clientes));
-            toastOk("CONSULTAR CLIENTES: Realizado com sucesso.", []);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: 'Sucesso.',
+                status: 'OK'
+            }));
         }
         catch (error) {
-            toastErro(`CONSULTAR CLIENTES: ${error}`, []);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: String(error),
+                status: 'ERROR'
+            }));
         }
         dispatch(loadingClientes(false));
     }
@@ -111,14 +121,12 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
     //Acionamento ao selecionar uma opção de Cliente
     function setClienteAmbiente(cliente: ClienteInfoDTO, ambiente: AmbienteInfoDTO): void {
         console.log(`[ESCOLHER-CLIENTES]: Usuário selecionou Cliente: '${cliente.nome}', Ambiente: '${ambiente.nome}'.`);
-        dispatch(setMainAmbiente(
-            {
-                cliente: cliente.nome, 
-                clienteId: cliente.id,
-                ambiente: ambiente.nome,
-                ambienteId: ambiente.id,
-            } as SetMainAmbienteProps
-        ));
+        dispatch(setMainAmbiente({
+            cliente: cliente.nome, 
+            clienteId: cliente.id,
+            ambiente: ambiente.nome,
+            ambienteId: ambiente.id,
+        }));
     }
 
 

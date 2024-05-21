@@ -8,7 +8,6 @@ import { loadingJobs, setJobs } from '../Store/Reducer/ReducerJobs';
 import DynamicModal from '../components/Core/DynamicModal';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
 import { loadingPipelines, setPipelines } from '../Store/Reducer/ReducerPipelines';
-import { Notificacao } from '../components/Core/Noticacao';
 import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/Core/ButtonLayout';
 import ConfigurarJobs from '../components/Content/ConfigurarJobs';
 import { JobInfoDTO } from '../data/JobInfoDTO';
@@ -26,8 +25,9 @@ import { ListaRetratrilAgrupada, ListaRetratrilProps } from '../components/Core/
 import ListaCatalogoPipelines from '../components/Lists/ListaCatalogoPipelines';
 import ListaCatalogoMassas from '../components/Lists/ListaCatalogoMassas';
 import ModalNovoJob from '../components/Modals/ModalNovoJob';
+import { addMensagem, atualizarMensagem } from '../Store/Reducer/ReducerAtividade';
 
-const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
+const EscolherPipelines: React.FC = () => {
     //Atrbiutos Redux e React
     const dispatch = useDispatch();
     
@@ -53,20 +53,17 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
 
     //Atributos de utilidade
     const isLoading = isLoadingJobs || isLoadingPipelines;
-    const notificacao = { toastInfo: toastInfo, toastOk: toastOk, toastErro: toastErro } as Notificacao;
-    const [modalNovaPipelineOn, modalNovaPipelineOff] = useIonModal(
-        DynamicModal,
+    const [modalNovaPipelineOn, modalNovaPipelineOff] = useIonModal(DynamicModal,
         {
             titulo: "Criar Nova Pipeline",
-            elemento: <ModalNovaPipeline toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />, //conteudoModalNovaPipeline(),
+            elemento: <ModalNovaPipeline />,
             onDismiss: () => modalNovaPipelineOff(),
         }
     );
-    const [modalNovoJobOn, modalNovoJobOff] = useIonModal(
-        DynamicModal,
+    const [modalNovoJobOn, modalNovoJobOff] = useIonModal(DynamicModal,
         {
             titulo: "Criar Novo Job",
-            elemento: <ModalNovoJob notificacao={{toastInfo, toastOk, toastErro}} />,
+            elemento: <ModalNovoJob />,
             onDismiss: () => modalNovoJobOff(),
         }
     );
@@ -90,12 +87,18 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         dispatch(loadingJobs(true));
         dispatch(loadingPipelines(true));
         dispatch(setMainPipeline());
+        const id = `Get_Resources@${Date.now()}`;
+        dispatch(addMensagem({ 
+            id: id, 
+            texto: 'Obtendo catálogo de Recusos.',
+            status: 'INFO'
+        }));
         //dispatch(loadingQueries(true));
         //queries
-        await obterJobsBanco()
-            .then(() => obterPipelinesBanco())
-            .then(() => obterQueriesBanco())
-            .then(() => obterMassasBanco());
+        await obterJobsBanco(id)
+            .then(() => obterPipelinesBanco(id))
+            .then(() => obterQueriesBanco(id))
+            .then(() => obterMassasBanco(id));
         dispatch(loadingJobs(false));
         dispatch(loadingPipelines(false));
         //dispatch(loadingQueries(false));
@@ -104,28 +107,42 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
     //Requisição para abrir a planilha schedule para obter os jobs
     async function uploadSchedule(event: React.ChangeEvent<HTMLInputElement>) {
         const selectedFile = event.target.files?.[0];
+        const id = `Upload_File@${Date.now()}`;
         if (!selectedFile) {
-            toastErro("Nenhum arquivo selecionado.", []);
+            dispatch(addMensagem({ 
+                id: id, 
+                texto: 'Nenhum arquivo selecionado para upload da Schedule.',
+                status: 'INFO'
+            }));
             return;
         }
         try {
-            toastInfo("CARREGAR SCHEDULE: Em execução...", []);
-            //const formData = new FormData();
-            //formData.append('file', selectedFile);
+            dispatch(addMensagem({ 
+                id: id, 
+                texto: `Carregando Schedule '${selectedFile.name}'.`,
+                status: 'INFO'
+            }));
             const email = userEmail ? userEmail : "DET-MAKER";
             const mensagem = await axiosRequest.openSchedule(mainClienteId, selectedFile, email);
-            toastOk(`CARREGAR SCHEDULE: ${mensagem}.`, []);
+            dispatch(atualizarMensagem({ 
+                id: id, 
+                complmento: `${mensagem}.`,
+                status: 'OK'
+            }));
             coletarRecursos();
         }
         catch (error) {
-            toastErro(`CARREGAR SCHEDULE: ${error}`, []);
+            dispatch(atualizarMensagem({ 
+                id: id, 
+                complmento: `${error}.`,
+                status: 'ERROR'
+            }));
         }
         novaScheduleRef.current!.files = null;
     }
 
     //Requisição para obter os jobs diretamente do banco
-    async function obterJobsBanco() {
-        toastInfo(`DOWNLOAD JOBS: Coletando Jobs do Cliente '${mainCliente}' (ID ${mainClienteId}).`, []);
+    async function obterJobsBanco(id: string) {
         setJobsSucesso(null);
         setConectionsCount(c => c+1);
         dispatch(setJobs([]));
@@ -133,17 +150,24 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             const novosJobs: JobInfoDTO[] = await axiosRequest.getAllJobs(mainClienteId);
             dispatch(setJobs(novosJobs));
             setJobsSucesso(true);
-            toastOk("DOWNLOAD JOBS: Realizado com sucesso.", []);
+            dispatch(atualizarMensagem({ 
+                id: id, 
+                complmento: 'Jobs: Sucesso.',
+                status: 'OK'
+            }));
         }
         catch (error) {
             setJobsSucesso(false);
-            toastErro(`DOWNLOAD JOBS: ${error}`, []);
+            dispatch(atualizarMensagem({ 
+                id: id, 
+                complmento: `Jobs: ${error}.`,
+                status: 'ERROR'
+            }));
         }
     }
 
     //Requisição para obter todas as pipelines do banco
-    async function obterPipelinesBanco() {
-        toastInfo("DOWNLOAD PIPELINES: Em execução...", []);
+    async function obterPipelinesBanco(id: string) {
         setPipelinesSucesso(null);
         dispatch(setPipelines([]));
         dispatch(setMainPipeline());
@@ -151,42 +175,64 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             const pipelines: PipelineInfoDTO[] = await axiosRequest.getAllPipelines(mainClienteId);
             dispatch(setPipelines(pipelines));
             setPipelinesSucesso(true);
-            toastOk("DOWNLOAD PIPELINES: Realizado com sucesso.", []);
+            dispatch(atualizarMensagem({ 
+                id: id, 
+                complmento: `Pipelines: Sucesso.`,
+                status: 'OK'
+            }));
         }
         catch (error) {
             setPipelinesSucesso(false);
-            toastErro(`DOWNLOAD PIPELINES: ${error}`, []);
+            dispatch(atualizarMensagem({ 
+                id: id, 
+                complmento: `Pipelines: ${error}.`,
+                status: 'ERROR'
+            }));
         }
     }
 
     //Requisição para obter todas as Config-Queries do banco
-    async function obterQueriesBanco() {
-        toastInfo("DOWNLOAD QUERIES: Em execução...", []);
+    async function obterQueriesBanco(id: string) {
         dispatch(setQueries([]));
         dispatch(loadingQueries(true));
         try {
             const queriesBanco: QueryInfoDTO[] = await axiosRequest.getAllConfigQueries(mainClienteId);
             dispatch(setQueries(queriesBanco));
-            toastOk("DOWNLOAD QUERIES: Realizado com sucesso.", []);
+            dispatch(atualizarMensagem({ 
+                id: id, 
+                complmento: `Queries: Sucesso.`,
+                status: 'OK'
+            }));
         }
         catch (error) {
-            toastErro(`DOWNLOAD QUERIES: ${error}`, []);
+            dispatch(atualizarMensagem({ 
+                id: id, 
+                complmento: `Queries: ${error}.`,
+                status: 'ERROR'
+            }));
         }
         dispatch(loadingQueries(false));
     }
 
     //Requisição para obter todas as MassaTabelaDTO's do banco
-    async function obterMassasBanco() {
-        toastInfo("DOWNLOAD MASSAS: Em execução...", []);
+    async function obterMassasBanco(id: string) {
         dispatch(loadingMassa(true));
         dispatch(setMassas([]));
         try {
             const massasBanco: MassaTabelaDTO[] = await axiosRequest.getAllMassas(mainClienteId);
             dispatch(setMassas(massasBanco));
-            toastOk("DOWNLOAD MASSAS: Realizado com sucesso.", []);
+            dispatch(atualizarMensagem({ 
+                id: id, 
+                complmento: `Massas: Sucesso.`,
+                status: 'OK'
+            }));
         }
         catch (error) {
-            toastErro(`DOWNLOAD MASSAS: ${error}`, []);
+            dispatch(atualizarMensagem({ 
+                id: id, 
+                complmento: `Massas: ${error}.`,
+                status: 'ERROR'
+            }));
         }
         dispatch(loadingMassa(false));
     }
@@ -236,7 +282,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
             return exibirJobsSelecionados();
 
         if (mainPipeline !== "") 
-            return <ConfigurarJobs toastInfo={toastInfo} toastOk={toastOk} toastErro={toastErro} />;
+            return <ConfigurarJobs />;
 
         const mensagem = 'Use o painel lateral para vizualizar {Jobs} e {Pipelines}\n'
             + 'Selecione um {Job}, fora da {Pipeline}, para analisá-lo\n'
@@ -334,7 +380,7 @@ const EscolherPipelines: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
         const listasRetratil: ListaRetratrilProps[] = [
             {titulo: 'Jobs', icon: cube, conteudo: <ListaCatalogoJobs />},
             {titulo: 'Pipelines', icon: layers, conteudo: <ListaCatalogoPipelines />},
-            {titulo: 'Gerador de Massa', icon: library, conteudo: <ListaCatalogoMassas notificacao={notificacao} />},
+            {titulo: 'Gerador de Massa', icon: library, conteudo: <ListaCatalogoMassas />},
         ];
 
         if (catalogoJobs.length < 1) {

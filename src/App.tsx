@@ -46,7 +46,6 @@ import EscolherRelatorios from './pages/EscolherRelatorios';
 import Fundo from './components/Core/Fundo';
 
 /* Recursos de uso comum */
-
 setupIonicReact();
 
 type rotaTYPE = {
@@ -160,7 +159,7 @@ const App = () => {
             exact: true,
             titulo: "Laboratório", 
             subtitulo: "Escolha ou crie uma Pipeline para iniciar um fluxo de execução", 
-            conteudo: <EscolherPipelines {...notificacao} />,
+            conteudo: <EscolherPipelines />,
             icone: flask,
             desativado: mainAmbiente.length < 1 || isLoadingJobs || isLoadingPipelines,
             efeito: null, 

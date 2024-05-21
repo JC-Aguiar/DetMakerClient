@@ -30,8 +30,8 @@ const ModalTesteMassa: React.FC<ModalTesteMassaProps> = ({massa}) => {
 
     //Renderização do componente
     return (
-        <div className="row justify-content-center px-3 mx-0 text-center">
-            <IonCard className="glass ">
+        <div className="row justify-content-center px-3 mx-0 mb-5 text-center">
+            <IonCard className="glass">
             {
                 massa.map((tabela, tabelaIndex) => {
                     return (

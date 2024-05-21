@@ -1,9 +1,8 @@
-import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonLabel, IonItem } from "@ionic/react";
-import { closeCircle, save, trash } from "ionicons/icons";
+import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonItem } from "@ionic/react";
+import { closeCircle, save } from "ionicons/icons";
 import { useState } from "react";
-import { Notificacao } from "../Core/Noticacao";
 import { useDispatch, useSelector } from 'react-redux';
-import { setMainPipeline } from "../../Store/Reducer/ReducerAtividade";
+import { atualizarMensagem, setMainPipeline } from "../../Store/Reducer/ReducerAtividade";
 import { setViewJobs } from "../../Store/Reducer/ReducerAtividade";
 import { loadingPipelines, setPipelines } from "../../Store/Reducer/ReducerPipelines";
 import { JobConfig, parseJobInfo } from "../../data/JobConfigDTO";
@@ -12,23 +11,19 @@ import { JobInfoDTO } from "../../data/JobInfoDTO";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
 import Botao from "../Core/Botao";
+import { addMensagem } from "../../Store/Reducer/ReducerAtividade";
 
-const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
+const ModalNovaPipeline: React.FC = () => {
     //Atrbiutos para usar recursos Redux e React
     const dispatch = useDispatch();
 
     //Atributos de estado gerenciados via React
-    const catalogoJobs: JobInfoDTO[] = useSelector(
-        (state: RootState) => state.store.catalogoJobs.catalogo);
-    const catalagoPipelines: PipelineInfoDTO[] = useSelector(
-        (state: RootState) => state.store.catalogoPipelines.catalogo);
-    const mainPipelineId: number = useSelector(
-        (state: RootState) => state.store.configAtividade.mainPipelineId);
+    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
+    const catalagoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
+    const mainPipelineId: number = useSelector((state: RootState) => state.store.configAtividade.mainPipelineId);
 
-    const jobsSelecionados: number[] = useSelector(
-        (state: RootState) => state.store.configAtividade.jobsSelecionados);
-    const mainClienteId: number = useSelector(
-        (state: RootState) => state.store.configAtividade.mainClienteId);
+    const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobsSelecionados);
+    const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
 
     //Atibutos de estado gerenciados via Redux
     const [pipelineNome, setPipelineNome] = useState<string>("");
@@ -68,8 +63,12 @@ const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
 
     //Requisição para salvar nova Pipeline
     async function salvarNovaPipeline() {
-        console.log(`[ESCOLHER-PIPELINES]: Iniciando requisição 'Salvar Nova Pipeline'.`);
-        toastInfo("SALVAR NOVA PIPELINE: Em execução...", []);
+        const mensagemId = `New_Pipeline@${Date.now()}`;
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: 'Salvando nova Pipeline no catálogo do banco.',
+            status: 'INFO'
+        }));
         dispatch(loadingPipelines(true));
         dispatch(setViewJobs([]));
         try {
@@ -82,29 +81,30 @@ const ModalNovaPipeline: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErr
                 checked: false,
             };
             const novaPipelineSalva = await axiosRequest.salvarNovaPipeline(novaPipeline);
-            console.log(`[MODAL NOVA PIPELINE]: Nova Pipeline salva: ${novaPipelineSalva}`);
-
             const jobsNovaPipeline: JobConfig[] = catalogoJobs
                 .filter((item) => novaPipelineSalva.jobs.findIndex((jobNome) => jobNome === item.nome) !== -1)
                 .map((item, index) => parseJobInfo(item, index));
-                
             const catalogoPipelinesAtualizado = catalagoPipelines.slice();
             catalogoPipelinesAtualizado.push(novaPipelineSalva);
-
-            console.log(`[MODAL NOVA PIPELINE]: Atualizando catálogo das Pipelines com novo registro.`);
             dispatch(setPipelines(catalogoPipelinesAtualizado));
-            console.log(`[CONFIGURAR-/JOBS]: Definindo Main-Pipeline para ${novaPipelineSalva.nome}.`);
+
             dispatch(setMainPipeline({ 
                 id: novaPipelineSalva.id,
                 nome: novaPipelineSalva.nome, 
                 jobs: jobsNovaPipeline
             }));
-            toastOk("SALVAR NOVA PIPELINE: Realizada com sucesso.", []);
-            console.log(`[MODAL NOVA PIPELINE]: Requisição 'Salvar Nova Pipeline' funcionou.`);
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `Sucesso.`,
+                status: "OK"
+            }));
         }
         catch (error) {
-            toastErro(`SALVAR NOVA PIPELINE: ${error}`, []);
-            console.error(`[MODAL NOVA PIPELINE]: Requisição 'Salvar Nova Pipeline' falhou.`);
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `${error}.`,
+                status: "ERROR"
+            }));
         }
         dispatch(loadingPipelines(false));
     }

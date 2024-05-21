@@ -176,19 +176,16 @@ ion-row.container {
 }
 
 .select-stack .alert-wrapper {
-  /* Estilos personalizados para o wrapper do alerta */
   background-color: var(--ion-color-primary);
   color: white;
 }
 
 .select-stack .alert-message {
-  /* Estilos personalizados para a mensagem do alerta */
   background-color: var(--ion-color-primary);
   color: white;
 }
 
 .select-stack .alert-button-group .alert-button {
-  /* Estilos personalizados para os botões do alerta */
   background-color: var(--ion-color-primary);
   color: white;
 }
@@ -557,9 +554,15 @@ input[type="file"]::-webkit-file-upload-button {
 }
 
 
-/* customizando modal */
+/* customizando modal de Jobs */
 ion-modal.modal-job-card::part(content) {
   height: 90%;
+}
+
+/* customizando modal das Notificações */
+ion-modal.modal-notificacoes::part(content) {
+  height: 95%;
+  width: 90%;
 }
 
 

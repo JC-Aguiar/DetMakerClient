@@ -413,6 +413,7 @@ ion-note {
 
 ion-toast {
   --max-width: 95%;
+  font-size: large;
 }
 
 ion-alert .alert-wrapper {

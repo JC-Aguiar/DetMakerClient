@@ -89,9 +89,9 @@ const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({ notificacao, onSave
             };
             reader.readAsDataURL(file);
         });
-      }
+    }
 
-    //Renderização do componente "10.129.226.159:1521/CCSSIDEV"
+    //Renderização do componente
     return <>
         <div className="container justify-content-center mt-1 px-5">
             <div className='glass px-3'>
