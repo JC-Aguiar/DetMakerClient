@@ -7,34 +7,34 @@ import { offsetDateTimeParaString } from "../../App";
 import { addRelatorio } from "../../Store/Reducer/ReducerRelatorios";
 import { removeRevisao, addRevisao } from "../../Store/Reducer/ReducerRevisao";
 import { RelatorioHistoricoDTO } from "../../data/RelatorioHistoricoDTO";
-import { Notificacao } from "../Core/Noticacao";
 import { useHistory } from "react-router";
 import { RootState } from "../../Store/ReduxStore";
 import { UserDTO } from "../../data/UserDTO";
+import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
 
-export interface ModalConfigQueryProps {
+//Atributos de entrada do componente TicketRelatorio
+export interface TicketRelatorioProps {
     relatorio: RelatorioResumoDTO,
-    notificacao: Notificacao,
 }
 
-const TicketRelatorio: React.FC<ModalConfigQueryProps> = ({ relatorio, notificacao }) => {
+const TicketRelatorio: React.FC<TicketRelatorioProps> = ({ relatorio}) => {
+    //Atributos do componente
     const dispatch = useDispatch();
     const history = useHistory();
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
-    const toastInfo = notificacao.toastInfo;
-    const toastOk = notificacao.toastOk;
-    const toastErro = notificacao.toastErro;
     const fonteCodigo = 'h6 lh-1 font-monospace text-white ';
     const tagSucesso = !relatorio.sucesso ? tag(alertCircleOutline, null, true) : <></>;
     const jaRevisado = relatorio.revisados === relatorio.evidencias;
     const buttonClass = `btn btn-outline-dark border-0 my-1 p-0 w-100`;
 
+    //Botões renderizados dentro de cada TicketRelatorio 
     const butoes = [
-        layoutButao("Reexecutar", flash, () => reexecutarRelatorio(relatorio.id)),
-        layoutButao("Revisar", eye, () => obterUmaRevisao(relatorio.id)),
-        layoutButao("Gerar DET", document, () => obterDet(relatorio.id)),
+        layoutButao("Reexecutar", flash, () => reexecutarRelatorio()),
+        layoutButao("Revisar", eye, () => obterUmaRevisao()),
+        layoutButao("Gerar DET", document, () => obterDet()),
     ];
 
+    //Permite configurar diferentes tipos de tag, para renderizar diferentes símbolos
     function tag(icone: string | undefined = undefined, conteudo: string | number | null, alerta: boolean = false) {
         const padding = conteudo === null ? "pe-0" : "me-1 pe-2";
         const corFundo = alerta ? "danger" : "primary";
@@ -45,6 +45,7 @@ const TicketRelatorio: React.FC<ModalConfigQueryProps> = ({ relatorio, notificac
         </IonBadge>
     }
 
+    //Contêm o padrão de renderização dos botões 
     function layoutButao(texto: string, icon: string, trigger: () => void) {
         return <IonBadge color="#" className={buttonClass}>
             <IonButton size="small" 
@@ -60,33 +61,45 @@ const TicketRelatorio: React.FC<ModalConfigQueryProps> = ({ relatorio, notificac
     }
 
      //Requisição para obter o relatório no banco a ser revisado
-     async function obterUmaRevisao(id: number) {
-        const titulo = `OBTER REVISÃO ID ${id}`;
-        console.log(`[ESCOLHER-RELATORIOS]: Iniciando requisição '${titulo}'.`);
+     async function obterUmaRevisao() {
         //modalGetPipelinesOff();
         //modalNovaPipelineOff();
-        toastInfo(`${titulo}: Em execução...`, []);
+        const mensagemId = `Open_Report@${Date.now()}`;
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: `Abrindo Relatório ID ${relatorio.id}.`,
+            status: 'INFO'
+        }));
         try {
-            const relatorioParaRevisar: RelatorioHistoricoDTO = await axiosRequest.getUmaRevisao(id);
-            toastOk(`${titulo}: Realizado com sucesso.`, []);
-            console.log(`[ESCOLHER-RELATORIOS]: Requisição '${titulo}' funcionou.`);
+            const relatorioParaRevisar: RelatorioHistoricoDTO = await axiosRequest.getUmaRevisao(relatorio.id);
             iniciarRevisao(relatorioParaRevisar);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `Sucesso.`,
+                status: 'OK'
+            }));
         }
         catch (error) {
-            toastErro(`${titulo}: ${error}`, []);
-            console.error(`[ESCOLHER-RELATORIOS]: Requisição '${titulo}' falhou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `${error}`,
+                status: 'ERROR'
+            }));
         }
     }
 
     //Requisição para reexecugar Jobs com base nos dados de um Relatório
-    async function reexecutarRelatorio(id: number) {
-        const titulo = `REEXECUTAR RELÁTORIO ID ${id}`;
-        console.log(`[ESCOLHER-RELATORIOS]: Iniciando requisição '${titulo}'.`);
+    async function reexecutarRelatorio() {
         //modalGetPipelinesOff();
         //modalNovaPipelineOff();
-        toastInfo(`${titulo}: Em execução...`, []);
+        const mensagemId = `Rerun_Report@${Date.now()}`;
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: `Reexecutando Relatório ID ${relatorio.id}.`,
+            status: 'INFO'
+        }));
         try {
-            const relatorioReexecutado: RelatorioHistoricoDTO = await axiosRequest.reexecutarRelatorio(id);
+            const relatorioReexecutado: RelatorioHistoricoDTO = await axiosRequest.reexecutarRelatorio(relatorio.id);
             const buttons = [
                 {
                   text: 'Revisar',
@@ -94,29 +107,43 @@ const TicketRelatorio: React.FC<ModalConfigQueryProps> = ({ relatorio, notificac
                   handler: () => iniciarRevisao(relatorioReexecutado),
                 }
             ];
-            toastOk(`${titulo}: Realizado com sucesso.`, buttons);
-            console.log(`[ESCOLHER-RELATORIOS]: Requisição '${titulo}' funcionou.`);
-
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `Sucesso.`,
+                status: 'OK'
+            }));
+            //toastOk(`${titulo}: Realizado com sucesso.`, buttons);
             const novoRelatorioResumo: RelatorioResumoDTO = await axiosRequest.getUmRelatorio(relatorioReexecutado.id);
             dispatch(addRelatorio(novoRelatorioResumo));
         }
         catch (error) {
-            toastErro(`${titulo}: ${error}`, []);
-            console.error(`[ESCOLHER-RELATORIOS]: Requisição '${titulo}' falhou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `${error}`,
+                status: 'ERROR'
+            }));
         }
     }
 
     //Requisição para obter o DET no banco
-    async function obterDet(id: number) {
+    async function obterDet() {
+        const mensagemId = `Get_DET@${Date.now()}`;
         if (!user) {
-            toastErro("ERRO: Usuário não definido!", []);
+            dispatch(addMensagem({ 
+                id: mensagemId, 
+                texto: `Usuário não definido. Não será possível obter DET do Relatório ID ${relatorio.id}.`,
+                status: 'INFO'
+            }));
             return;
         };
-        const titulo = `OBTER DET ID ${id}`;
-        console.log(`[ESCOLHER-RELATORIOS]: Iniciando requisição '${titulo}'.`);
-        toastInfo(`${titulo}: Em execução...`, []);
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: `Obtendo DET do Relatório ID ${relatorio.id}.`,
+            status: 'INFO'
+        }));
+
         try {
-            const fileBlob: Blob = await axiosRequest.getDet(id, user.name, user.email);
+            const fileBlob: Blob = await axiosRequest.getDet(relatorio.id, user.name, user.email);
             const buttons = [
                 {
                   text: 'Abrir',
@@ -124,15 +151,22 @@ const TicketRelatorio: React.FC<ModalConfigQueryProps> = ({ relatorio, notificac
                   handler: () => abrirDet(fileBlob),
                 }
             ];
-            toastOk(`${titulo}: Realizado com sucesso.`, buttons);
-            console.log(`[ESCOLHER-RELATORIOS]: Requisição '${titulo}' funcionou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `Sucesso.`,
+                status: 'OK'
+            }));
         }
         catch (error) {
-            toastErro(`${titulo}: ${error}`, []);
-            console.error(`[ESCOLHER-RELATORIOS]: Requisição '${titulo}' falhou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `${error}`,
+                status: 'ERROR'
+            }));
         }
     }
 
+    //Handler para navegar o usuário à tela de Revisão
     function iniciarRevisao(revisao: RelatorioHistoricoDTO) {
         dispatch(removeRevisao())
         dispatch(addRevisao(revisao));
@@ -140,6 +174,7 @@ const TicketRelatorio: React.FC<ModalConfigQueryProps> = ({ relatorio, notificac
         history.push(axiosRequest.URL_DET);
     }
 
+    //Handler para abrir o arquivo DET gerado
     function abrirDet(fileBlob: Blob) {
         //TODO: >>> MOVER PARA UM OUTRO ESCOPO/CLASSE  <<<
         //TODO: >>> OBTER O ARQUIVO E O CAMINHO DO ARQUIVO (PARA IFNORMAR O USUÁRIO) <<<
@@ -147,6 +182,7 @@ const TicketRelatorio: React.FC<ModalConfigQueryProps> = ({ relatorio, notificac
         window.open(fileUrl, '_blank');
     }
 
+    //Renderiza o componente
     return (
         <IonRow className="ion-align-items-center p-2 px-4 ">
             <div className="glass d-flex w-100 p-0 m-0">

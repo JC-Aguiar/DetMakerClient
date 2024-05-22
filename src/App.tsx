@@ -1,7 +1,7 @@
 import { IonApp, IonGrid, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonRow, IonTabBar, IonTabButton, IonTabs, ToastButton, setupIonicReact, useIonToast } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Redirect, Route } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 //import { show, hide } from './Store/Reducer/ReducerTabMenu';
 import dayjs from 'dayjs';
 import Intro from './pages/Intro';
@@ -28,7 +28,7 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import { useState } from 'react';
-import { layers, receipt, checkmarkCircle, logoGoogle, flask } from 'ionicons/icons';
+import { receipt, checkmarkCircle, logoGoogle, flask } from 'ionicons/icons'; 
 import Login from './pages/Login';
 import EscolherPipelines from './pages/EscolherPipelines';
 import { RootState } from './Store/ReduxStore';
@@ -37,7 +37,6 @@ import { validarJwt } from './data/JwtDTO';
 import { validarUser } from './data/UserDTO';
 import Avatar from './components/Core/Avatar';
 import DynamicPage from './components/Core/DynamicPage';
-import { Notificacao } from './components/Core/Noticacao';
 import { URL_CLIENTES, URL_PIPELINES, URL_RELATORIOS, URL_DET, URL_LOGIN } from './data/AxiosRequest';
 import { createBrowserHistory } from "history";
 import { JobInfoDTO } from './data/JobInfoDTO';
@@ -79,26 +78,18 @@ export function offsetDateTimeParaString(data: number): string {
 
 /* Componente <App> */
 const App = () => {
-    const dispatch = useDispatch();
-    const history = createBrowserHistory();
+    //Atriutos do componente
+    //const dispatch = useDispatch();
+    //const history = createBrowserHistory();
     const [boasVindas, setBoasVindas] = useState(false);
-    //const location = useLocation();
-    //const hideTabBarRoutes = ['/det-maker/evidence', '/signup'];
-    //setMenuOn(hideTabBarRoutes.some(route => location.pathname.includes(route)));
     const {jwt, user} = useSelector((state: RootState) => state.store.login);
-    //const showMenu: boolean = useSelector((state: RootState) => state.store.tabMenu);
     const catalagoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
     const mainAmbiente: string = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
-    const escolherJobsOpt: boolean = catalagoJobs.length > 0;
-    //const jobsCount: number = catalagoJobs.filter((item) => item.job.checked).length;
-    //const configurarJobsOpt: boolean = jobsCount > 0;
-    //const executarJobsOpt: boolean = false;
     const docParaRevisar: boolean = useSelector((state: RootState) => state.store.docRevisao.value) !== null;
-
     const isLoadingJobs: boolean = useSelector((state: RootState) => state.store.catalogoJobs.loading);
     const isLoadingPipelines: boolean = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
     const isLoadingRelatorios: boolean = useSelector((state: RootState) => state.store.catalogoRelatorios.loading);
-
+    //Configurando toast
     const [toast, toastOff] = useIonToast();
     const closeToast = {
       text: 'x',
@@ -141,7 +132,6 @@ const App = () => {
             })
         );
     };
-    const notificacao = { toastInfo: toastInfo, toastOk: toastOk, toastErro: toastErro } as Notificacao;
 
     const rotas: rotaTYPE[] = [
         {
@@ -149,7 +139,7 @@ const App = () => {
             exact: true,
             titulo: "Clientes", 
             subtitulo: "Escolha ou crie perfis de Clientes para acessar os recursos", 
-            conteudo: <EscolherClientes {...notificacao} />,
+            conteudo: <EscolherClientes />,
             icone: iconUserTie,
             desativado: false,
             efeito: null, //perfilSelecionado(),
@@ -169,7 +159,7 @@ const App = () => {
             exact: true,
             titulo: "Relatórios", 
             subtitulo: "Lista dos relatórios prontos ou a revisar", 
-            conteudo: <EscolherRelatorios {...notificacao} />,
+            conteudo: <EscolherRelatorios />,
             icone: receipt,
             desativado: mainAmbiente.length < 1 || isLoadingRelatorios,
             efeito: null, //contadorConfigJobs(),
@@ -179,7 +169,7 @@ const App = () => {
             exact: true,
             titulo: "Revisão", 
             subtitulo: "Analise e preencha os campos obrigatórios das evidências", 
-            conteudo: <RevisarRelatorio {...notificacao} />,
+            conteudo: <RevisarRelatorio />,
             icone: checkmarkCircle,
             desativado: !docParaRevisar,
             efeito: null,

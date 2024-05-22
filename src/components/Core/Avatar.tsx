@@ -12,11 +12,14 @@ import ModalNotificacoes from "../Modals/ModalNotificacoes";
 import { AtividadeMensagemTYPE } from "../../Store/Reducer/ReducerAtividade";
 //import { show, hide } from '../Store/Reducer/ReducerTabMenu';
 
+//Interface dos parâmetros de entrada do componente <Avatar>
 interface AvatarProps {
     user: UserDTO | null
 }
 
+//Componente <Avatar>
 const Avatar: React.FC<AvatarProps> = ({ user }) => {
+    //Atributos gerenciados pelo componente 
     const dispatch = useDispatch();
     const history = useHistory();
     const [toast, toastOff] = useIonToast();
@@ -27,11 +30,12 @@ const Avatar: React.FC<AvatarProps> = ({ user }) => {
             onDismiss: () => modalMensagensOff()
         }
     );
-
+    //Atributos com estado gerenciado via Redux
     const mainCliente: string = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
     const mainAmbiente: string = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
     const mensagens: AtividadeMensagemTYPE[] = useSelector((state: RootState) => state.store.configAtividade.mensagens);
 
+    //Atributos do botão 'close' (X) nos IonToasts de notificação 
     const closeToast = {
       text: 'x',
       role: 'Close',
@@ -51,6 +55,7 @@ const Avatar: React.FC<AvatarProps> = ({ user }) => {
         }));
     }, [mensagens]);
 
+    //Identifica a cor do IonToast com base no status
     function corDoStatus(status: string) {
         switch(status) {
             case "OK": return 'success';
@@ -59,6 +64,7 @@ const Avatar: React.FC<AvatarProps> = ({ user }) => {
         }
     }
 
+    //Realiza logoff do usuário na aplicação
     const logOff = () => {
         //dispatch(show());
         dispatch(setJwt(null));
@@ -66,6 +72,7 @@ const Avatar: React.FC<AvatarProps> = ({ user }) => {
         history.push(URL_LOGIN);
     }
 
+    //Renderiza ou não a tag de informação flutuante do Cliente e Ambiente selecionados pelo usuário
     const ambiente = () => {
         if (mainAmbiente === '') return <></>;
         //<IonCol size="12" className="p-0 m-0">

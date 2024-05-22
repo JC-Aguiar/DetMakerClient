@@ -22,12 +22,12 @@ const ConfigurarJobs: React.FC = () => {
     const dispatch = useDispatch();
 
     //Atributos com estado gerenciado via React
-    const reorderGroupRef = useRef<HTMLIonReorderGroupElement>(null);
+    //const reorderGroupRef = useRef<HTMLIonReorderGroupElement>(null);
     const inputIfxdateRef = useRef<HTMLIonInputElement>(null);
     const [alerta] = useIonAlert();
 
     //Atributos com estado gerenciado via Redux
-    const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
+    //const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
     const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
     const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
     const catalogoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
@@ -67,9 +67,9 @@ const ConfigurarJobs: React.FC = () => {
         try {
             const novaPipeline = catalogoPipelines.find(pipe => pipe.id === mainPipelineId);
             if (!novaPipeline) 
-                throw `Pipeline ID ${mainPipelineId} não encontrada no catálogo de Pipelines.`
+                throw `Pipeline ID ${mainPipelineId} não encontrada no catálogo de Pipelines.`;
 
-            const resultado = await axiosRequest.atualizarPipeline(novaPipeline);
+            await axiosRequest.atualizarPipeline(novaPipeline);
             const catalogoPipelinesAtualizado = catalogoPipelines.slice()
                 .map(pipe => {
                     if (pipe.id !== mainPipelineId) return pipe;

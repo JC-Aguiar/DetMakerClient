@@ -1,21 +1,19 @@
-import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonLabel, IonItem } from "@ionic/react";
-import { closeCircle, flag, save, trash } from "ionicons/icons";
-import { useRef, useState } from "react";
-import { Notificacao } from "../Core/Noticacao";
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from "../../Store/ReduxStore";
+import { IonRow, IonCol, IonInput, IonItem } from "@ionic/react";
+import { save } from "ionicons/icons";
+import { useRef } from "react";
+import { useDispatch } from 'react-redux';
 import * as axiosRequest from "../../data/AxiosRequest";
 import Botao from "../Core/Botao";
 import { addAmbiente, loadingClientes } from "../../Store/Reducer/ReducerClientes";
 import { AmbienteInfoDTO } from "../../data/AmbienteInfoDTO";
+import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
 
 export interface ModalNovoAmbienteProps {
     clienteId:  number,
-    notificacao: Notificacao;
     onSave?: () => void;
 }
 
-const ModalNovoAmbiente: React.FC<ModalNovoAmbienteProps> = ({ clienteId, notificacao, onSave = () => null }) => {
+const ModalNovoAmbiente: React.FC<ModalNovoAmbienteProps> = ({ clienteId, onSave = () => null }) => {
     //Atrbiutos para usar recursos Redux e React
     const dispatch = useDispatch();
 
@@ -28,12 +26,9 @@ const ModalNovoAmbiente: React.FC<ModalNovoAmbienteProps> = ({ clienteId, notifi
     const refBancoUsuario = useRef<HTMLIonInputElement>(null);
     const refBancoSenha = useRef<HTMLIonInputElement>(null); 
 
-    //Atributos úteis
-    const { toastInfo, toastOk, toastErro } = notificacao;
-
     //Requisição para criar novo Ambiente para este mesmo Cliente
     async function criarNovoAmbiente() {
-
+        const mensagemId = `New_Environment@${Date.now()}`;
         const elementos: HTMLIonInputElement[] = [
             refNome!.current!,
             refSftpConexao!.current!,
@@ -45,7 +40,11 @@ const ModalNovoAmbiente: React.FC<ModalNovoAmbienteProps> = ({ clienteId, notifi
         ];
         const pendentes = elementos.filter(item =>  !item.value || item.value.toString().length < 1);
         if (pendentes.length > 0) {
-            toastErro(`Preencha o campo obrigatório '${pendentes[0].placeholder}'.`, []);
+            dispatch(addMensagem({ 
+                id: mensagemId, 
+                texto: `Preencha o campo obrigatório '${pendentes[0].placeholder}' para criar novo Ambiente.`,
+                status: 'ERROR'
+            }));
             pendentes[0].setFocus();
             return;
         };
@@ -53,7 +52,11 @@ const ModalNovoAmbiente: React.FC<ModalNovoAmbienteProps> = ({ clienteId, notifi
         const [nome, sftpConexao, sftpUsuario, sftpSenha, bancoConexao, bancoUsuario, bancoSenha] = elementos
             .map(item => item.value!.toString());
         
-        toastInfo("Salvando no banco novo Ambiente...", []);
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: `Salvando novo Ambiente '${nome}' no catálogo do Cliente.`,
+            status: 'INFO'
+        }));
         dispatch(loadingClientes(true));
         try {
             const ambiente: AmbienteInfoDTO = {
@@ -75,11 +78,19 @@ const ModalNovoAmbiente: React.FC<ModalNovoAmbienteProps> = ({ clienteId, notifi
                 clienteId: clienteId, 
                 ambiente: novoAmbiente 
             }));
-            toastOk("Ambiente criado com sucesso.", []);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `Sucesso.`,
+                status: 'OK'
+            }));
             onSave();
         }
         catch (error) {
-            toastErro(`Erro ao tentar criar novo Ambiente: ${error}`, []);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `${error}`,
+                status: 'ERROR'
+            }));
         }
         dispatch(loadingClientes(false));
     }

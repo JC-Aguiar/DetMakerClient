@@ -1,39 +1,38 @@
-import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonLabel, IonItem } from "@ionic/react";
-import { closeCircle, flag, save, trash } from "ionicons/icons";
-import { useRef, useState } from "react";
-import { Notificacao } from "../Core/Noticacao";
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from "../../Store/ReduxStore";
+import { IonRow, IonCol, IonInput, IonItem } from "@ionic/react";
+import { save } from "ionicons/icons";
+import { useRef } from "react";
+import { useDispatch } from 'react-redux';
 import * as axiosRequest from "../../data/AxiosRequest";
 import Botao from "../Core/Botao";
-import { addAmbiente, loadingClientes } from "../../Store/Reducer/ReducerClientes";
-import { ClienteInfoDTO } from "../../data/ClienteInfoDTO";
+import { loadingClientes } from "../../Store/Reducer/ReducerClientes";
 import { ClienteNovoDTO } from "../../data/ClienteNovoDTO";
+import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
 
 export interface ModalNovoClienteProps {
-    notificacao: Notificacao;
     onSave?: () => void;
 }
 
-const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({ notificacao, onSave = () => null }) => {
+const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({ onSave = () => null }) => {
     //Atrbiutos para usar recursos Redux e React
     const dispatch = useDispatch();
 
     //Atibutos de estado gerenciados via Redux
     const refNome = useRef<HTMLIonInputElement>(null);
     const refBanner = useRef<HTMLInputElement>(null);
-    
-    //Atributos úteis
-    const { toastInfo, toastOk, toastErro } = notificacao;
 
     //Requisição para criar novo Ambiente para este mesmo Cliente
     async function criarNovoCliente() {
         const nome = refNome!.current!.value;
         const banner = refBanner!.current!.files;
         const maxMB = 1; // 1MB
+        const mensagemId = `New_Client@${Date.now()}`;
 
         if (!nome || nome.toString().length < 0) {
-            toastErro(`Preencha o campo obrigatório 'Nome'.`, []);
+            dispatch(addMensagem({ 
+                id: mensagemId, 
+                texto: `Preencha o campo obrigatório 'Nome' para criar novo Cliente.`,
+                status: 'ERROR'
+            }));
             refNome!.current!.setFocus();
             return;
         };
@@ -42,8 +41,11 @@ const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({ notificacao, onSave
             nome: nome.toString(),
             banner: "", //new Uint8Array(),
         };
-        
-        toastInfo("Salvando no banco novo Cliente...", []);
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: `Criando novo cliente '${nome.toString()}'.`,
+            status: 'INFO'
+        }));
         try {
             if (banner && banner.length > 0) {
                 if (banner[0].size > (maxMB * 1024 * 1024))
@@ -51,11 +53,19 @@ const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({ notificacao, onSave
                 cliente.banner = await fileToBase64(banner[0]);
             }
             await axiosRequest.saveNovoCliente(cliente); //const novoCliente: ClienteInfoDTO = 
-            toastOk("Cliente criado com sucesso.", []);
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `Sucesso.`,
+                status: "OK",
+            }));
             onSave();
         }
         catch (error) {
-            toastErro(`Erro ao tentar criar novo Cliente: ${error}`, []);
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `${error}`,
+                status: "ERROR",
+            }));
         }
         dispatch(loadingClientes(false));
     }

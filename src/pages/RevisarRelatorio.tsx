@@ -11,12 +11,11 @@ import { UserDTO } from '../data/UserDTO';
 import { EvidenciaRevisadaDTO } from '../data/EvidenciaRevisadaDTO';
 import * as axiosRequest from '../data/AxiosRequest';
 import { EvidenciasRevisadasDTO } from '../data/AxiosRequest';
-import { Notificacao } from '../components/Core/Noticacao';
-import dayjs from 'dayjs';
 import { offsetDateTimeParaString } from '../App';
 import { useHistory } from 'react-router';
 import { layoutGrupoBotoes, ButtonLayoutProps } from '../components/Core/ButtonLayout';
 import { exitCode } from 'process';
+import { addMensagem, atualizarMensagem } from '../Store/Reducer/ReducerAtividade';
 
 
 //Interface das tabelas da sessão 'Evolução dos Testes' no DET
@@ -48,7 +47,7 @@ export interface DetTestcase {
 export type DetStatusTYPE = "Aprovado" | "Reprovado" | "Parcial";
 
 
-const RevisarRelatorio: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
+const RevisarRelatorio: React.FC = () => {
     const dispatch = useDispatch();
     const history = useHistory();
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
@@ -430,16 +429,20 @@ const RevisarRelatorio: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
 
     const salvarRevisao = async () => {
         if (!relatorio) {
-            toastErro("ERRO: Nenhum relatório para Revisão disponível", []);
+            console.warn("ERRO: Nenhum relatório para Revisão disponível");
             return;
         };
-        let itensLocked = 0; //FIX01
+        
+        const mensagemId = `Save_Review@${Date.now()}`;
         console.log(`Revisoeres: ${relatorio.evidencias.map((item) => item.revisor).join(", ")}`);
         if (IdsLocked.length === relatorio.evidencias.length) {
-            toastInfo("Relatório já revisado. Sem necessidade de atualizar o banco.", []);
+            dispatch(addMensagem({ 
+                id: mensagemId, 
+                texto: `Relatório ID ${relatorio.id}: Já consta 100% revisado.`,
+                status: 'INFO'
+            }));
             return;
         }
-        
         const data = new Date();
         const evidenciasParaSalvar: EvidenciaRevisadaDTO[] = relatorio.evidencias
             //.filter((item) => checkEvidenciaPronta(item))
@@ -455,21 +458,36 @@ const RevisarRelatorio: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
             });
         console.log(`[REVISAR-RELATORIO]: IDs das Evidências revisadas para salvar: ` + evidenciasParaSalvar.map((item) => item.evidenciaId));
         console.log(`[REVISAR-RELATORIO]: Total de Evidências revisadas para salvar: ` + evidenciasParaSalvar.length);
+
         if (evidenciasParaSalvar.length === 0) {
-            toastInfo("Revise ao menos uma Evidência pendente para poder ataulizar o banco.", []);
+            dispatch(addMensagem({ 
+                id: mensagemId, 
+                texto: `Relatório ID ${relatorio.id}: Revise ao menos 1 Evidência pendente para ataulizar o banco.`,
+                status: 'INFO'
+            }));
             return;
         }
-        console.log(`[REVISAR-RELATORIO]: Iniciando requisição 'Salvar Revisoão'.`);
-        toastInfo("SALVAR REVISÃO: Em execução...", []);
+        
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: `Relatório ID ${relatorio.id}: Salvando ${evidenciasParaSalvar.length} Evidência(s) no banco.`,
+            status: 'INFO'
+        }));
         try {
             const evidenciasSalvas: EvidenciasRevisadasDTO = await axiosRequest.saveRevisaoEvidencia(evidenciasParaSalvar);
             dispatch(setTestcaseLock(evidenciasSalvas.saved))
-            toastOk("SALVAR REVISÃO: Realizada com sucesso.", []);
-            console.log(`[REVISAR-RELATORIO]: Requisição 'Salvar Revisoão' funcionou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `Sucesso.`,
+                status: 'OK'
+            }));
         }
         catch (error) {
-            toastErro(`SALVAR REVISÃO: ${error}`, []);
-            console.error(`[REVISAR-RELATORIO]: Requisição 'Salvar Revisoão' falhou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `${error}`,
+                status: 'ERROR'
+            }));
         }
         
     };
@@ -477,7 +495,7 @@ const RevisarRelatorio: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
     const gerarDet = async () => {
         //TODO: melhorar!
         if (!relatorio) {
-            toastErro("ERRO: Nenhum Relatório para Revisão selecionado!", []);
+            console.warn("ERRO: Nenhum Relatório para Revisão selecionado!");
             return;
         }
         //if (!podeGerarDet()) {
@@ -485,12 +503,16 @@ const RevisarRelatorio: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
         //    return;
         //}
         if (!user) {
-            toastErro("ERRO: Usuário não definido!", []);
+            console.warn("ERRO: Usuário não definido!");
             return;
         };
 
-        console.log(`[REVISAR-RELATORIO]: Iniciando requisição 'Obter Det'.`);
-        toastInfo("OBTER DET: Em execução...", []);
+        const mensagemId = `Get_DET@${Date.now()}`;
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: `Obtendo DET ID ${relatorio.id}.`,
+            status: 'INFO'
+        }));
         try {
             const fileBlob: Blob = await axiosRequest.getDet(relatorio.id, user.name, user.email);
             const buttons = [
@@ -500,12 +522,18 @@ const RevisarRelatorio: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
                   handler: () => abrirDet(fileBlob),
                 }
             ];
-            toastOk("OBTER DET: Realizada com sucesso.", buttons);
-            console.log(`[REVISAR-RELATORIO]: Requisição 'Obter Det' funcionou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `Sucesso.`,
+                status: 'OK'
+            }));
         }
         catch (error) {
-            toastErro(`OBTER DET: ${error}`, []);
-            console.error(`[REVISAR-RELATORIO]: Requisição 'Obter Det' falhou.`);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `${error}`,
+                status: 'ERROR'
+            }));
         }
     }
 

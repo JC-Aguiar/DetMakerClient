@@ -1,7 +1,6 @@
 import { IonIcon, IonRow, IonBadge, IonCol, IonInput, IonItem } from "@ionic/react";
 import { alertCircle, reorderThree, save, } from "ionicons/icons";
 import { useRef } from "react";
-import { Notificacao } from "../Core/Noticacao";
 import { useDispatch } from 'react-redux';
 import Botao from "../Core/Botao";
 import { JobInfoDTO } from "../../data/JobInfoDTO";

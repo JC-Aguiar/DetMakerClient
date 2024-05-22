@@ -15,14 +15,13 @@ import { ClienteInfoDTO } from '../data/ClienteInfoDTO';
 import Informativo from '../components/Core/Informativo';
 import Carregando from '../components/Core/Carregando';
 import { AmbienteInfoDTO } from '../data/AmbienteInfoDTO';
-import { Notificacao } from '../components/Core/Noticacao';
 import Botao from '../components/Core/Botao';
 import ModalNovoAmbiente from '../components/Modals/ModalNovoAmbiente';
 import DynamicModal from '../components/Core/DynamicModal';
 import ModalNovoCliente from '../components/Modals/ModalNovoCliente';
 import { addMensagem, atualizarMensagem } from '../Store/Reducer/ReducerAtividade';
 
-const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro }) => {
+const EscolherClientes: React.FC = () => {
     //Atrbiutos úteis
     const dispatch = useDispatch();
     const [conectionsCount, setConectionsCount] = useState<number>(0);
@@ -36,21 +35,14 @@ const EscolherClientes: React.FC<Notificacao> = ({ toastInfo, toastOk, toastErro
     const [modalNovoClienteOn, modalNovoClienteOff] = useIonModal(DynamicModal,
         {
             titulo: "Criar Novo Cliente",
-            elemento: <ModalNovoCliente
-                    notificacao={{toastInfo, toastOk, toastErro}} 
-                    onSave={() => { coletarRecursos(); modalNovoClienteOff(); }} 
-                />,
+            elemento: <ModalNovoCliente onSave={() => { coletarRecursos(); modalNovoClienteOff(); }} />,
             onDismiss: () => modalNovoClienteOff()
         }
     );
     const [modalNovoAmbienteOn, modalNovoAmbienteOff] = useIonModal(DynamicModal,
         {
             titulo: "Criar Novo Ambiente",
-            elemento: <ModalNovoAmbiente
-                    clienteId={clienteId} 
-                    notificacao={{toastInfo, toastOk, toastErro}} 
-                    onSave={() => modalNovoAmbienteOff()} 
-                />,
+            elemento: <ModalNovoAmbiente clienteId={clienteId} onSave={() => modalNovoAmbienteOff()} />,
             onDismiss: () => modalNovoAmbienteOff(),
         }
     );
