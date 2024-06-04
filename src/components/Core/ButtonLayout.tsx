@@ -1,10 +1,25 @@
-import { IonBadge, IonButton, IonCol, IonFab, IonFabButton, IonGrid, IonIcon, IonRow } from "@ionic/react";
+import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonIcon, IonInput, IonLabel, IonPopover, IonRow } from "@ionic/react";
+import { HTMLAttributes, ReactNode, useEffect, useRef, useState } from "react";
 
 export interface ButtonLayoutProps {
     title: string,
     icon: string,
-    disable: boolean,
+    disabled: boolean,
     trigger: () => void,
+    popover?: PopoverProps,
+    id?: string,
+}
+
+export interface PopoverProps {
+    text?: string,
+    input?: JSX.Element,
+}
+
+export interface PopoverInputProps {
+    onIonChange?: (e: CustomEvent<InputChangeEventDetail>) => void,
+    onIonBlur?: (e: CustomEvent<FocusEvent>) => void,
+    onIonFocus?: (e: CustomEvent<FocusEvent>) => void,
+    onIonInput?: (e: CustomEvent<InputEvent>) => void,
 }
 
 export const layoutGrupoBotoes = (grupo: ButtonLayoutProps[]) => {
@@ -18,13 +33,8 @@ export const layoutGrupoBotoes = (grupo: ButtonLayoutProps[]) => {
             <div className="glass-content" >
                 {
                     grupo.map((item, index) => 
-                        <IonRow className="m-0 p-1 ion-justify-content-center ion-align-items-center">
-                            <ButtonLayout key={index} 
-                                title={item.title} 
-                                icon={item.icon} 
-                                disable={item.disable} 
-                                trigger={item.trigger} 
-                            />
+                        <IonRow key={index} className="m-0 p-1 ion-justify-content-center ion-align-items-center">
+                            <ButtonLayout {...item} />
                         </IonRow>
                     )
                 }
@@ -33,13 +43,44 @@ export const layoutGrupoBotoes = (grupo: ButtonLayoutProps[]) => {
     );
 };
 
-const ButtonLayout: React.FC<ButtonLayoutProps> = ({ title, icon, disable, trigger }) => {
+const ButtonLayout: React.FC<ButtonLayoutProps> = ({ title, icon, disabled, trigger, id, popover = null }) => {
+    //props.children = null;
+    const popRef = useRef<HTMLIonCardElement>(null);
+    const [mouseLeaveButton, setMouseLeaveButton] = useState<boolean>(true);
+    const [mouseLeavePopover, setMouseLeavePopover] = useState<boolean>(true);
+
+    const isVisible = () => {
+        return (!mouseLeaveButton || !mouseLeavePopover) ? "visible" : "";
+    }
+
+    //<IonRow className="m-0 p-0 py-1 lh-1 ion-justify-content-center ion-align-items-center" >
+    const showPopover = () => {
+        if(popover === null || (!popover.text && !popover.input)) return <></>;
+        
+        return <IonCard className={`simples-popover p-0 m-0 ms-3 ${isVisible()} `}
+                ref={popRef}
+                onMouseLeave={(e) => setMouseLeavePopover(true)}
+                onMouseEnter={(e) => setMouseLeavePopover(false)}
+            >
+                <IonRow className="glass simples-popover-content ion-align-items-center">
+                    <IonLabel className="p-0 m-0 small" color="#" hidden={!popover.text}>
+                        {popover.text}
+                    </IonLabel>  
+                    {popover.input ? popover.input : null}
+                </IonRow>
+            </IonCard>;
+    }
+
     return (
+        <>
         <button onClick={trigger} 
+            id={id}
             color="#" 
-            disabled={disable}
+            disabled={disabled}
             className="btn btn-primary glass"
             style={{width: '64px'}}
+            onMouseLeave={(e) => setMouseLeaveButton(true)}
+            onMouseEnter={(e) => setMouseLeaveButton(false)}
         >
             <IonRow className="m-0 p-0 ion-justify-content-center ion-align-items-center">
                 <IonCol size='12' className="m-0 p-0">
@@ -54,6 +95,8 @@ const ButtonLayout: React.FC<ButtonLayoutProps> = ({ title, icon, disable, trigg
                 </IonCol>
             </IonRow>
         </button>
+        {showPopover()}
+        </>
     );
 };
 

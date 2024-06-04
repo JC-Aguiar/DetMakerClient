@@ -196,7 +196,7 @@ const ModalNovoAmbiente: React.FC<ModalNovoAmbienteProps> = ({ clienteId, onSave
                     </IonRow>
                     <div className="d-flex ion-justify-content-end py-2">
                         <Botao icon={save}
-                            texto="Salvar no Banco"
+                            text="Salvar no Banco"
                             //disabled={nome.trim().length < 2 || ambienteSftpConexao.trim().length < 2} 
                             handler={() => criarNovoAmbiente()} 
                         />

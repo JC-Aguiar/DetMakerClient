@@ -1,13 +1,14 @@
 import { IonButton, IonIcon } from "@ionic/react";
+import { HTMLAttributes } from "react";
 
-export interface BotaoProps {
+export interface BotaoProps extends HTMLAttributes<HTMLIonButtonElement> {
     icon?: string, 
-    texto: string,  
+    text: string,  
     disabled?: boolean, 
     handler: () => void,
 }
 
-const Botao: React.FC<BotaoProps> = ({ icon=null, texto, disabled=false, handler }) => {
+const Botao: React.FC<BotaoProps> = ({ icon=null, text, disabled=false, handler, color = 'light', ...props }) => {
 
     const renderizarIcone = () => {
         if (!icon) return <></>;
@@ -15,9 +16,16 @@ const Botao: React.FC<BotaoProps> = ({ icon=null, texto, disabled=false, handler
     }
 
     return (
-        <IonButton className='glass border border-2 mx-2'  fill="clear" color='light' onClick={handler} disabled={disabled}>
+        <IonButton fill="clear" 
+            {...props}
+            color={color}
+            className={`glass mx-2'${props.className}`}  
+            onClick={handler} 
+            disabled={disabled}
+            style={{ borderWidth: '2px', borderColor: `var(--ion-color-${color})` }}
+        >
             {renderizarIcone()}
-            <div>{texto}</div> 
+            <div >{text}</div> 
         </IonButton>
     );
 }
@@ -29,7 +37,7 @@ export const Botoes: React.FC<{botoes: BotaoProps[]}> = ({ botoes }) => {
         {
             botoes.map((item, index) => <Botao key={index} 
                     icon={item.icon} 
-                    texto={item.texto} 
+                    text={item.text} 
                     handler={item.handler}
                     disabled={item.disabled} 
                 />

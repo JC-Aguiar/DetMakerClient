@@ -220,11 +220,11 @@ const ConfigurarJobs: React.FC = () => {
 
     //Botoes contendo as opções para cada Pipeline
     const botoes: BotaoProps[] = [
-        {icon: flash, texto: "Executar",  handler: () => modalConfigPipelineOn()},
-        {icon: save, texto: "Salvar",    handler: () => atualizarPipeline()},
+        {icon: flash, text: "Executar",  handler: () => modalConfigPipelineOn()},
+        {icon: save, text: "Salvar",    handler: () => atualizarPipeline()},
         //{icon: open, texto: "Ver Dados", handler: () => null},
-        {icon: arrowUndo, texto: "Resetar",  handler: () => resetarJobsPipeline()},
-        {icon: trash, texto: "Apagar",    handler: () => deletarMainPipeline()},
+        {icon: arrowUndo, text: "Resetar",  handler: () => resetarJobsPipeline()},
+        {icon: trash, text: "Apagar",    handler: () => deletarMainPipeline()},
     ];
 
     //Renderização do componente

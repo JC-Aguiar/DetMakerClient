@@ -1,14 +1,15 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RelatorioResumoDTO } from '../../data/RelatorioResumoDTO';
+import { Page } from '../../data/Page';
 
 const initialState = { 
-    catalogo: [],
+    catalogo: null,
     loading: false,
 } as ReducerRelatoriosProps;
 
 //Interface para definir o tipo de objeto do reducer
 interface ReducerRelatoriosProps {
-    catalogo: RelatorioResumoDTO[],
+    catalogo: Page<RelatorioResumoDTO> | null,
     loading: boolean,
 }
 
@@ -17,8 +18,8 @@ const catalogoRelatorios = createSlice({
     name: 'catalogoRelatorios',
     initialState,
     reducers: {
-        setRelatorios: (state, action: PayloadAction<RelatorioResumoDTO[]>) => {
-            if (!Array.isArray(action.payload)) {
+        setRelatorios: (state, action: PayloadAction<Page<RelatorioResumoDTO> | null>) => {
+            if (!Array.isArray(action.payload?.content)) {
                 console.log('[ReducerRelatorios] Erro: payload inválido, pois não é um array.');
                 return { ...state };
             }
@@ -26,15 +27,15 @@ const catalogoRelatorios = createSlice({
             state.catalogo = action.payload;
             //logRelatorios(state.catalogo);
         },
-        addRelatorio: (state, action: PayloadAction<RelatorioResumoDTO>) => {
-            console.log('[ReducerRelatorios]: Acionado controlador catalogoRelatorios.addRelatorio!');
-            state.catalogo.push(action.payload);
-            //logRelatorios(state.catalogo);
-        },
+        //addRelatorio: (state, action: PayloadAction<RelatorioResumoDTO>) => {
+        //    console.log('[ReducerRelatorios]: Acionado controlador catalogoRelatorios.addRelatorio!');
+        //    state.catalogo.push(action.payload);
+        //    //logRelatorios(state.catalogo);
+        //},
         loadingRelatorios: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerRelatorios]: Acionado controlador catalogoRelatorios.loadingRelatorios!');
             state.loading = action.payload;
-            if (state.loading) state.catalogo = [];
+            if (state.loading) state.catalogo = null;//[];
             console.log(`[ReducerRelatorios]: Catalogo de Relatorios ${state.loading ? 'está carregando..' : 'pronto'}.`);
         },
     },
@@ -53,4 +54,4 @@ function logRelatorios(clientes: RelatorioResumoDTO[]) {
 }
 
 export default catalogoRelatorios.reducer;
-export const { setRelatorios, addRelatorio, loadingRelatorios } = catalogoRelatorios.actions;
+export const { setRelatorios, loadingRelatorios } = catalogoRelatorios.actions;

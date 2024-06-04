@@ -16,13 +16,14 @@ import { MassaTabelaDTO } from './MassaTabelaDTO';
 import { MassaPreparada } from './MassaPreparada';
 import { AmbienteInfoDTO } from './AmbienteInfoDTO';
 import { ClienteNovoDTO } from './ClienteNovoDTO';
+import { Page } from './Page';
 
-const EM_TESTE = true;
+const EM_TESTE = false;
 
 //URLs do servidor
-export const SERVER_URL = 'localhost:8080'; //window.location.origin;
+export const SERVER_URL = '127.0.0.1:1990'; //wildfly;
 export const SERVER_URL_DEV = 'localhost:1990';
-export const SERVER_CONTEXT_PATH = '/det-maker-server';
+export const SERVER_CONTEXT_PATH = ''; //'/det-maker-server';
 export const SERVER_CONTEXT_PATH_DEV = '';
 export const REQUEST_URL = EM_TESTE ? 
     `http://${SERVER_URL_DEV}${SERVER_CONTEXT_PATH_DEV}` : 
@@ -403,7 +404,15 @@ export async function testarMassa(massa: MassaTabelaDTO, clienteId: number): Pro
 }
 
 //Requisição para obter todos os Relatórios no banco
-export async function getAllRelatorios(ambienteId: number): Promise<RelatorioResumoDTO[]> {
+export async function getAllRelatorios(
+    index: number,
+    ambienteId: number,
+    idProjeto: string,
+    nomeProjeto: string,
+    nomeAtividade: string,
+    nomePipeline: string,
+    dataExec: string,
+): Promise<Page<RelatorioResumoDTO>> {
     const titulo = "OBTENDO RELATORIOS";
     requestStart(titulo);
 
@@ -415,14 +424,20 @@ export async function getAllRelatorios(ambienteId: number): Promise<RelatorioRes
         headers: headers,
         timeout: 30000,
         params: {
-            itens: 200,
+            page: index,
+            itens: 20,
+            idProjeto: idProjeto === "" ? null : idProjeto,
+            nomeProjeto: nomeProjeto === "" ? null : nomeProjeto,
+            nomeAtividade: nomeAtividade === "" ? null : nomeAtividade,
+            nomePipeline: nomePipeline === "" ? null : nomePipeline,
+            data: dataExec === "" ? null : dataExec,
         }
     };
     //Executando requisição
     return await axios
         .request(config)
         .then((response) => {
-            return response.data.content;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);

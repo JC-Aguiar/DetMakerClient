@@ -1,10 +1,10 @@
-import { IonButton, IonIcon, IonBadge, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonRow } from "@ionic/react";
+import { IonButton, IonIcon, IonBadge, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonRow, IonFab } from "@ionic/react";
 import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, cubeOutline, eye, flag, flash, layers, newspaperOutline, pricetagOutline, document } from "ionicons/icons";
 import * as axiosRequest from "../../data/AxiosRequest";
 import { useDispatch, useSelector } from "react-redux";
 import { RelatorioResumoDTO } from "../../data/RelatorioResumoDTO";
 import { offsetDateTimeParaString } from "../../App";
-import { addRelatorio } from "../../Store/Reducer/ReducerRelatorios";
+//import { addRelatorio } from "../../Store/Reducer/ReducerRelatorios";
 import { removeRevisao, addRevisao } from "../../Store/Reducer/ReducerRevisao";
 import { RelatorioHistoricoDTO } from "../../data/RelatorioHistoricoDTO";
 import { useHistory } from "react-router";
@@ -15,9 +15,10 @@ import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtivi
 //Atributos de entrada do componente TicketRelatorio
 export interface TicketRelatorioProps {
     relatorio: RelatorioResumoDTO,
+    index: number,
 }
 
-const TicketRelatorio: React.FC<TicketRelatorioProps> = ({ relatorio}) => {
+const TicketRelatorio: React.FC<TicketRelatorioProps> = ({ relatorio, index }) => { 
     //Atributos do componente
     const dispatch = useDispatch();
     const history = useHistory();
@@ -109,12 +110,14 @@ const TicketRelatorio: React.FC<TicketRelatorioProps> = ({ relatorio}) => {
             ];
             dispatch(atualizarMensagem({ 
                 id: mensagemId, 
-                complmento: `Sucesso.`,
+                complmento: 'Sucesso.\n'
+                    + `Atualize a página de Relatórios e produce pelo ID ${relatorioReexecutado.id}.`,
                 status: 'OK'
             }));
             //toastOk(`${titulo}: Realizado com sucesso.`, buttons);
-            const novoRelatorioResumo: RelatorioResumoDTO = await axiosRequest.getUmRelatorio(relatorioReexecutado.id);
-            dispatch(addRelatorio(novoRelatorioResumo));
+            //const novoRelatorioResumo: RelatorioResumoDTO = await axiosRequest.getUmRelatorio(relatorioReexecutado.id);
+            //dispatch(addRelatorio(novoRelatorioResumo));
+            //dispatch()
         }
         catch (error) {
             dispatch(atualizarMensagem({ 
@@ -185,43 +188,53 @@ const TicketRelatorio: React.FC<TicketRelatorioProps> = ({ relatorio}) => {
     //Renderiza o componente
     return (
         <IonRow className="ion-align-items-center p-2 px-4 ">
-            <div className="glass d-flex w-100 p-0 m-0">
-                <div className="d-flex glass-content align-content-end ion-align-items-center">
-                    <div className="ms-3">
-                        <IonIcon icon={newspaperOutline} 
-                            color='primary' 
-                            size="large"
-                            className="pe-1" 
-                            style={{transform: 'translate(0px, 3px)'}} 
-                        />
-                        {relatorio.id}
-                    </div>
-                    <IonCard className="ms-0 mb-0 w-100 bg-transparent border-0" style={{boxShadow: '0 0 0 '}}>
-                        <IonCardHeader className='m-0 p-0'>
-                            <IonCardTitle className='text-white py-0 ion-align-items-center'>
-                                {tag(calendarOutline, offsetDateTimeParaString(relatorio.data))}
-                                {tag(pricetagOutline, relatorio.idProjeto +" - "+ relatorio.nomeProjeto)}
-                                {tag(cubeOutline, relatorio.evidencias)}
-                                {tag(checkmarkCircleOutline, relatorio.revisados, !jaRevisado)}
-                                {tagSucesso}
-                            </IonCardTitle>
-                        </IonCardHeader>
-                        <IonCardContent className='p-0 m-0'>
-                            <div className={fonteCodigo}>
-                                <div className="">
-                                    <IonIcon icon={flag} color="light" className="pe-1" style={{transform: 'translate(0px, 3px)'}} />
-                                    {relatorio.nomeAtividade}
-                                </div>
-                                <div className="">
-                                    <IonIcon icon={layers} className='ms-1' style={{fill: 'var(--ion-color-light)', transform: 'translate(-3px, 3px)'}}/>
-                                    {relatorio.nomePipeline}
-                                </div>
+            <div className="glass d-flex w-100 glass-content align-content-end ion-align-items-center">
+                <IonFab slot="fixed" 
+                    vertical="top" 
+                    horizontal="start" 
+                    edge
+                >
+                    <IonBadge color="primary" 
+                        className="text-center" 
+                        style={{ transform: 'translate(-11px, 27px)', minWidth: '24px' }}
+                    >
+                        <small>{index+1}</small>
+                    </IonBadge>
+                </IonFab>
+                <div className="ms-3">
+                    <IonIcon icon={newspaperOutline} 
+                        color='primary' 
+                        size="large"
+                        className="pe-1" 
+                        style={{transform: 'translate(0px, 3px)'}} 
+                    />
+                    {relatorio.id}
+                </div>
+                <IonCard className="ms-0 mb-0 w-100 bg-transparent border-0" style={{boxShadow: '0 0 0 '}}>
+                    <IonCardHeader className='m-0 p-0'>
+                        <IonCardTitle className='text-white py-0 ion-align-items-center'>
+                            {tag(calendarOutline, offsetDateTimeParaString(relatorio.data))}
+                            {tag(pricetagOutline, relatorio.idProjeto +" - "+ relatorio.nomeProjeto)}
+                            {tag(cubeOutline, relatorio.evidencias)}
+                            {tag(checkmarkCircleOutline, relatorio.revisados, !jaRevisado)}
+                            {tagSucesso}
+                        </IonCardTitle>
+                    </IonCardHeader>
+                    <IonCardContent className='p-0 m-0'>
+                        <div className={fonteCodigo}>
+                            <div className="">
+                                <IonIcon icon={flag} color="light" className="pe-1" style={{transform: 'translate(0px, 3px)'}} />
+                                {relatorio.nomeAtividade}
                             </div>
-                        </IonCardContent>
-                    </IonCard>
-                    <div className="p-0 pe-2">
-                        {butoes}
-                    </div>
+                            <div className="">
+                                <IonIcon icon={layers} className='ms-1' style={{fill: 'var(--ion-color-light)', transform: 'translate(-3px, 3px)'}}/>
+                                {relatorio.nomePipeline}
+                            </div>
+                        </div>
+                    </IonCardContent>
+                </IonCard>
+                <div className="p-0 pe-2">
+                    {butoes}
                 </div>
             </div>
         </IonRow>

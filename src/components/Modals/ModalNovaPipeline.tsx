@@ -175,7 +175,7 @@ const ModalNovaPipeline: React.FC = () => {
                     </IonRow>
                     <div className="d-flex ion-justify-content-end py-2">
                         <Botao icon={save}
-                            texto="Salvar no Banco"
+                            text="Salvar no Banco"
                             disabled={pipelineNome.trim().length < 2 || pipelineDescricao.trim().length < 2} 
                             handler={salvarNovaPipeline} 
                         /> 

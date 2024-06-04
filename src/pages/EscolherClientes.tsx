@@ -52,14 +52,14 @@ const EscolherClientes: React.FC = () => {
         title: 'Atualizar',
         icon: refresh,
         trigger: () =>  coletarRecursos(),
-        disable: isLoading,
+        disabled: isLoading,
     } as ButtonLayoutProps;
 
     const botaoNovoCliente = {
         title: 'Novo Cliente',
         icon: personAdd,
         trigger: () =>  modalNovoClienteOn(),
-        disable: isLoading,
+        disabled: isLoading,
     } as ButtonLayoutProps;
 
     //Ações ao carregar esta página
@@ -138,7 +138,7 @@ const EscolherClientes: React.FC = () => {
                         </IonTitle>
                         {listarAmbientes(cliente, indexCliente)}
                         <IonRow className='ion-justify-content-center'>
-                            <Botao texto='Novo Ambiente' 
+                            <Botao text='Novo Ambiente' 
                                 icon={addCircle} 
                                 handler={() => {
                                     setClienteId(cliente.id);

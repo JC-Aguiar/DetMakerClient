@@ -1,38 +1,49 @@
 import { IonItem, IonLabel, IonBadge, IonIcon } from "@ionic/react";
-import { Children } from "react";
+import { Children, HTMLAttributes, useState } from "react";
 
-export interface ItemListaProps {
-    children?: React.ReactNode;
-    texto: string | number;
+export interface ItemListaProps extends HTMLAttributes<HTMLIonItemElement>  {
+    text: string | number;
     tag?: string | number;
-    icone?: string;
-    cor?: string;
+    button?: JSX.Element;
+    icon?: string;
+    glass?: boolean;
     trigger?: () => void;
+    innerPad?: 0 | 1 | 2 | 3 | 4 | 5
 }
 
-const ItemLista: React.FC<ItemListaProps> = ({ children, texto, tag, icone, cor = 'none', trigger = (() => null) })  => {
-    //Tenta renderiza o IonIcon se o atributo 'icone' foi definido
-    const renderizarIcone = () => {
-        if (!icone) return <></>;
-        return <IonIcon icon={icone} 
+const ItemLista: React.FC<ItemListaProps> = ({ text, tag, button, glass = false, trigger = (() => null), ...props })  => {
+    //Tenta renderiza o IonIcon se o atributo 'props.icon' foi definido
+    const renderizarpropsIcone = () => {
+        if (!props.icon) return <></>;
+        return <IonIcon icon={props.icon} 
                 color="primary" 
                 className='pe-1' 
                 style={{ transform: 'translate(-2px, 1px) scale(1.4)' }} 
             />;
     };
 
-    const renderizarChildren = Children.toArray(children);
+    const children = props.children;
+    props.children = null;
+    props.color = !props.color ? 'none' : props.color;
+    props.innerPad = !props.innerPad ? 0 : props.innerPad;
 
     //Renderização do componente
     return (
         <IonItem lines='none'
-            color={cor}
-            className='p-0 m-0 ion-align-items-center text-white small'
-            style={{ '--min-height': '32px' }}
+            {...props}
+            className={`item-lista text-white ion-align-items-center ${props.className + (glass ? ' glass' : '')} small`}
+            style={{ '--min-height': '32px', cursor: 'pointer', display: 'block' }}
+            onClick={trigger}
         >
-            <IonLabel className='btn bg-transparent border-0 p-0 m-0 text-start' onClick={trigger}>
-                <span className="ms-1">{renderizarIcone()}</span>
-                <span className='font-monospace text-white text-break'>{texto}</span>
+            <IonLabel className={`d-flex bg-transparent border-0 p-0 m-0 text-start ps-${props.innerPad}`} >
+                {button}
+                <IonIcon icon={props.icon} 
+                    color="primary" 
+                    className='ms-1 pe-1' 
+                    style={{ transform: 'translate(-2px, 1px) scale(1.4)' }} 
+                    hidden={props.icon === undefined}
+                />
+                <span className='font-monospace text-break'>{text}</span>
                 <IonBadge color='secondary'
                     className='ms-1 small fw-normal opacity-25'
                     style={{transform: 'translate(0px, 3px)'}}

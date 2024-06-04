@@ -11,8 +11,6 @@ export interface InformativoProps {
 const Informativo: React.FC<InformativoProps> = ({icone = informationCircleOutline, mensagem = '', status = 'Normal'}) => {
     const loadingBar = status === 'Carregando' ? <IonProgressBar type="indeterminate" /> : <></>;
     
-    const destaque = (texto: string) => <span className='m-0 px-1 border rounded rounded-3 h6 fw-bold'>{texto}</span>;
-   
     if (status === 'SemDados') {
         icone = alertCircleOutline;
         mensagem = 'Nenhum registro disponível foi encontrado no banco\n'+ mensagem;

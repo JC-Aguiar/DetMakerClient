@@ -1,5 +1,5 @@
 import { IonAccordion, IonAccordionGroup, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonItem, IonLabel, IonMenu, IonModal, IonSplitPane, IonTitle, useIonModal, useIonViewWillEnter } from '@ionic/react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { cloudUpload, cube, layers, library, listOutline, refresh } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from '../Store/ReduxStore';
@@ -11,7 +11,7 @@ import { loadingPipelines, setPipelines } from '../Store/Reducer/ReducerPipeline
 import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/Core/ButtonLayout';
 import ConfigurarJobs from '../components/Content/ConfigurarJobs';
 import { JobInfoDTO } from '../data/JobInfoDTO';
-import { setMainPipeline, setMainJobs } from '../Store/Reducer/ReducerAtividade';
+import { setMainPipeline } from '../Store/Reducer/ReducerAtividade';
 import ListaCatalogoJobs from '../components/Lists/ListaCatalogoJobs';
 import Schedule from '../components/Content/Schedule';
 import Informativo from '../components/Core/Informativo';
@@ -134,7 +134,7 @@ const EscolherPipelines: React.FC = () => {
         catch (error) {
             dispatch(atualizarMensagem({ 
                 id: id, 
-                complmento: `${error}.`,
+                complmento: `${error}`,
                 status: 'ERROR'
             }));
         }
@@ -160,7 +160,7 @@ const EscolherPipelines: React.FC = () => {
             setJobsSucesso(false);
             dispatch(atualizarMensagem({ 
                 id: id, 
-                complmento: `Jobs: ${error}.`,
+                complmento: `Jobs: ${error}`,
                 status: 'ERROR'
             }));
         }
@@ -185,7 +185,7 @@ const EscolherPipelines: React.FC = () => {
             setPipelinesSucesso(false);
             dispatch(atualizarMensagem({ 
                 id: id, 
-                complmento: `Pipelines: ${error}.`,
+                complmento: `Pipelines: ${error}`,
                 status: 'ERROR'
             }));
         }
@@ -207,7 +207,7 @@ const EscolherPipelines: React.FC = () => {
         catch (error) {
             dispatch(atualizarMensagem({ 
                 id: id, 
-                complmento: `Queries: ${error}.`,
+                complmento: `Queries: ${error}`,
                 status: 'ERROR'
             }));
         }
@@ -230,7 +230,7 @@ const EscolherPipelines: React.FC = () => {
         catch (error) {
             dispatch(atualizarMensagem({ 
                 id: id, 
-                complmento: `Massas: ${error}.`,
+                complmento: `Massas: ${error}`,
                 status: 'ERROR'
             }));
         }
@@ -243,25 +243,25 @@ const EscolherPipelines: React.FC = () => {
             title: 'Atualizar',
             icon: refresh,
             trigger: () => coletarRecursos(),
-            disable: isLoading,
+            disabled: isLoading,
         }, 
         {
             title: 'Novo Job',
             icon: cube,
             trigger: () =>  modalNovoJobOn(),
-            disable: isLoading,
+            disabled: isLoading,
         },
         {
             title: 'Nova Pipeline',
             icon: layers,
             trigger: () =>  modalNovaPipelineOn(),
-            disable: isLoading || catalogoJobs.length < 1,
+            disabled: isLoading || catalogoJobs.length < 1,
         },
         {
             title: 'Nova Schedule',
             icon: cloudUpload,
             trigger: () => novaScheduleRef.current!.click(),
-            disable: isLoading,
+            disabled: isLoading,
         }, 
         {
             title: 'Ver Schedule',
@@ -272,7 +272,7 @@ const EscolherPipelines: React.FC = () => {
                 setVerModalSchedule(true);
                 console.log(`Ativando modal Shedule (var: ${verModalSchedule})`);
             },
-            disable: isLoading || catalogoJobs.length < 1,
+            disabled: isLoading || catalogoJobs.length < 1,
         },
     ];
 
@@ -378,9 +378,9 @@ const EscolherPipelines: React.FC = () => {
     function conteudo() {
 
         const listasRetratil: ListaRetratrilProps[] = [
-            {titulo: 'Jobs', icon: cube, conteudo: <ListaCatalogoJobs />},
-            {titulo: 'Pipelines', icon: layers, conteudo: <ListaCatalogoPipelines />},
-            {titulo: 'Gerador de Massa', icon: library, conteudo: <ListaCatalogoMassas />},
+            {title: 'Jobs', icon: cube, content: <ListaCatalogoJobs />},
+            {title: 'Pipelines', icon: layers, content: <ListaCatalogoPipelines />},
+            {title: 'Gerador de Massa', icon: library, content: <ListaCatalogoMassas />},
         ];
 
         if (catalogoJobs.length < 1) {
@@ -390,13 +390,13 @@ const EscolherPipelines: React.FC = () => {
             />;
         }
         return (
-            <IonSplitPane when="xs" contentId="main" className='ps-5 ms-5 '>
-                <IonMenu contentId="main" className='glass' color='#'>
+            <IonSplitPane when="xs" contentId="pipelineContent" className='ps-5 ms-5 '>
+                <IonMenu contentId="pipelineContent" className='glass' color='#'>
                     <IonContent className='glass-content p-0 m-0 mx-5'>
                         <ListaRetratrilAgrupada listas={listasRetratil} />
                     </IonContent>
                 </IonMenu>
-                <div className="container" id="main" >
+                <div className="container" id="pipelineContent" >
                     <IonContent className='w-100 h-100'>
                         {conteudoPainelPrincipal()}
                     </IonContent>
@@ -409,10 +409,8 @@ const EscolherPipelines: React.FC = () => {
     if (isLoading) return <Carregando />;
     return (
         <div className='p-0 m-0'> 
-            <IonLabel className='m-0 p-0 h-100' >
-                {layoutGrupoBotoes(butoes)}
-                {conteudo()}
-            </IonLabel>
+            {layoutGrupoBotoes(butoes)}
+            {conteudo()}
 
             {/* Input invisível, para coletar Schedule dos Jobs a carregar no banco */}
             <form action="/upload" method="post" encType="multipart/form-data" hidden>

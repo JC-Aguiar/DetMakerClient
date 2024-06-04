@@ -28,7 +28,7 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import { useState } from 'react';
-import { receipt, checkmarkCircle, logoGoogle, flask } from 'ionicons/icons'; 
+import { receipt, checkmarkCircle, logoGoogle, flask, logoGitlab } from 'ionicons/icons'; 
 import Login from './pages/Login';
 import EscolherPipelines from './pages/EscolherPipelines';
 import { RootState } from './Store/ReduxStore';
@@ -43,6 +43,7 @@ import { JobInfoDTO } from './data/JobInfoDTO';
 import EscolherClientes from './pages/EscolherClientes';
 import EscolherRelatorios from './pages/EscolherRelatorios';
 import Fundo from './components/Core/Fundo';
+import PaginaGit from './pages/PaginaGit';
 
 /* Recursos de uso comum */
 setupIonicReact();
@@ -172,6 +173,16 @@ const App = () => {
             conteudo: <RevisarRelatorio />,
             icone: checkmarkCircle,
             desativado: !docParaRevisar,
+            efeito: null,
+        },
+        {
+            path: "/git",
+            exact: true,
+            titulo: "Gitlab", 
+            subtitulo: "Conferir dados dos repositórios e entregas dentro do Gitlab", 
+            conteudo: <PaginaGit />,
+            icone: logoGitlab,
+            desativado: false,
             efeito: null,
         },
     ];

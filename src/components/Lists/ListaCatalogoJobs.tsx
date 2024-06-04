@@ -69,7 +69,7 @@ const ListaCatalogoJobs: React.FC = () => {
     //Renderizando componente
     return (
         <IonList className='m-0 p-0'>
-            <ItemLista texto="" icone={search} >
+            <ItemLista text="" icon={search} >
                 <IonInput inputmode='text'
                     maxlength={500}
                     placeholder="Pesquisar Job"
@@ -79,13 +79,30 @@ const ListaCatalogoJobs: React.FC = () => {
                     required
                 />
             </ItemLista>
-            <ItemLista texto="Desselecionar Jobs" icone={closeCircle} trigger={cancelarJobsSelecionados} />
+            <ItemLista text="Desselecionar Jobs" icon={closeCircle} trigger={cancelarJobsSelecionados} />
             {
                 catalogoJobs.filter(item => item.nome.includes(jobPesquisado))
                     .map((item, index) => {
                         const color = index % 2 === 0 ? 'medium' : 'none';
                         return (
-                            <IonItem key={index} lines='none'
+                            <ItemLista key={index}
+                                text={item.nome}
+                                tag={`ID ${item.id}`}
+                                button={identificarTipoBotao(item)}
+                                color={color}
+                                trigger={() => dispatch(addOneMainJob(item))}
+                            />
+                        );
+                    })
+            }
+        </IonList>
+    );
+};
+
+export default ListaCatalogoJobs;
+
+/*
+<IonItem key={index} lines='none'
                                 color={color}
                                 className='p-0 m-0 text-white small '
                                 style={{ '--min-height': '32px', cursor: `${mainPipeline === "" ? 'auto' : 'pointer'}`  }}
@@ -102,11 +119,4 @@ const ListaCatalogoJobs: React.FC = () => {
                                     </IonBadge>
                                 </IonLabel>
                             </IonItem>
-                        );
-                    })
-            }
-        </IonList>
-    );
-};
-
-export default ListaCatalogoJobs;
+*/

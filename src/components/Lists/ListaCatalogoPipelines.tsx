@@ -77,7 +77,7 @@ const ListaCatalogoPipelines: React.FC = () => {
             onIonChange={(e) => selecionarMainPipeline(e)}
         >
             <IonList className='m-0 p-0'>
-                <ItemLista texto="" icone={search} >
+                <ItemLista text="" icon={search} >
                     <IonInput inputmode='text'
                         maxlength={500}
                         placeholder="Pesquisar Pipeline"
@@ -87,14 +87,14 @@ const ListaCatalogoPipelines: React.FC = () => {
                         required
                     />
                 </ItemLista>
-                <ItemLista texto="Desselecionar Pipeline" icone={closeCircle} trigger={cancelarMainPipeline} />
+                <ItemLista text="Desselecionar Pipeline" icon={closeCircle} trigger={cancelarMainPipeline} />
                 {
                     catalogoPipelines.filter(item => item.nome.includes(pipelinePesquisada))
                         .map((item, index) => {
                             const color = index % 2 === 0 ? 'medium' : 'none';
                             const tag = item.jobs.length + " Job" + (item.jobs.length > 1 ? 's' : '');
                             return (
-                                <ItemLista key={index} texto={item.nome} tag={tag} cor={color}>
+                                <ItemLista key={index} text={item.nome} tag={tag} color={color}>
                                     <IonRadio color='primary'
                                         slot="start"
                                         value={item.nome}

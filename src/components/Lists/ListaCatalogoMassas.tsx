@@ -34,7 +34,7 @@ const ListaCatalogoMassas: React.FC = () => {
     //Renderizando componente
     return (
         <IonList className='m-0 p-0'>
-            <ItemLista texto="" icone={search} >
+            <ItemLista text="" icon={search} >
                 <IonInput inputmode='text'
                     maxlength={500}
                     placeholder="Pesquisar Massa"
@@ -50,10 +50,10 @@ const ListaCatalogoMassas: React.FC = () => {
                         const cor = index % 2 === 0 ? 'medium' : 'none';
                         return (
                             <ItemLista key={index} 
-                                texto={item.nome} 
+                                text={item.nome} 
                                 tag={item.colunas.length} 
-                                cor={cor}
-                                icone={open}
+                                color={cor}
+                                icon={open}
                                 trigger={() => {
                                     setMassaToView(item.nome);
                                     modalConfigMassaOn();

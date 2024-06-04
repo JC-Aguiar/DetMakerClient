@@ -377,7 +377,7 @@ const JobCard: React.FC<JobCardProps> = ({ index }) => {
                         {camposInputQueries()}
                         {camposInputCargas()}
                         <div className="d-flex ion-justify-content-end me-2 pe-1">
-                            <Botao icon={save} texto="Salvar" handler={salvandoItem} />
+                            <Botao icon={save} text="Salvar" handler={salvandoItem} />
                         </div>
                     </div>,
             onDismiss: () => modalParamOff(),

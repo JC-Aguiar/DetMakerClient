@@ -150,11 +150,12 @@ const ModalExecPipeline: React.FC = () => {
                   },
                 }
             ];
-            dispatch(setRelatorios([]));
+            //dispatch(setRelatorios(null));
             //dispatch(loadingRelatorios(false));
             dispatch(atualizarMensagem({ 
                 id: mensagemId, 
-                complmento: `Sucesso.`,
+                complmento: 'Sucesso.\n'
+                    + `Atualize a página de Relatórios e produce pelo ID ${relatorioParaRevisar.id}.`,
                 status: 'OK'
             }));
         }
@@ -170,12 +171,12 @@ const ModalExecPipeline: React.FC = () => {
     //Botões a serem renderizar dentro da modal
     const botoes: BotaoProps[] = [
         {
-            texto: "RESTAURAR JOBS", 
+            text: "RESTAURAR JOBS", 
             handler: () => setJobsParaExec(mainJobs),  
             disabled: mainJobs.length === jobsParaExec.length
         },
         {
-            texto: "EXECUTAR", 
+            text: "EXECUTAR", 
             handler: () => {
                 if (mainJobs.length !== jobsParaExec.length) exibirAlerta();
                 else executarPipeline();

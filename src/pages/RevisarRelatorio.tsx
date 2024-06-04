@@ -6,7 +6,7 @@ import { RootState } from '../Store/ReduxStore';
 import { setTestcaseExpectativa, setTestcaseResultado, setTestcaseLock } from '../Store/Reducer/ReducerRevisao';
 import { checkEvidenciaPronta } from '../data/EvidenciaInfoDTO';
 import './template/template.css';
-import { alertCircle, checkmarkCircle, closeCircle, document, helpCircle, refresh, save } from 'ionicons/icons';
+import { alertCircle, checkmarkCircle, document, helpCircle, save } from 'ionicons/icons';
 import { UserDTO } from '../data/UserDTO';
 import { EvidenciaRevisadaDTO } from '../data/EvidenciaRevisadaDTO';
 import * as axiosRequest from '../data/AxiosRequest';
@@ -14,7 +14,6 @@ import { EvidenciasRevisadasDTO } from '../data/AxiosRequest';
 import { offsetDateTimeParaString } from '../App';
 import { useHistory } from 'react-router';
 import { layoutGrupoBotoes, ButtonLayoutProps } from '../components/Core/ButtonLayout';
-import { exitCode } from 'process';
 import { addMensagem, atualizarMensagem } from '../Store/Reducer/ReducerAtividade';
 
 
@@ -44,10 +43,14 @@ export interface DetTestcase {
     lock: boolean,
 }
 
+
+//Typo para determinar os possíveis status de uma Evidência
 export type DetStatusTYPE = "Aprovado" | "Reprovado" | "Parcial";
 
 
+//Componente <RevisarRelatorio>
 const RevisarRelatorio: React.FC = () => {
+    //Atributos prinicpais
     const dispatch = useDispatch();
     const history = useHistory();
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
@@ -59,21 +62,20 @@ const RevisarRelatorio: React.FC = () => {
         title: 'Salvar',
         icon: save,
         trigger: () => salvarRevisao(),
-        disable: false,
+        disabled: false,
     } as ButtonLayoutProps;
-
     const botaoDET = {
         title: 'DET',
         icon: document,
         trigger: () => gerarDet(),
-        disable: !podeGerarDet(), //isLoading(),
+        disabled: !podeGerarDet(), //isLoading(),
     } as ButtonLayoutProps;
     
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {
         //dispatch(setButtons( [botaoSalvar, botaoDET] ));
         if (relatorio === null) {
-            console.log("O RelatorioHistoricoDTO no ReducerRelatorio está nulo. A página Evidência não poderá ser gerada.");
+            console.warn("O RelatorioHistoricoDTO no ReducerRelatorio está nulo. A página Evidência não poderá ser gerada.");
             history.push(axiosRequest.URL_PIPELINES);
         }
     }, []);
@@ -102,7 +104,7 @@ const RevisarRelatorio: React.FC = () => {
     const ambiente = relatorio.ambiente;
 
     const testcases = () => {
-        if (!relatorio || !user) return <></>;
+        if (!relatorio || !user) return [<></>];
 
         return relatorio.evidencias.map((evidencia, evIndex) => {
             const evidenciaId = evidencia.id;
@@ -131,7 +133,7 @@ const RevisarRelatorio: React.FC = () => {
             const cargasNome: string[] = [];
             const saidasConteudo: string[] = [];
             const saidasNome: string[] = [];
-            const anexosInconformidade: string[] = [];
+            const anexosInconformidade: string[] = queriesInconformidade.slice();
 
             evidencia.logs.forEach((anexo) => {
                 logsConteudo.push(anexo.conteudo);
@@ -266,21 +268,19 @@ const RevisarRelatorio: React.FC = () => {
                                 <td>{exitCode}</td>
                             </tr>
                             <tr>
-                                <th>Erro Fatal</th>
-                                <td>{erroFatal}</td>
+                                <th>Inconformidades</th>
+                                <td className='ms-0 ps-0'>
+                                    <ol style={{ width: "100%", maxWidth: "950px" }}>
+                                    { 
+                                        anexosInconformidade.filter(linha => linha !== null && linha.length > 0)
+                                            .map((linha, linhaIndex) => <li key={linhaIndex}> {linha}</li>) 
+                                    }
+                                    </ol>
+                                </td>
                             </tr>
                             <tr>
-                                <th>Inconformidades</th>
-                                <td className='font-monospace'>
-                                    <div style={{ width: "100%", maxWidth: "950px", whiteSpace: "nowrap", overflowX: 'scroll' }}>
-                                    { 
-                                        queriesInconformidade.map(linha => <div> - {linha}</div>) 
-                                    }
-                                    { 
-                                        anexosInconformidade.map(linha => <div> - {linha}</div>) 
-                                    }
-                                    </div>
-                                </td>
+                                <th>Erro Fatal</th>
+                                <td>{erroFatal}</td>
                             </tr>
                             <tr>
                                 <th>
@@ -527,6 +527,7 @@ const RevisarRelatorio: React.FC = () => {
                 complmento: `Sucesso.`,
                 status: 'OK'
             }));
+            abrirDet(fileBlob);
         }
         catch (error) {
             dispatch(atualizarMensagem({ 
@@ -653,7 +654,7 @@ const RevisarRelatorio: React.FC = () => {
                                         <th>Sequência de Jobs Executados</th>
                                         <td id="parametros">
                                             {
-                                                parametros?.split(" ").map((item, index) =>
+                                                parametros?.split("\n").map((item, index) =>
                                                     <p key={index} className='my-0' >{item}</p>
                                                 )
                                             }

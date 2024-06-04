@@ -1,99 +1,324 @@
-import { IonLabel, IonList, useIonViewWillEnter, } from "@ionic/react";
-import React, { useState } from "react";
+import { InputChangeEventDetail, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCol, IonContent, IonFab, IonIcon, IonInput, IonItem, IonLabel, IonList, IonMenu, IonPopover, IonRow, IonSelect, IonSelectOption, IonSplitPane, SelectChangeEventDetail, useIonModal, useIonViewWillEnter, } from "@ionic/react";
+import React, { RefObject, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from "../Store/ReduxStore";
 import { RelatorioResumoDTO } from "../data/RelatorioResumoDTO";
 import { loadingRelatorios, setRelatorios } from "../Store/Reducer/ReducerRelatorios";
-import { refresh } from "ionicons/icons";
+import { calendar, caretBack, caretForward, closeCircle, document, filter, flag, helpCircle, layers, play, pricetag, refresh, search, swapVertical, text } from "ionicons/icons";
 import { layoutGrupoBotoes, ButtonLayoutProps } from "../components/Core/ButtonLayout";
 import { PipelineInfoDTO } from "../data/PIpelineInfoDTO";
 import Carregando from "../components/Core/Carregando";
 import Informativo from "../components/Core/Informativo";
 import TicketRelatorio from "../components/Content/TicketRelatorio";
 import { addMensagem, atualizarMensagem } from "../Store/Reducer/ReducerAtividade";
+import ModalConsultaRelatorio from "../components/Modals/ModalConsultaRelatorio";
+import DynamicModal from "../components/Core/DynamicModal";
+import Botao, { BotaoProps } from "../components/Core/Botao";
+import ItemLista from "../components/Core/ItemLista";
+import GlassInput from "../components/Core/GlassInput";
+import { close } from "inspector";
+import { ListaRetratrilAgrupada } from "../components/Core/ListaRetratil";
+import dayjs from "dayjs";
+import { Page } from "../data/Page";
 
 
+//Componente <EscolherRelatorios>
 const EscolherRelatorios: React.FC = () => {
+
     //Atributos do componente
     const dispatch = useDispatch();
     const [relatoriosSucesso, setRelatoriosSucesso] = useState<boolean | null>(null);
-    //const catalogoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
-    const catalogoRelatorios: RelatorioResumoDTO[] = useSelector((state: RootState) => state.store.catalogoRelatorios.catalogo);
-    const catalagoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
+    const catalogoRelatorios: Page<RelatorioResumoDTO> | null = useSelector(
+        (state: RootState) => state.store.catalogoRelatorios.catalogo);
     const isLoading: boolean = useSelector((state: RootState) => state.store.catalogoRelatorios.loading);
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
 
-    //Atributos de botões
-    const botaoAtualizar = {
-        title: 'Atualizar',
-        icon: refresh,
-        trigger: () => coletarRecursos(),
-        disable: isLoading,
-    } as ButtonLayoutProps;
+    //TODO: concertar!!!
+    const [pageIndex, setPageIndex] = useState<number>(!catalogoRelatorios ? -1 : catalogoRelatorios.number);
+    const [filtroAplicado, setFiltroAplicado] = useState<boolean>(false);
+    const [idProjeto, setIdProjeto] = useState<string>("");
+    const [nomeProjeto, setNomeProjeto] = useState<string>("");
+    const [nomeAtividade, setNomeAtividade] = useState<string>("");
+    const [nomePipeline, setNomePipeline] = useState<string>("");
+    const [dataExec, setDataExec] = useState<Date | null>(null);
+
+    const totalPages = () => {
+        return !catalogoRelatorios ? 99 : catalogoRelatorios.totalPages;
+    }
+
+    interface OpcoesConsulta<T> {
+        nome: string;
+        tamanho: number;
+        type?: "text" | "date";
+        icon?: string;
+        valor: T,
+        handler: React.Dispatch<React.SetStateAction<T>>;
+        reset: () => void;
+    }
+    const opcoesConsulta: OpcoesConsulta<any>[] = [
+        {
+            nome: "ID Projeto",
+            icon: pricetag,
+            tamanho: 7,
+            valor: idProjeto,
+            handler: setIdProjeto, 
+            reset: () => setIdProjeto(""), 
+        },
+        {
+            nome: "Nome Projeto",
+            icon: pricetag,
+            tamanho: 200,
+            valor: nomeProjeto,
+            handler: setNomeProjeto,
+            reset: () => setNomeProjeto(""),
+        },
+        {
+            nome: "Nome Atividade",
+            icon: flag,
+            tamanho: 300,
+            valor: nomeAtividade,
+            handler: setNomeAtividade,
+            reset: () => setNomeAtividade(""),
+        },
+        {
+            nome: "Nome Pipeline",
+            icon: layers,
+            tamanho: 200,
+            valor: nomePipeline,
+            handler: setNomePipeline,
+            reset: () => setNomePipeline(""),
+        },
+        {
+            nome: "Data da Execução",
+            icon: calendar,
+            type: "date",
+            tamanho: 10,
+            valor: dataExec,
+            handler: setDataExec,
+            reset: () => setDataExec(null),
+        },
+    ];
+
+    const botaoAplicarFIltros: BotaoProps = {
+        text: filtroAplicado ? "Remover" : "Aplicar", 
+        icon: filtroAplicado ? closeCircle : filter,
+        color: filtroAplicado ? "warning" : "light",
+        handler: () => aplicarFiltros(),
+    }
 
     //Ações ao carregar esta página
-    useIonViewWillEnter(() => {
-        //dispatch(setButtons([botaoAtualizar]));
-        if (catalogoRelatorios.length < 1 && !isLoading) coletarRecursos();
-    }, []);
+    //    useIonViewWillEnter(() => {
+    //        if (catalogoRelatorios.length < 1 && !isLoading) coletarRecursos();
+    //    }, []);
 
-    //Atualizando Pipelines e Jobs com base no banco
-    async function coletarRecursos() {
-        dispatch(loadingRelatorios(true));
-        await obterRelatoriosBanco();
-        dispatch(loadingRelatorios(false));
+    //Define se o atual catálogo de Relatórios em memória deve ou não ser filtrado 
+    const aplicarFiltros = () => {
+        setFiltroAplicado(estado => !estado);
+    }
+
+    //Define se aplica ou não os filtros definidos pelo usuário
+    const filtrar = (item: RelatorioResumoDTO): boolean => {
+        if (!filtroAplicado) return true;
+
+        const compararDatas = (data: number): boolean => {
+            const novaData = dayjs.unix(data).format('YYYY-MM-DD');
+            return novaData === `${dataExec}`; 
+        };
+
+        return true  
+            && (idProjeto === "" ? true : item.idProjeto.includes(idProjeto))
+            && (nomeProjeto === "" ? true : item.nomeProjeto.includes(nomeProjeto))
+            && (nomeAtividade === "" ? true : item.nomeAtividade.includes(nomeAtividade))
+            && (nomePipeline === "" ? true : item.nomePipeline.includes(nomePipeline))
+            && (dataExec === null ? true : compararDatas(item.data));
+    }
+
+    //Atualizando catálogo de Relatórios com base no banco e nos filtros (ou não)
+    async function coletarRecursos(pageIndex: number) {
+        await obterRelatoriosBanco(pageIndex);
     }
 
     //Requisição para obter os relatórios diretamente do banco
-    async function obterRelatoriosBanco() {
+    async function obterRelatoriosBanco(pageIndex: number) {
+        dispatch(loadingRelatorios(true));
         const mensagemId = `Get_Reports@${Date.now()}`;
-        dispatch(addMensagem({ 
-            id: mensagemId, 
-            texto: `Obtendo catálogo de Relatórios no banco.`,
+        const mensagemFiltros: string[] = [];
+        if (idProjeto !== "")  mensagemFiltros.push(`ID Projeto: '${idProjeto}'`);
+        if (nomeProjeto !== "") mensagemFiltros.push(`Nome Projeto: '${nomeProjeto}'`);
+        if (nomeAtividade !== "") mensagemFiltros.push(`Nome Atividade: '${nomeAtividade}'`);
+        if (dataExec !== null) mensagemFiltros.push(`Data Execução: ${dataExec}`);
+        const mensagemComplemento = mensagemFiltros.length > 0 ? 
+            ('\n' + mensagemFiltros.join(", ") + '\n') : 
+            "Nenhum";
+
+        dispatch(addMensagem({
+            id: mensagemId,
+            texto: `Obtendo catálogo de Relatórios no banco. Filtros: ${mensagemComplemento}.`,
             status: 'INFO'
         }));
         //modalGetPipelinesOff();
         //modalNovaPipelineOff();
         //setConectionsCount(c => c+1);
         try {
-            const relatoriosBanco: RelatorioResumoDTO[] = (await axiosRequest.getAllRelatorios(mainAmbienteId));
+            const relatoriosBanco: Page<RelatorioResumoDTO> = await axiosRequest.getAllRelatorios(
+                pageIndex,
+                mainAmbienteId,
+                idProjeto,
+                nomeProjeto,
+                nomeAtividade,
+                nomePipeline,
+                (dataExec === null ? "" : String(dataExec))
+            );
             dispatch(setRelatorios(relatoriosBanco));
             setRelatoriosSucesso(true);
-            dispatch(atualizarMensagem({ 
-                id: mensagemId, 
-                complmento: `sucesso.`,
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `Sucesso.`,
                 status: 'OK'
             }));
+            //modalPesquisaOn();
         }
         catch (error) {
             setRelatoriosSucesso(false);
-            dispatch(atualizarMensagem({ 
-                id: mensagemId, 
+            dispatch(atualizarMensagem({
+                id: mensagemId,
                 complmento: `${error}`,
                 status: 'ERROR'
             }));
         }
+        dispatch(loadingRelatorios(false));
     }
 
+    //Define o conteúdo princial do componente, dependente se existem ou não dados de relatório no Redux
     function conteudo() {
-        if (catalogoRelatorios.length < 1) {
-            return <Informativo status='SemDados'/>;
+        if (catalogoRelatorios === null || catalogoRelatorios.size < 1) {
+            return <Informativo status='SemDados' />;
         }
-        return <IonList className='ion-justify-content-center mx-5 p-1 px-3'>
+        return <IonList className='ion-justify-content-center p-1 px-3'>
             {
-                catalogoRelatorios.map((item, index) => <TicketRelatorio key={index} relatorio={item} />)
+                catalogoRelatorios.content
+                    .filter(item => filtrar(item))
+                    .map((item, index) => 
+                        <TicketRelatorio key={index} index={index} relatorio={item} />
+                    )
             }
         </IonList>;
     }
 
+    //Renderizando componente
     if (isLoading) return <Carregando />;
     return (
-        <div className='p-0 m-0'> 
-            <IonLabel className='m-0 p-0 h-100' >
-                {layoutGrupoBotoes([ botaoAtualizar ])}
-                {conteudo()}
-            </IonLabel>
+        <div className='p-0 m-0'>
+            <IonSplitPane when="xs" contentId="paginacao-config" className='p-0 m-0'>
+                <IonMenu contentId="paginacao-config" className='glass' color='#'>
+                    <IonContent className='glass-content p-0 m-0'>
+                        <IonCard className="glass shadow shadow-0" disabled={catalogoRelatorios === null}>
+                            <IonCardHeader color="primary" className="m-0 p-0 text-center">
+                                <IonCardSubtitle>Navegação</IonCardSubtitle>
+                            </IonCardHeader>
+                            <IonCardContent className="m-0 p-0">
+                                <p className="text-center w-100 mt-1">
+                                    Exibindo {catalogoRelatorios?.numberOfElements}
+                                    /{catalogoRelatorios?.size} Relatórios na página atual.
+                                </p>
+                                <IonRow className="p-0 m-0 my-2 w-100 ion-align-items-center ion-justify-content-center" >
+                                    <IonIcon icon={caretBack} 
+                                        color="primary" 
+                                        size="large" 
+                                        className="btn m-0 p-0"
+                                        onClick={(e) => {
+                                            if (!catalogoRelatorios || catalogoRelatorios.first) return;
+                                            obterRelatoriosBanco(catalogoRelatorios.number-1);
+                                        }}
+                                    />
+                                    <IonRow className="glass d-flex ion-align-items-center pe-1" >
+                                        <IonInput value={pageIndex}
+                                            type='number'
+                                            inputMode="numeric"
+                                            max={`${totalPages()}`}
+                                            min='0'
+                                            onIonChange={(e) => {
+                                                if (!e.detail.value) return;
+                                                const index = parseInt(e.detail.value);
+                                                if (typeof index === "number")
+                                                    setPageIndex(index);
+                                            }}
+                                            className="m-0 p-0 text-end lh-0 "
+                                            style={{ height: '32px', width: '40px' }}
+                                            disabled={catalogoRelatorios === null}
+                                        />
+                                        /{totalPages()}
+                                        <IonIcon icon={search} 
+                                            color="light"
+                                            className="glass btn item-lista ms-1 my-1 p-2"
+                                            style={{ height: '16px' }}
+                                            onClick={(e) => {
+                                                if (!catalogoRelatorios) return;
+                                                if (pageIndex <= totalPages())
+                                                    obterRelatoriosBanco(pageIndex);
+                                            }} 
+                                        />
+                                    </IonRow>
+                                    <IonIcon icon={caretForward} 
+                                        color="primary" 
+                                        size="large" 
+                                        className="btn m-0 p-0"
+                                        onClick={(e) => {
+                                            if (!catalogoRelatorios || catalogoRelatorios.last) return;
+                                            obterRelatoriosBanco(catalogoRelatorios.number+1);
+                                        }} 
+                                    />
+                                </IonRow>
+                            </IonCardContent>
+                        </IonCard>
+                        <IonCard className="glass mt-3 shadow shadow-0">
+                            <IonCardHeader color="primary" className="m-0 p-0 text-center">
+                                <IonCardSubtitle>Filtros</IonCardSubtitle>
+                            </IonCardHeader>
+                            <IonCardContent className="m-0 p-0">
+                                {
+                                    opcoesConsulta.map((opcao, index) => {
+                                        return (
+                                            <div key={index} className="d-flex ion-align-items-center m-0 p-0">
+                                                <GlassInput
+                                                    text={opcao.nome}
+                                                    icon={opcao.icon}
+                                                    type={!opcao.type ? "text" : opcao.type}
+                                                    maxlength={opcao.tamanho}
+                                                    value={opcao.valor}
+                                                    color="light"
+                                                    onIonChange={(e) => opcao.handler(e.detail.value)}
+                                                    className="small"
+                                                />
+                                                <IonIcon
+                                                    icon={closeCircle}
+                                                    size='small'
+                                                    className="glass btn position-fixed m-0 p-0"
+                                                    style={{ transform: 'translate(0px, 0)', right: '8px', zIndex: '500' }}
+                                                    onClick={() => opcao.reset()}
+                                                />
+                                            </div>
+                                        );
+                                    })
+                                }
+                                <IonRow className="w-100 ion-justify-content-center p-2 pe-3">
+                                    <Botao {...botaoAplicarFIltros} />
+                                    <span className="mx-1"/>
+                                    <Botao text="Nova Consulta" icon={search} handler={() => obterRelatoriosBanco(0)} />
+                                </IonRow>
+                            </IonCardContent>
+                        </IonCard>
+                    </IonContent>
+                </IonMenu>
+                <div className="container" id="paginacao-config" >
+                    <IonContent className='w-100 h-100' scrollY fullscreen>
+                        {conteudo()}
+                    </IonContent>
+                </div>
+            </IonSplitPane>
+
+            {/*layoutGrupoBotoes([botaoPageInedx, botaoOrdenar, botaoFiltrarTipo, botaoFiltrarValor, botaoConsultar])*/}
         </div>
     );
 };
