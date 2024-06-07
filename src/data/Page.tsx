@@ -19,14 +19,14 @@ export interface Page<T> {
     numberOfElements: number; // Número de elementos na página atual
 }
 
-export const noPageContent = (type: any): Page<typeof type> => {
+export const noPageContent = <T extends any>(): Page<T> => {
     return {
         content: [],
         pageable: {
             pageNumber: 0,
             pageSize: 0,
             offset: 0,
-        };
+        },
         totalPages: 0,
         totalElements: 0,
         last: false,
@@ -36,7 +36,7 @@ export const noPageContent = (type: any): Page<typeof type> => {
         sort: {
             sorted: false,
             unsorted: false,
-        };
+        },
         numberOfElements: 0,
     }
 } 

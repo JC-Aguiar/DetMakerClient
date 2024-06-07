@@ -1,3 +1,4 @@
+/*
 import { offsetDateTimeParaString } from "../../App";
 import { EvidenciaInfoDTO, checkEvidenciaPronta } from "../../data/EvidenciaInfoDTO";
 
@@ -267,3 +268,4 @@ return (
 }
 
 export default RelatorioEvidencia;
+*/

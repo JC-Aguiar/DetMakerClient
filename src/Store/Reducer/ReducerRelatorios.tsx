@@ -1,15 +1,15 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RelatorioResumoDTO } from '../../data/RelatorioResumoDTO';
-import { Page } from '../../data/Page';
+import { Page, noPageContent } from '../../data/Page';
 
 const initialState = { 
-    catalogo: null,
+    catalogo: noPageContent<RelatorioResumoDTO>(),
     loading: false,
 } as ReducerRelatoriosProps;
 
 //Interface para definir o tipo de objeto do reducer
 interface ReducerRelatoriosProps {
-    catalogo: Page<RelatorioResumoDTO> | null,
+    catalogo: Page<RelatorioResumoDTO>,
     loading: boolean,
 }
 
@@ -18,7 +18,7 @@ const catalogoRelatorios = createSlice({
     name: 'catalogoRelatorios',
     initialState,
     reducers: {
-        setRelatorios: (state, action: PayloadAction<Page<RelatorioResumoDTO> | null>) => {
+        setRelatorios: (state, action: PayloadAction<Page<RelatorioResumoDTO>>) => {
             if (!Array.isArray(action.payload?.content)) {
                 console.log('[ReducerRelatorios] Erro: payload inválido, pois não é um array.');
                 return { ...state };
@@ -35,7 +35,7 @@ const catalogoRelatorios = createSlice({
         loadingRelatorios: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerRelatorios]: Acionado controlador catalogoRelatorios.loadingRelatorios!');
             state.loading = action.payload;
-            if (state.loading) state.catalogo = null;//[];
+            if (state.loading) state.catalogo = noPageContent<RelatorioResumoDTO>();//[];
             console.log(`[ReducerRelatorios]: Catalogo de Relatorios ${state.loading ? 'está carregando..' : 'pronto'}.`);
         },
     },

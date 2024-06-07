@@ -1,8 +1,7 @@
-import { IonApp, IonGrid, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonRow, IonTabBar, IonTabButton, IonTabs, ToastButton, setupIonicReact, useIonToast } from '@ionic/react';
+import { IonApp, IonGrid, IonHeader, IonIcon, IonLabel, IonRouterOutlet, IonRow, IonTabBar, IonTabButton, IonTabs, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Redirect, Route } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-//import { show, hide } from './Store/Reducer/ReducerTabMenu';
 import dayjs from 'dayjs';
 import Intro from './pages/Intro';
 import "./App.css";
@@ -38,17 +37,17 @@ import { validarUser } from './data/UserDTO';
 import Avatar from './components/Core/Avatar';
 import DynamicPage from './components/Core/DynamicPage';
 import { URL_CLIENTES, URL_PIPELINES, URL_RELATORIOS, URL_DET, URL_LOGIN } from './data/AxiosRequest';
-import { createBrowserHistory } from "history";
 import { JobInfoDTO } from './data/JobInfoDTO';
 import EscolherClientes from './pages/EscolherClientes';
 import EscolherRelatorios from './pages/EscolherRelatorios';
 import Fundo from './components/Core/Fundo';
 import PaginaGit from './pages/PaginaGit';
 
-/* Recursos de uso comum */
+// Recursos de uso comum
 setupIonicReact();
 
-type rotaTYPE = {
+//Interface das propriedades das rotas URL + estilização do menu principal
+type MenuRotaProps = {
     path: string,
     exact: boolean,
     titulo: string,
@@ -59,82 +58,42 @@ type rotaTYPE = {
     efeito: JSX.Element | null,
 }
 
+//Define o formato de exibição das datas no formato simples (curto), com separador "/"
 export const dataFormato: Intl.DateTimeFormatOptions = {
-    dateStyle: 'short', //Utiliza o formato de data curta com separador "/"
+    dateStyle: 'short',
 };
 
+//Valida e formata datas no formato string para o padrão Data + Hora no padrão ISO 
 export function validarExibirData(dataAtualizacao: string): string {
     const date = dayjs(dataAtualizacao);
     if (!dayjs(date).isValid()) return dataAtualizacao;
     return new Intl.DateTimeFormat('pt-BR').format(date.toDate());
 }
 
+//Formata uma data (do tipo Date) para texto (string) 
 export function dataParaString(data: Date): string {
     return dayjs(data).format('DD/MM/YYYY HH:mm:ss');
 }
 
+//Formata uma data (do tipo Date) para texto (string)
 export function offsetDateTimeParaString(data: number): string {
     return dayjs.unix(data).format('DD/MM/YYYY HH:mm:ss');
 }
 
-/* Componente <App> */
+// Componente <App>
 const App = () => {
-    //Atriutos do componente
-    //const dispatch = useDispatch();
-    //const history = createBrowserHistory();
+
+    //Atriutos do componente <App>
     const [boasVindas, setBoasVindas] = useState(false);
     const {jwt, user} = useSelector((state: RootState) => state.store.login);
-    const catalagoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
     const mainAmbiente: string = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
     const docParaRevisar: boolean = useSelector((state: RootState) => state.store.docRevisao.value) !== null;
     const isLoadingJobs: boolean = useSelector((state: RootState) => state.store.catalogoJobs.loading);
     const isLoadingPipelines: boolean = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
     const isLoadingRelatorios: boolean = useSelector((state: RootState) => state.store.catalogoRelatorios.loading);
-    //Configurando toast
-    const [toast, toastOff] = useIonToast();
-    const closeToast = {
-      text: 'x',
-      role: 'Close',
-      handler: () => toastOff(),
-    };
-    const toastInfo = (mensagem: string, buttons: ToastButton[]) => {
-        buttons.push(closeToast);
-        toastOff().then(() =>
-            toast({
-                message: mensagem,
-                duration: 5000,
-                position: 'bottom',
-                color: 'tertiary',
-                buttons: buttons,
-            })
-        );
-    };
-    const toastOk = (mensagem: string, buttons: ToastButton[]) => {
-        buttons.push(closeToast);
-        toastOff().then(() =>
-            toast({
-                message: mensagem,
-                duration: 5000,
-                position: 'bottom',
-                color: 'primary',
-                buttons: buttons,
-            })
-        );
-    };
-    const toastErro = (mensagem: string, buttons: ToastButton[]) => {
-        buttons.push(closeToast);
-        toastOff().then(() =>
-            toast({
-                message: mensagem,
-                duration: 8000,
-                position: 'bottom',
-                color: 'warning',
-                buttons: buttons,
-            })
-        );
-    };
-
-    const rotas: rotaTYPE[] = [
+    
+    //Configurando as rotas URL do menu prinicipal
+    const rotas: MenuRotaProps[] = [
         {
             path: URL_CLIENTES,
             exact: true,
@@ -175,6 +134,7 @@ const App = () => {
             desativado: !docParaRevisar,
             efeito: null,
         },
+        /*
         {
             path: "/git",
             exact: true,
@@ -185,13 +145,15 @@ const App = () => {
             desativado: false,
             efeito: null,
         },
+        */
     ];
 
-
+    //Define que a animação de splash-art da introdução terminou
     function animationEnd() {
         setBoasVindas(true);
     }
 
+    //Opção única de rota quando a splash-art de introdução está ativada
     function intro() {
         return (
             <>
@@ -203,6 +165,7 @@ const App = () => {
         );
     }
 
+    //Define as opções de rota URL do App quando o usuário está acessando sem login
     function rotasVisitante() {
         return (
             <IonRouterOutlet>
@@ -214,6 +177,7 @@ const App = () => {
         );
     }
 
+    //Define as opções do menu principal do App quando o usuário está acessando sem login
     function menuVisitante() {
         return (
             <IonTabButton tab='Login' href={URL_LOGIN} className='bg-transparent fw-bold p-0' disabled>
@@ -223,6 +187,7 @@ const App = () => {
         );
     }
 
+    //Define as opções de rota URL do App quando o usuário está logado
     function rotasAutenticado() {
         return (
             <IonRouterOutlet>
@@ -240,6 +205,7 @@ const App = () => {
         );
     }
 
+    //Define as opções do menu principal do App quando o usuário está logado
     function menuAutenticado() {
         return rotas.map((r, index) =>
             <IonTabButton key={index} tab={r.titulo} href={r.path}
@@ -252,19 +218,23 @@ const App = () => {
         );
     }
 
+    //Verifica se o usuário está logado
     function logado() {
         return (validarJwt(jwt) && validarUser(user));
         
     }
 
+    //Dependendo se o usuário está ou não logado, as opções de rotas URL serão diferentes
     function mapaDeRotas() {
         return logado() ? rotasAutenticado() : rotasVisitante();
     }
 
+    //Dependendo se o usuário está ou não logado, as opções do menu principal serão diferentes
     function mapaDeMenus() {
         return logado() ? menuAutenticado() : menuVisitante();
     }
 
+    //Renderização do componente
     return (
         <IonApp className=''>
             <Fundo />
@@ -305,40 +275,3 @@ const App = () => {
 };
 
 export default App;
-
-/*
-<IonApp className='bg-transparent'>
-            <IonReactRouter basename={process.env.PUBLIC_URL}>
-                <div className='h-100'>
-                    <IonGrid>
-                        <IonRow>
-                            <IonTabs >
-                                {mapaDeRotas()}
-                                <IonTabBar slot="top"
-                                    className='bg-transparent'
-                                    style={{ justifyContent: 'flex-start'}}
-                                >
-                                    <IonTabButton 
-                                        tab='Titulo' 
-                                        href={URL_LOGIN} 
-                                        disabled 
-                                        className='bg-transparent fw-bold' 
-                                        style={{minWidth: '12%', maxWidth: '12%'}}
-                                    >
-                                        <img src={minilogo} className='fixed-top ms-2' style={{ top: '2px', width: '150px', height: 'auto' }} />
-                                        <IonHeader id='ppw-titulo' className='fixed-top text-start text-dark pt-1 pb-0'>
-                                            <small className='small m-0 lh-1 fixed-top' style={{ top: '44px', left: '52px' }}>
-                                                Peopleware
-                                            </small>
-                                        </IonHeader>
-                                    </IonTabButton>
-                                    {mapaDeMenus()}
-                                </IonTabBar>
-                            </IonTabs>
-                        </IonRow>
-                    </IonGrid>
-                    <DynamicButtons avatar={ <Avatar user={user}/> } />
-                </div>
-            </IonReactRouter>
-        </IonApp>
-*/
