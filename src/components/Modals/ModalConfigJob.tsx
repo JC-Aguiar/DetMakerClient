@@ -19,7 +19,7 @@ export interface JobCardProps {
     //jobUserInput: JobConfig,
 }
 
-const JobCard: React.FC<JobCardProps> = ({ index }) => {
+const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
     //Atributos principais de controle
     const dispatch = useDispatch();
     const jobExec: JobConfig | undefined = useSelector((state: RootState) => state.store.configAtividade.mainJobs)[index];
@@ -30,11 +30,25 @@ const JobCard: React.FC<JobCardProps> = ({ index }) => {
     const [jobConfigurado, setJobConfigurado] = useState<JobConfig>({...jobExec});
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
+
+    useEffect(() => {
+        setJobConfigurado(jobExec);
+    }, [jobExec]);
     
     //Atributos para padrões de estilização
     const textoCodigo = (texto: string, info: string) => {
         return <span className="mx-1">
             <span className="text-white">{texto}</span> <span className="font-monospace">{info}</span>
+        </span>
+    };
+    const textoLista = (texto: string, lista: string[]) => {
+        return <span className="mx-1">
+            <span className="text-white">{texto}</span>
+            <ol className="m-0">
+                {
+                    lista.map((item, index) => <li key={index} className="font-monospace">{item}</li>)
+                } 
+            </ol>
         </span>
     };
     const labelTitulo = (texto: string, htmlIdFor: string) => {
@@ -53,10 +67,10 @@ const JobCard: React.FC<JobCardProps> = ({ index }) => {
 
     //Método chamado quando este componente fica visível
     useEffect(() => {
-        //console.log(`[CARD-JOB] JobConfig: ${JSON.stringify(jobExec)}`);
-        //console.log(`[CARD-JOB] Queries: ${JSON.stringify(jobExec.queries)}`);
-        //console.log(`[CARD-JOB] jobExec.queries:  ${jobExec.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
-        //console.log(`[CARD-JOB] jobUserInput.queries: ${jobConfigurado.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
+        //console.log(`[MODAL CONFIG-JOB] JobConfig: ${JSON.stringify(jobExec)}`);
+        //console.log(`[MODAL CONFIG-JOB] Queries: ${JSON.stringify(jobExec.queries)}`);
+        //console.log(`[MODAL CONFIG-JOB] jobExec.queries:  ${jobExec.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
+        //console.log(`[MODAL CONFIG-JOB] jobUserInput.queries: ${jobConfigurado.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
     }, [jobExec]); 
 
     //Método para salvar este JobCard (objeto ConfigJob) preenchido pelo usuário no banco
@@ -71,7 +85,7 @@ const JobCard: React.FC<JobCardProps> = ({ index }) => {
         const novosParam = [...jobConfigurado.argumentos];
         novosParam[index] = value.trim();
         setJobConfigurado( {...jobConfigurado, argumentos: novosParam} );
-        console.log(`[CARD-JOB] ${jobConfigurado.nome} parâmetro[${index}] = ${jobConfigurado.argumentos[index]}.`);
+        console.log(`[MODAL CONFIG-JOB] ${jobConfigurado.nome} parâmetro[${index}] = ${jobConfigurado.argumentos[index]}.`);
     }
 
     //Método de tratamento dos inputs do usuário para as Queries (manuais)
@@ -88,7 +102,7 @@ const JobCard: React.FC<JobCardProps> = ({ index }) => {
         };
         setJobConfigurado( {...jobConfigurado, queries: novasQueries} );
         console.log(
-            `[CARD-JOB] ${jobConfigurado.nome} query[${index}]='${jobConfigurado.queries[index].nome}', sql='${jobConfigurado.queries[index].sql}'.`
+            `[MODAL CONFIG-JOB] ${jobConfigurado.nome} query[${index}]='${jobConfigurado.queries[index].nome}', sql='${jobConfigurado.queries[index].sql}'.`
         );
     }
 
@@ -120,7 +134,7 @@ const JobCard: React.FC<JobCardProps> = ({ index }) => {
 
         setJobConfigurado( {...jobConfigurado, queries: novasQueries} );
         console.log(
-            `[CARD-JOB] ${jobConfigurado.nome} config-query[${queryIndex}]='${jobConfigurado.queries[queryIndex].nome}', filtro[${filtroIndex}]='${jobConfigurado.queries[queryIndex].filtros[filtroIndex].valor}'.`
+            `[MODAL CONFIG-JOB] ${jobConfigurado.nome} config-query[${queryIndex}]='${jobConfigurado.queries[queryIndex].nome}', filtro[${filtroIndex}]='${jobConfigurado.queries[queryIndex].filtros[filtroIndex].valor}'.`
         );
     }
 
@@ -141,7 +155,7 @@ const JobCard: React.FC<JobCardProps> = ({ index }) => {
             let sucessos = 0;
             for (let index = 0; index < files.length; index++) {
                 const file = files?.[index];
-                console.log(`[CARD-JOB]: Anexando arquivo '${file.name}'.`);
+                console.log(`[MODAL CONFIG-JOB]: Anexando arquivo '${file.name}'.`);
                 const reader = new FileReader();
                 reader.onload = () => {
                     const cargaNova: JobCarga = {
@@ -155,7 +169,7 @@ const JobCard: React.FC<JobCardProps> = ({ index }) => {
                         novasCargas[index] = cargaNova;
                 };
                 reader.readAsText(file);
-                console.log(`[CARD-JOB]: Arquivo '${file.name}' anexado com sucesso.`);
+                console.log(`[MODAL CONFIG-JOB]: Arquivo '${file.name}' anexado com sucesso.`);
                 sucessos++;
             }
             dispatch(atualizarMensagem({ 
@@ -190,22 +204,26 @@ const JobCard: React.FC<JobCardProps> = ({ index }) => {
     const informacoes = () => {
         if (!jobInfo || !jobExec) return;
         
-        const sessaoes: JSX.Element[] = [];
+        const sessoes: JSX.Element[] = [];
         
         if (jobInfo.executarAposJob.length > 0)
-            sessaoes.push(textoCodigo("Executar após IDs:", jobInfo.executarAposJob.join(", ")));
+            sessoes.push(textoCodigo("Executar após IDs:", jobInfo.executarAposJob.join(", ")));
         if (jobInfo.programa.length > 0)
-            sessaoes.push(textoCodigo("Programas: ", jobInfo.programa.join(", ")));
+            sessoes.push(textoCodigo("Programas: ", jobInfo.programa.join(", ")));
         if (jobInfo.grupoUda.length > 0)
-            sessaoes.push(textoCodigo(`Grupo: `, `UDA${jobInfo.grupoUda}`));
-        sessaoes.push(textoCodigo(`Descrição: `, jobInfo.descricao));
+            sessoes.push(textoCodigo(`Grupo: `, `UDA${jobInfo.grupoUda}`));
+
+        sessoes.push(textoCodigo(`Descrição: `, jobInfo.descricao));
+
+        if (jobInfo.mascaraLog.length > 0)
+            sessoes.push(textoLista(`Logs: `, jobInfo.mascaraLog));
         
         return (
             <>
                 {labelTitulo('INFORMAÇÕES', `job${id}-param`)}
                 <div className="glass mx-4 mt-1 mb-4 pt-2 pb-4 px-2">
                     {
-                        sessaoes.map((item, index) => <div key={index}>{item}</div>)
+                        sessoes.map((item, index) => <div key={index}>{item}</div>)
                     }
                 </div>
             </>
@@ -419,4 +437,4 @@ const JobCard: React.FC<JobCardProps> = ({ index }) => {
     );
 };
 
-export default JobCard;
+export default ModalConfigJob;

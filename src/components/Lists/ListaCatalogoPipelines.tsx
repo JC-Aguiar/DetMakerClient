@@ -95,7 +95,7 @@ const ListaCatalogoPipelines: React.FC = () => {
                             const tag = item.jobs.length + " Job" + (item.jobs.length > 1 ? 's' : '');
                             return (
                                 <ItemLista key={index} text={item.nome} tag={tag} color={color}>
-                                    <IonRadio color='primary'
+                                    <IonRadio 
                                         slot="start"
                                         value={item.nome}
                                         className='p-0 m-0 me-1 mt-1'

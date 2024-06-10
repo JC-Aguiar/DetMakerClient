@@ -33,7 +33,7 @@ export function parseJobInfo(infoDto: JobInfoDTO, ordem : number = -1): JobConfi
         ,
         queries: infoDto.queries
             .filter((item) => item)
-            .map((item) => converterQueryInfoEmConfigQuery(item)),
+            .map((item) => converterQueryInfoEmConfigQuery(item)), //TODO: exceção daqui deve ser tratada nos componentes-pai
             //.map((item) => {
             //    return {
             //        campos: item.campos,

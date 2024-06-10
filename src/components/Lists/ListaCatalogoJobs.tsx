@@ -5,7 +5,7 @@ import { RootState } from "../../Store/ReduxStore";
 import { addOneMainJob, addViewJobs, removeViewJobs, setViewJobs } from "../../Store/Reducer/ReducerAtividade";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
 import { setMainJobs } from "../../Store/Reducer/ReducerAtividade";
-import { addCircleOutline, closeCircle, search } from "ionicons/icons";
+import { addCircleOutline, checkbox, checkmark, closeCircle, search, square } from "ionicons/icons";
 import { JobConfig, parseJobInfo } from "../../data/JobConfigDTO";
 import ItemLista from "../Core/ItemLista";
 
@@ -28,31 +28,9 @@ const ListaCatalogoJobs: React.FC = () => {
         return jobsSelecionados.findIndex((id) => id === jobId) !== -1; 
     }
 
-    const identificarTipoBotao = (item: JobInfoDTO): JSX.Element => {
-        if (mainPipeline !== "") {
-            return <IonBadge color="#" className="p-0 m-0 bg-transparent">
-                <IonIcon icon={addCircleOutline} 
-                    color="primary" 
-                    className='p-0 m-1 pe-1' 
-                    style={{ transform: 'scale(1.5) translate(0.25px, 3px)'}}
-                />
-            </IonBadge>
-        }
-        return (
-            <IonCheckbox color='primary'
-                slot="start"
-                checked={isOn(item.id)}
-                value={isOn(item.id) ? 'on' : 'off'}
-                className='p-0 m-0 me-1 mt-1 border border-primary rounded rounded-2'
-                style={{ height: '16px', width: '17px', }}
-                onClick={(e) => {
-                    const on = !isOn(item.id);
-                    if (on) dispatch(addViewJobs(item.id));
-                    else dispatch(removeViewJobs(item.id));
-                    //if (mainPipeline !== "") dispatch(setMainPipeline({ nome: "", jobs: [] }));
-                }}
-            />
-        );
+    const identificarTipoBotao = (item: JobInfoDTO) => {
+        if (mainPipeline !== "") return addCircleOutline;
+        return isOn(item.id) ? checkbox : square;
     }
 
     //Desseleciona todos os Jobs
@@ -88,9 +66,16 @@ const ListaCatalogoJobs: React.FC = () => {
                             <ItemLista key={index}
                                 text={item.nome}
                                 tag={`ID ${item.id}`}
-                                button={identificarTipoBotao(item)}
+                                icon={identificarTipoBotao(item)}
                                 color={color}
-                                trigger={() => dispatch(addOneMainJob(item))}
+                                trigger={() => {
+                                    if (mainPipeline !== "") { 
+                                        dispatch(addOneMainJob(item));
+                                        return;
+                                    }
+                                    if (!isOn(item.id)) dispatch(addViewJobs(item.id));
+                                    else dispatch(removeViewJobs(item.id)); 
+                                }}
                             />
                         );
                     })

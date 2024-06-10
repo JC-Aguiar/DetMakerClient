@@ -10,7 +10,7 @@ import { removeRevisao, addRevisao } from "../../Store/Reducer/ReducerRevisao";
 import { JobExecuteDTO, parseJobConfigParaJobExecute } from "../../data/JobExecuteDTO";
 import { PipelineExecDTO } from "../../data/PipelineExecDTO";
 import { RelatorioHistoricoDTO } from "../../data/RelatorioHistoricoDTO";
-import { RelatorioInfoDTO } from "../../data/RelatorioInfoDTO";
+import { AtividadeInfoDTO } from "../../data/AtividadeInfoDTO";
 import { UserInfoDTO } from "../../data/UserInfoDTO";
 import { UserDTO } from "../../data/UserDTO";
 import { useHistory } from "react-router";
@@ -106,6 +106,7 @@ const ModalExecPipeline: React.FC = () => {
         }));
         
         try {
+            /*
             const pipelineDto: PipelineInfoDTO = {
                 id: mainPipelineId,
                 nome: mainPipeline,
@@ -114,7 +115,8 @@ const ModalExecPipeline: React.FC = () => {
                 jobs: mainJobs.map((item) => item.nome),
                 checked: true,
             };
-            const relatorioDto: RelatorioInfoDTO = {
+            */
+            const relatorioDto: AtividadeInfoDTO = {
                 idProjeto: projetoId,
                 nomeProjeto: projetoNome,
                 nomeAtividade: atividadeNome,
@@ -123,10 +125,10 @@ const ModalExecPipeline: React.FC = () => {
             };
             const jobsDto: JobExecuteDTO[] = mainJobs.map((item) => parseJobConfigParaJobExecute(item));
             const body: PipelineExecDTO = {
-                pipeline: pipelineDto,
-                relatorio: relatorioDto,
+                pipelineId: mainPipelineId,
+                atividade: relatorioDto,
                 jobs: jobsDto,
-                userInfo: {
+                user: {
                     nome: user ? user.name : null,
                     papel: user ? "DEV" : null,
                     empresa: user ? "PPW" : null,

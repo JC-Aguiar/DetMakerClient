@@ -151,20 +151,21 @@ const configAtividade = createSlice({
             const {jobs, ifxdate} = action.payload;
             state.mainIfxdate = ifxdate; 
 
-            state.mainJobs.map(mainJob => {
-                let jobIndex = -1;
-                for (let i = 0; i < jobs.length; i++) {
-                    if (jobs[i].id === mainJob.id) {
-                        jobIndex = i;
-                        break;
-                    }
-                }
-                if (jobIndex === -1) return mainJob;
+            for (let i = 0; i < jobs.length; i++) {
+                const jobId = jobs[i].id;
+                const jobNewParam = jobs[i].parametro;
 
-                const parametroIndex = jobs[jobIndex].parametro;
-                if (mainJob.argumentos.length < parametroIndex) return mainJob;
-                mainJob.argumentos[parametroIndex] = ifxdate;
-            });
+                state.mainJobs = state.mainJobs.map(mainJob => {
+                    if (mainJob.id !== jobId) { 
+                        return mainJob;
+                    }
+                    if (mainJob.argumentos[jobNewParam]  === undefined) {
+                        return mainJob;
+                    }
+                    mainJob.argumentos[jobNewParam] = ifxdate;
+                    return mainJob;
+                })
+            }
             //logItemPilha(state.mainJobs);
         },
         updateOneMainJob: (state, action: PayloadAction<JobConfig>) => {

@@ -1,5 +1,5 @@
 
-export interface RelatorioInfoDTO {
+export interface AtividadeInfoDTO {
     idProjeto: string,
     nomeProjeto: string,
     nomeAtividade: string,

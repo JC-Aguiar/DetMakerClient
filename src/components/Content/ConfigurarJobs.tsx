@@ -1,5 +1,5 @@
 import { InputChangeEventDetail, IonBadge, IonCard, IonInput, IonItem, IonList, IonReorderGroup, IonRow, ItemReorderEventDetail, useIonAlert, useIonModal, useIonViewDidEnter } from '@ionic/react';
-import JobCard from './JobCard';
+import ModalConfigJob from '../Modals/ModalConfigJob';
 import { arrowUndo, flash, save, trash } from 'ionicons/icons';
 import { useRef } from 'react';
 import { useSelector } from 'react-redux';
@@ -23,7 +23,7 @@ const ConfigurarJobs: React.FC = () => {
 
     //Atributos com estado gerenciado via React
     //const reorderGroupRef = useRef<HTMLIonReorderGroupElement>(null);
-    const inputIfxdateRef = useRef<HTMLIonInputElement>(null);
+    //const inputIfxdateRef = useRef<HTMLIonInputElement>(null);
     const [alerta] = useIonAlert();
 
     //Atributos com estado gerenciado via Redux
@@ -65,10 +65,14 @@ const ConfigurarJobs: React.FC = () => {
             status: 'INFO'
         }));
         try {
-            const novaPipeline = catalogoPipelines.find(pipe => pipe.id === mainPipelineId);
-            if (!novaPipeline) 
-                throw `Pipeline ID ${mainPipelineId} não encontrada no catálogo de Pipelines.`;
-
+            const novaPipeline: PipelineInfoDTO = {
+                clienteId: mainClienteId,
+                id: mainPipelineId,
+                nome: mainPipeline,
+                descricao: !mainPipelineDescricao ? "" : mainPipelineDescricao,
+                jobs: mainJobs.map(job => job.nome),
+                checked: true,
+            };
             await axiosRequest.atualizarPipeline(novaPipeline);
             const catalogoPipelinesAtualizado = catalogoPipelines.slice()
                 .map(pipe => {
@@ -79,7 +83,7 @@ const ConfigurarJobs: React.FC = () => {
             dispatch(atualizarMensagem({
                 id: mensagemId,
                 complmento: `Sucesso.`,
-                status: "INFO",
+                status: "OK",
             }));
         }
         catch (error) {
@@ -176,11 +180,13 @@ const ConfigurarJobs: React.FC = () => {
         };
 
         catalogoJobs.filter(item => mainJobs.some(mainJob => mainJob.id === item.id))
-            .forEach(item => {
+            .forEach((item, index) => {
                 const paramIndex = getIndexParametroComIfxdate(item);
                 if (paramIndex !== -1)
                     dados.jobs.push({ id: item.id , parametro: paramIndex });
             });
+
+        console.log("JOBS: " + dados.jobs.map(job => JSON.stringify(job)).join("\n"));
 
         dispatch(updateMainJobsIfxdate(dados));
         dispatch(addMensagem({ 
@@ -256,7 +262,7 @@ const ConfigurarJobs: React.FC = () => {
                                 type='date'
                                 maxlength={500}
                                 className='text-white mx-2'
-                                ref={inputIfxdateRef}
+                                //ref={inputIfxdateRef}
                                 onIonChange={(e) => preencherIfxdate(e)}
                             />
                         </IonItem>
@@ -265,7 +271,7 @@ const ConfigurarJobs: React.FC = () => {
                     {/* ref={reorderGroupRef}  */}
                     <IonReorderGroup disabled={false} onIonItemReorder={reordenar} className='p-0 m-0' >
                         {
-                            mainJobs.map((item, index) => <JobCard key={index} index={index} />)
+                            mainJobs.map((item, index) => <ModalConfigJob key={index} index={index} />)
                         }
                     </IonReorderGroup>
                 </IonList>

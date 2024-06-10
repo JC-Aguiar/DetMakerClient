@@ -4,14 +4,13 @@ import { Children, HTMLAttributes, useState } from "react";
 export interface ItemListaProps extends HTMLAttributes<HTMLIonItemElement>  {
     text: string | number;
     tag?: string | number;
-    button?: JSX.Element;
     icon?: string;
     glass?: boolean;
     trigger?: () => void;
     innerPad?: 0 | 1 | 2 | 3 | 4 | 5
 }
 
-const ItemLista: React.FC<ItemListaProps> = ({ text, tag, button, glass = false, trigger = (() => null), ...props })  => {
+const ItemLista: React.FC<ItemListaProps> = ({ text, tag, glass = false, trigger = (() => null), ...props })  => {
     //Tenta renderiza o IonIcon se o atributo 'props.icon' foi definido
     const renderizarpropsIcone = () => {
         if (!props.icon) return <></>;
@@ -35,21 +34,21 @@ const ItemLista: React.FC<ItemListaProps> = ({ text, tag, button, glass = false,
             style={{ '--min-height': '32px', cursor: 'pointer', display: 'block' }}
             onClick={trigger}
         >
-            <IonLabel className={`d-flex bg-transparent border-0 p-0 m-0 text-start ps-${props.innerPad}`} >
-                {button}
+            <IonLabel className={`d-flex ion-align-items-center bg-transparent border-0 p-0 m-0 text-start ps-${props.innerPad} h-100`} >
                 <IonIcon icon={props.icon} 
-                    color="primary" 
-                    className='ms-1 pe-1' 
-                    style={{ transform: 'translate(-2px, 1px) scale(1.4)' }} 
+                    className='ms-1 pe-1'
                     hidden={props.icon === undefined}
                 />
-                <span className='font-monospace text-break'>{text}</span>
-                <IonBadge color='secondary'
-                    className='ms-1 small fw-normal opacity-25'
-                    style={{transform: 'translate(0px, 3px)'}}
-                > 
-                    {tag} 
-                </IonBadge>
+                <span className='font-monospace text-wrap'>
+                    {text}
+                    <IonBadge color='secondary'
+                        className='ms-1 small fw-normal lh-0 opacity-25'
+                        style={{transform: 'translate(0px, 3px)'}}
+                    > 
+                        {tag} 
+                    </IonBadge>
+                </span>
+                
             </IonLabel>
             {children}
         </IonItem>

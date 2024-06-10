@@ -479,12 +479,18 @@ input[type="file"]::-webkit-file-upload-button {
   border-radius: 10px;
 }
 
+.item-lista * ion-icon {
+  transform: translate(-2px, 1px) scale(1.4);
+}
+
 .item-lista:hover {
   background: var(--ion-color-primary);
   opacity: 0.8;
   & * {
     color: var(--ion-color-primary-contrast);
     --color: var(--ion-color-primary-contrast);
+    --placeholder-color: var(--ion-color-primary-contrast);
+    --color-checked: var(--ion-color-primary-contrast);
   }
 }
 
