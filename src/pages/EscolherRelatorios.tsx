@@ -297,29 +297,25 @@ const EscolherRelatorios: React.FC = () => {
                             <IonCardHeader color="primary" className="m-0 p-0 text-center">
                                 <IonCardSubtitle>Filtros</IonCardSubtitle>
                             </IonCardHeader>
-                            <IonCardContent className="m-0 p-0">
+                            <IonCardContent className="m-0 p-0 mt-1">
                                 {
                                     opcoesConsulta.map((opcao, index) => {
                                         return (
-                                            <div key={index} className="d-flex ion-align-items-center m-0 p-0">
-                                                <GlassInput
-                                                    text={opcao.nome}
-                                                    icon={opcao.icon}
-                                                    type={!opcao.type ? "text" : opcao.type}
+                                            <GlassInput key={index} text={opcao.nome} icon={opcao.icon} >
+                                                <IonInput type={!opcao.type ? "text" : opcao.type}
                                                     maxlength={opcao.tamanho}
                                                     value={opcao.valor}
-                                                    color="light"
                                                     onIonChange={(e) => opcao.handler(e.detail.value)}
-                                                    className="small"
+                                                    className="small pt-2"
                                                 />
                                                 <IonIcon
                                                     icon={closeCircle}
                                                     size='small'
                                                     className="glass btn position-fixed m-0 p-0"
-                                                    style={{ transform: 'translate(0px, 0)', right: '8px', zIndex: '500' }}
+                                                    style={{ top: '0.8em', right: '5px', zIndex: '500' }}
                                                     onClick={() => opcao.reset()}
                                                 />
-                                            </div>
+                                            </GlassInput>
                                         );
                                     })
                                 }

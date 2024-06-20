@@ -35,13 +35,7 @@ export default Botao;
 export const Botoes: React.FC<{botoes: BotaoProps[]}> = ({ botoes }) => {
     return <>
         {
-            botoes.map((item, index) => <Botao key={index} 
-                    icon={item.icon} 
-                    text={item.text} 
-                    handler={item.handler}
-                    disabled={item.disabled} 
-                />
-            )
+            botoes.map((item, index) => <Botao key={index} {...item} /> )
         }
     </>
 }

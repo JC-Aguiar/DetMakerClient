@@ -17,6 +17,7 @@ import { MassaPreparada } from './MassaPreparada';
 import { AmbienteInfoDTO } from './AmbienteInfoDTO';
 import { ClienteNovoDTO } from './ClienteNovoDTO';
 import { Page } from './Page';
+import { FiltroSQL } from './FiltroSQL';
 
 const EM_TESTE = false;
 
@@ -696,16 +697,40 @@ export async function getAllConfigQueries(clienteId: number): Promise<QueryInfoD
         });
 }
 
-//Requisição para obter ConfigQuery's de um Job
-export async function getJobConfigQueries(jobId: number): Promise<ComandoSQL[]> {
-    const titulo = `OBTENDO CONFIG-QUERIES DO JOB ID ${jobId}`;
+//Requisição para obter todos os Filtros ConfigQuery no banco
+export async function getQueryFiltros(queryId: number): Promise<FiltroSQL[]> {
+    const titulo = `OBTER CONFIG-QUERY ID ${queryId}`;
     requestStart(titulo);
 
     //Preparando requisição
     let config: AxiosRequestConfig = {
         method: 'get',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/query/job/${jobId}`,
+        url: `${REQUEST_URL}/query/${queryId}/vars`,
+        headers: headers,
+        timeout: 30000,
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            return response.data;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Deletando uma ConfigQuery com base no ID
+export async function deleteConfigQuery(queryId: number): Promise<string> {
+    const titulo = `DELETAR CONFIG-QUERY ID ${queryId}`;
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'DELETE',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/query/${queryId}`,
         headers: headers,
         timeout: 30000,
     };

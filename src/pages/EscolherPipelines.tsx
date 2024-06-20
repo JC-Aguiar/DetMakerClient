@@ -26,6 +26,7 @@ import ListaCatalogoPipelines from '../components/Lists/ListaCatalogoPipelines';
 import ListaCatalogoMassas from '../components/Lists/ListaCatalogoMassas';
 import ModalNovoJob from '../components/Modals/ModalNovoJob';
 import { addMensagem, atualizarMensagem } from '../Store/Reducer/ReducerAtividade';
+import JobCard from '../components/Content/JobCard';
 
 const EscolherPipelines: React.FC = () => {
     //Atrbiutos Redux e React
@@ -294,84 +295,7 @@ const EscolherPipelines: React.FC = () => {
 
     //Exibição no painel principal (direita) listagem de cards, com base na Schedule, dos Jobs selecionados no painel de opções (esquerda)
     function exibirJobsSelecionados() {
-        const fonteCodigo = 'font-monospace text-white fw-bold'
-        return catalogoJobsSelecionados.map((jobDto, index) =>
-            <IonCard key={index}>
-                <IonAccordionGroup>
-                    <IonAccordion value="first">
-                        <IonItem slot="header" color="primary" className='' >
-                            <IonCardHeader className='py-0'>
-                                <IonCardTitle className='text-dark py-0'>{jobDto.nome}</IonCardTitle>
-                            </IonCardHeader>
-                        </IonItem>
-                        <div className="glass rounded-0" slot="content">
-                            <IonCardContent className='glass-content'>
-                                <div className='small'>
-                                    <IonTitle color='primary' className='p-0'>Dados da Schedule</IonTitle>
-                                    <section className="mb-4">
-                                        <table className="table table-stripe">
-                                            <tbody className='text-white fw-bold'>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end' style={{ width: '0%' }}>Descrição:</td>
-                                                    <td className='' colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.descricao}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end'>Fase:</td>
-                                                    <td colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.fase}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end'>Programas:</td>
-                                                    <td colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.programa.join(", ")}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end'>Tabelas:</td>
-                                                    <td colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.tabelas.join(", ")}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end'>Máscara Carga:</td>
-                                                    <td colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.mascaraEntrada.join(", ")}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr className='p-0 m-0'>
-                                                    <td className='text-end'>Máscara Produto:</td>
-                                                    <td colSpan={3}>
-                                                        <span className={fonteCodigo}>{jobDto.mascaraSaida.join(", ")}</span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                        <IonTitle color='primary' className='p-0'>Dados de Queries</IonTitle>
-                                        {
-                                            jobDto.queries.map((queryItem, queryIndex) => {
-                                                return (
-                                                    <div className='text-white fw-bold border-bottom p-2' key={index * 10 + queryIndex}>
-                                                        <IonTitle color='secondary' className='w-100 h6'>
-                                                            {queryItem.nome}
-                                                        </IonTitle>
-                                                        <div className={`${fonteCodigo} mx-4`} >
-                                                            {queryItem.sql}
-                                                        </div>
-                                                    </div>
-                                                )
-                                            })
-                                        }
-                                    </section>
-                                </div>
-                            </IonCardContent>
-                        </div>
-                    </IonAccordion>
-                </IonAccordionGroup>
-            </IonCard>
-        );
+        return catalogoJobsSelecionados.map((jobDto, index) => <JobCard key={index} jobDto={jobDto} /> );
     }
 
     //Conteúdo principal caso existam dados na base

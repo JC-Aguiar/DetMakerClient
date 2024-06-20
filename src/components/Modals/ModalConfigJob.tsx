@@ -1,4 +1,4 @@
-import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonContent, IonIcon, IonInput, IonItem, IonLabel, IonReorder, IonRow, IonTextarea, TextareaChangeEventDetail, useIonModal } from "@ionic/react";
+import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonIcon, IonInput, IonItem, IonLabel, IonReorder, IonRow, IonTextarea, TextareaChangeEventDetail, useIonModal } from "@ionic/react";
 import React, { useEffect, useState } from "react";
 import { JobCarga, JobConfig } from "../../data/JobConfigDTO";
 import { ComandoSQL } from "../../data/ComandoSQL";
@@ -15,8 +15,6 @@ import Uploader from "../Core/Uploader";
 
 export interface JobCardProps {
     index: number,
-    //jobExec: JobConfig,
-    //jobUserInput: JobConfig,
 }
 
 const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
@@ -90,37 +88,25 @@ const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
 
     //Método de tratamento dos inputs do usuário para as Queries (manuais)
     const preencherQueries = (event: CustomEvent<TextareaChangeEventDetail>, index: number) => {
-        const value = (event.target as HTMLInputElement).value;
-        const novasQueries = [...jobConfigurado.queries];
-        novasQueries[index] = {
-            campos: novasQueries[index].campos,
-            nome: novasQueries[index].nome,
-            filtros: [],
-            sql: value,
-            descricao: novasQueries[index].descricao,
-            dinamico: false,
-        };
-        setJobConfigurado( {...jobConfigurado, queries: novasQueries} );
-        console.log(
-            `[MODAL CONFIG-JOB] ${jobConfigurado.nome} query[${index}]='${jobConfigurado.queries[index].nome}', sql='${jobConfigurado.queries[index].sql}'.`
+        setJobConfigurado(jobConfig => {
+            jobConfig.queries[index].sql = (event.target as HTMLInputElement).value;
+            return jobConfig;
+        });
+        console.log(`[MODAL CONFIG-JOB] ${jobConfigurado.nome} `
+            + `query[${index}]='${jobConfigurado.queries[index].nome}', sql='${jobConfigurado.queries[index].sql}'.`
         );
     }
 
     //Método de tratamento dos inputs do usuário para as ConfigQueries (automáticas)
+    /*
     const preencherConfigQueries = (event: CustomEvent<InputChangeEventDetail>, queryIndex: number, filtroIndex: number) => {
         const value = (event.target as HTMLInputElement).value;
         
         const novasQueries = [...jobConfigurado.queries];
         const novosFiltros: FiltroSQL[] = [...novasQueries[queryIndex].filtros]
             .map((item, index) => {
-                if (index === filtroIndex) {
-                    return {
-                        coluna: item.coluna,
-                        valor: value,
-                        tipo: item.tipo,
-                    };
-                }
-                return item; 
+                if (index !== filtroIndex) return item
+                return {...item, valor: value };
             });
 
         novasQueries[queryIndex] = {
@@ -137,6 +123,7 @@ const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
             `[MODAL CONFIG-JOB] ${jobConfigurado.nome} config-query[${queryIndex}]='${jobConfigurado.queries[queryIndex].nome}', filtro[${filtroIndex}]='${jobConfigurado.queries[queryIndex].filtros[filtroIndex].valor}'.`
         );
     }
+    */
 
     //Método de tratamento dos inputs do usuário para as Cargas
     const preencherCarga = (files: FileList | null) => {
@@ -290,8 +277,9 @@ const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
         if (!jobInfo || !jobExec || jobExec.queries.length < 1) return null;
         
         //Gerando preenchimento dinâmico para as ConfigQuery's cadastradas
+        /*
         const queriesDinamicas = jobConfigurado.queries
-            .filter((cmdSql) => cmdSql.dinamico)
+            .filter((cmdSql) => !cmdSql.autopreenchimento)
             //.filter((cmdSql) => cmdSql.filtros.length > 0)
             .map((cmdSql, queryIndex) =>
                 <div key={queryIndex} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
@@ -312,7 +300,7 @@ const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
                         cmdSql.filtros.map((filtro, filtroIndex) =>
                             <IonItem className="text-primary glass" key={queryIndex * filtroIndex}>
                                 <IonLabel className="fw-bold">{filtro.coluna + ":"}</IonLabel>
-                                <IonInput placeholder={filtro.tipo}
+                                <IonInput placeholder={filtro.nome}
                                     value={filtro.valor}
                                     onIonChange={(e) => preencherConfigQueries(e, queryIndex, filtroIndex)}
                                 />
@@ -321,15 +309,17 @@ const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
                     }
                 </div>
             );
+        */
         //Adicionando preenchimento manual para as ConfigQuery's pendentes 
         const queriesManuais = jobConfigurado.queries
-            .filter((cmdSql) => !cmdSql.dinamico)
+            .filter((cmdSql) => !cmdSql.autopreenchimento)
             .map((cmdSql, index) => inputQuerysManual(cmdSql, index));
+
         //Renderização da função
         return (
             <div className="px-1 mb-2">
                 {labelTitulo('QUERIES DE CONSULTA', `job${id}-sql`)}
-                {queriesDinamicas}
+                {/*queriesDinamicas*/}
                 {queriesManuais}
             </div>
         );
@@ -407,24 +397,24 @@ const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
     return (
         <IonRow className="ion-align-items-center ion-justify-content-between w-100">
             <IonItem className="w-100 border-bottom" lines="none">
-                <IonLabel className="p-0 m-0">
-                    <IonReorder slot="start" className='w-100 ion-align-items-center'>
-                        <IonItem className='container w-100 p-0 m-0' lines='none' >
+                <IonLabel className="p-0 m-0 d-flex">
+                    <IonReorder slot="start" className='ion-align-items-center'>
+                        <IonItem className='p-0 m-0' lines='none' >
                             <span><IonIcon icon={reorderFour} /></span>
                             <span><small className="text-white p-0 m-0 h6">Nº{jobExec.ordem}</small></span>
                             <span><IonIcon icon={reorderFour} /></span>
-                            <IonCard target="_self" className="w-100 border border-2 px-1 py-1 h6" color="tertiary">
-                                <span>
-                                    <span className="ms-1 badge bg-white me-1 text-dark">
-                                        ID <span>{id}</span>
-                                    </span>
-                                    <span className=" font-monospace text-white text-wrap">
-                                        {jobExec.nome}
-                                    </span>
-                                </span>
-                            </IonCard>
                         </IonItem>
                     </IonReorder>
+                    <IonCard target="_self" className="border border-2 px-1 py-1 h6" color="tertiary">
+                        <span>
+                            <span className="ms-1 badge bg-white me-1 text-dark">
+                                ID <span>{id}</span>
+                            </span>
+                            <span className=" font-monospace text-white text-wrap">
+                                {jobExec.nome}
+                            </span>
+                        </span>
+                    </IonCard>
                 </IonLabel>
                 <IonButton fill="clear" shape="round" size='large' onClick={() => modalParamOn({cssClass: 'modal-job-card'})} >
                     <IonIcon icon={settings} size='large' color='light' />

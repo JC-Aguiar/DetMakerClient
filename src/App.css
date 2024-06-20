@@ -277,6 +277,17 @@ ion-modal::part(content) {
   margin: 0;
 }
 
+ion-chip.stick {
+  opacity: 100;
+  position: absolute;
+  top: inherit;
+  left: inherit;
+  height: calc(1em + 6px);
+  transform: translate(0px, -0.4em);
+  z-index: 50;
+  cursor: default;
+}
+
 .item-native {
   padding-left: 0px;
   padding-right: 0px;
@@ -615,6 +626,11 @@ input[type="file"]::-webkit-file-upload-button {
   background: var(--ion-color-primary-shade);
 }
 
+.modal-large {
+  --height: 90%;
+  --max-height: 90%;
+  --min-height: 90%;
+}
 
 /* customizando modal de Jobs */
 ion-modal.modal-job-card::part(content) {

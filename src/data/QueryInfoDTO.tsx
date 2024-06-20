@@ -4,3 +4,14 @@ export interface QueryInfoDTO {
     descricao: string,
     sql: string,
 }
+
+export namespace QueryInfoDTO {
+    export function empty(): QueryInfoDTO {
+        return {
+            id: -1,
+            nome: "",
+            descricao: "",
+            sql: "",
+        };
+    }
+}
