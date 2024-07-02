@@ -9,7 +9,7 @@ import DynamicModal from '../components/Core/DynamicModal';
 import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
 import { loadingPipelines, setPipelines } from '../Store/Reducer/ReducerPipelines';
 import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/Core/ButtonLayout';
-import ConfigurarJobs from '../components/Content/ConfigurarJobs';
+import ListaConfigJobs from '../components/Lists/ListaConfigJobs';
 import { JobInfoDTO } from '../data/JobInfoDTO';
 import { setMainPipeline } from '../Store/Reducer/ReducerAtividade';
 import ListaCatalogoJobs from '../components/Lists/ListaCatalogoJobs';
@@ -28,6 +28,7 @@ import ModalNovoJob from '../components/Modals/ModalNovoJob';
 import { addMensagem, atualizarMensagem } from '../Store/Reducer/ReducerAtividade';
 import JobCard from '../components/Content/JobCard';
 
+//Componente <EscolherPipelines>
 const EscolherPipelines: React.FC = () => {
     //Atrbiutos Redux e React
     const dispatch = useDispatch();
@@ -283,7 +284,7 @@ const EscolherPipelines: React.FC = () => {
             return exibirJobsSelecionados();
 
         if (mainPipeline !== "") 
-            return <ConfigurarJobs />;
+            return <ListaConfigJobs />;
 
         const mensagem = 'Use o painel lateral para vizualizar {Jobs} e {Pipelines}\n'
             + 'Selecione um {Job}, fora da {Pipeline}, para analisá-lo\n'

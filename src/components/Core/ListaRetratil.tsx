@@ -23,7 +23,6 @@ const ListaRetratril: React.FC<ListaRetratrilProps> = ({ title, icon = null, con
     const renderizarIcone = icon !== null ? 
         <IonIcon icon={icon} color='light' className='ms-1' style={{ transform: 'translate(0, 3px)' }} /> : 
         <></>;
-
     props.children = null;
 
     //Renderização do componente
@@ -58,7 +57,7 @@ export const ListaRetratrilAgrupada: React.FC<{listas: ListaRetratrilProps[]}> =
     return <IonAccordionGroup multiple={true} className='px-2'>
         {
             listas.map(
-                (item, index) => <ListaRetratril key={index} title={item.title} icon={item.icon} content={item.content} />
+                (item, index) => <ListaRetratril key={index} {...item} />
             )
         } 
     </IonAccordionGroup>;

@@ -2,7 +2,7 @@ import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonIcon, IonInput
 import React, { useEffect, useState } from "react";
 import { JobCarga, JobConfig } from "../../data/JobConfigDTO";
 import { ComandoSQL } from "../../data/ComandoSQL";
-import { reorderFour, save, settings, shieldCheckmark, trash } from "ionicons/icons";
+import { bookmark, chatboxEllipses, cube, reorderFour, save, settings, shieldCheckmark, trash } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
@@ -12,12 +12,18 @@ import { addMensagem, atualizarMensagem, removeOneMainJob, updateOneMainJob } fr
 import { FiltroSQL } from "../../data/FiltroSQL";
 import Botao from "../Core/Botao";
 import Uploader from "../Core/Uploader";
+import ListaRetratril, { ListaRetratrilAgrupada, ListaRetratrilProps } from "../Core/ListaRetratil";
+import GlassInput from "../Core/GlassInput";
+import ItemLista from "../Core/ItemLista";
 
+//Interface com os atributos do componente <ConfigJobItem>
 export interface JobCardProps {
     index: number,
 }
 
-const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
+//Componente <ConfigJobItem>
+const ConfigJobItem: React.FC<JobCardProps> = ({ index }) => {
+    
     //Atributos principais de controle
     const dispatch = useDispatch();
     const jobExec: JobConfig | undefined = useSelector((state: RootState) => state.store.configAtividade.mainJobs)[index];
@@ -29,13 +35,14 @@ const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
 
+    //Acionamento sempre que o JobConfig desse componente sofre qualquer alteração
     useEffect(() => {
         setJobConfigurado(jobExec);
     }, [jobExec]);
     
     //Atributos para padrões de estilização
     const textoCodigo = (texto: string, info: string) => {
-        return <span className="mx-1">
+        return <span className="mx-1 small">
             <span className="text-white">{texto}</span> <span className="font-monospace">{info}</span>
         </span>
     };
@@ -191,29 +198,74 @@ const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
     const informacoes = () => {
         if (!jobInfo || !jobExec) return;
         
-        const sessoes: JSX.Element[] = [];
+        const sessoes: {icon: string, content: JSX.Element}[] = [];
         
-        if (jobInfo.executarAposJob.length > 0)
-            sessoes.push(textoCodigo("Executar após IDs:", jobInfo.executarAposJob.join(", ")));
-        if (jobInfo.programa.length > 0)
-            sessoes.push(textoCodigo("Programas: ", jobInfo.programa.join(", ")));
-        if (jobInfo.grupoUda.length > 0)
-            sessoes.push(textoCodigo(`Grupo: `, `UDA${jobInfo.grupoUda}`));
+        //if (jobInfo.executarAposJob.length > 0)
+        //    sessoes.push(textoCodigo("Executar após IDs:", jobInfo.executarAposJob.join(", ")));
+        if (jobInfo.programa.length > 0) {
+            sessoes.push({
+                icon: cube,
+                content: textoCodigo("Programas: ", jobInfo.programa.join(", "))
+            });
+        }
+        if (jobInfo.grupoUda.length > 0) {
+            sessoes.push({
+                icon: bookmark,
+                content: textoCodigo(`Grupo: `, `UDA${jobInfo.grupoUda}`)
+            });
+        }
+        sessoes.push({
+            icon: chatboxEllipses,
+            content: textoCodigo(`Descrição: `, jobInfo.descricao)
+        });
 
-        sessoes.push(textoCodigo(`Descrição: `, jobInfo.descricao));
+        //if (jobInfo.mascaraLog.length > 0)
+        //    sessoes.push(textoLista(`Logs: `, jobInfo.mascaraLog));
 
-        if (jobInfo.mascaraLog.length > 0)
-            sessoes.push(textoLista(`Logs: `, jobInfo.mascaraLog));
+        //if (jobInfo.queries.length > 0)
+        //    sessoes.push(textoLista(`Queries: `, jobInfo.queries.map(item => item.sql)));
         
+        const listaJobDados: ListaRetratrilProps[] = [];
+        if (jobInfo.mascaraLog.length > 0) {
+            listaJobDados.push({ 
+                title: "Logs:", 
+                glass: false, 
+                content: <ol className="small">
+                        {
+                            jobInfo.mascaraLog.map((item, index) => 
+                                <li key={index} className="ms-3">{item}</li>
+                            )
+                        }
+                        </ol> 
+            });
+        }
+        if (jobInfo.queries.length > 0) {
+            listaJobDados.push({ 
+                title: "Queries:", 
+                glass: false, 
+                content: <ol className="small">
+                        { 
+                            jobInfo.queries.map((item, index) => 
+                                <li key={index} className="ms-3">{item.sql}</li>
+                            ) 
+                        }
+                        </ol> 
+            });
+        }
+
         return (
-            <>
-                {labelTitulo('INFORMAÇÕES', `job${id}-param`)}
-                <div className="glass mx-4 mt-1 mb-4 pt-2 pb-4 px-2">
-                    {
-                        sessoes.map((item, index) => <div key={index}>{item}</div>)
-                    }
+            <GlassInput text="Informações">
+                <div className="mt-3">
+                    { 
+                        sessoes.map((item, index) => <IonItem key={index} lines="none" className="border-bottom my-0 py-0">
+                                <IonIcon icon={item.icon} color="light" size="small" className="p-0 mx-3 " />
+                                {item.content}
+                            </IonItem>
+                        ) 
+                    } 
+                    <ListaRetratrilAgrupada listas={listaJobDados} />
                 </div>
-            </>
+            </GlassInput>
         );
     }
 
@@ -396,35 +448,38 @@ const ModalConfigJob: React.FC<JobCardProps> = ({ index }) => {
     if (!jobExec || !jobInfo) return null;
     return (
         <IonRow className="ion-align-items-center ion-justify-content-between w-100">
-            <IonItem className="w-100 border-bottom" lines="none">
-                <IonLabel className="p-0 m-0 d-flex">
-                    <IonReorder slot="start" className='ion-align-items-center'>
-                        <IonItem className='p-0 m-0' lines='none' >
-                            <span><IonIcon icon={reorderFour} /></span>
-                            <span><small className="text-white p-0 m-0 h6">Nº{jobExec.ordem}</small></span>
-                            <span><IonIcon icon={reorderFour} /></span>
-                        </IonItem>
-                    </IonReorder>
-                    <IonCard target="_self" className="border border-2 px-1 py-1 h6" color="tertiary">
-                        <span>
-                            <span className="ms-1 badge bg-white me-1 text-dark">
-                                ID <span>{id}</span>
-                            </span>
-                            <span className=" font-monospace text-white text-wrap">
-                                {jobExec.nome}
-                            </span>
-                        </span>
-                    </IonCard>
-                </IonLabel>
-                <IonButton fill="clear" shape="round" size='large' onClick={() => modalParamOn({cssClass: 'modal-job-card'})} >
-                    <IonIcon icon={settings} size='large' color='light' />
+            <IonItem className="w-100 border-top m-0 p-0 d-flex" lines="none">
+                <IonReorder slot="start" className='ion-align-items-center m-0'>
+                    <IonItem lines='none' className="item-lista bg-transparent" >
+                        <IonIcon icon={reorderFour} />
+                        <span><small className="text-white p-0 m-0 h6">Nº{jobExec.ordem}</small></span>
+                        <IonIcon icon={reorderFour} />
+                    </IonItem>
+                </IonReorder>
+                <IonButton fill="solid" 
+                    shape="round" 
+                    color="primary"
+                    className="m-0 p-0 text-start text-wrap h6 w-100" 
+                    onClick={() => modalParamOn({cssClass: 'modal-job-card'})} 
+                >
+                    <div className="m-0 p-0 ps-2 bg-transparent">
+                        {jobExec.nome}
+                    </div>
+                    <IonBadge className="m-0 ms-3 p-0 px-2 h6 rounded" color="light">
+                        ID {id}
+                    </IonBadge>
                 </IonButton>
-                <IonButton fill="clear" shape="round" size='large' onClick={ () => dispatch(removeOneMainJob(index)) }>
-                    <IonIcon icon={trash} size='large' color='light' />
+                <IonButton fill="clear" 
+                    shape="round" 
+                    size='small' 
+                    className="m-0 ms-1 p-0" 
+                    onClick={() => dispatch(removeOneMainJob(index))}
+                >
+                    <IonIcon icon={trash} color='light'/>
                 </IonButton>
             </IonItem>
         </IonRow>
     );
 };
 
-export default ModalConfigJob;
+export default ConfigJobItem;

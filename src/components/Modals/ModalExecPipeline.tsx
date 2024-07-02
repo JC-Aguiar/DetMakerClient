@@ -7,7 +7,7 @@ import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
 import { setRelatorios } from "../../Store/Reducer/ReducerRelatorios";
 import { removeRevisao, addRevisao } from "../../Store/Reducer/ReducerRevisao";
-import { JobExecuteDTO, parseJobConfigParaJobExecute } from "../../data/JobExecuteDTO";
+import { JobExecuteDTO } from "../../data/JobExecuteDTO";
 import { PipelineExecDTO } from "../../data/PipelineExecDTO";
 import { RelatorioHistoricoDTO } from "../../data/RelatorioHistoricoDTO";
 import { AtividadeInfoDTO } from "../../data/AtividadeInfoDTO";
@@ -18,6 +18,8 @@ import Botao, { BotaoProps, Botoes } from "../Core/Botao";
 import { closeCircle } from "ionicons/icons";
 import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
 
+
+//Componente <ModalExecPipeline>
 const ModalExecPipeline: React.FC = () => {
     //Atrbiutos Redux e React
     const dispatch = useDispatch();
@@ -123,7 +125,7 @@ const ModalExecPipeline: React.FC = () => {
                 configuracao: configuracao,
                 testeTipo: "Unitário",
             };
-            const jobsDto: JobExecuteDTO[] = mainJobs.map((item) => parseJobConfigParaJobExecute(item));
+            const jobsDto: JobExecuteDTO[] = mainJobs.map(JobExecuteDTO.parseJobConfig);
             const body: PipelineExecDTO = {
                 pipelineId: mainPipelineId,
                 atividade: relatorioDto,

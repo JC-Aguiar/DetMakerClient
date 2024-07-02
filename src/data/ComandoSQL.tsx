@@ -1,5 +1,6 @@
 import { FiltroSQL } from "./FiltroSQL";
 import { QueryInfoDTO } from "./QueryInfoDTO";
+import { StringUtils } from "./StringUtils";
 
 //Interface que interpreta os dados de um SQL 
 export interface ComandoSQL {
@@ -52,22 +53,18 @@ export namespace ComandoSQL {
         const tabela = (fromMatch && fromMatch[1]) ? fromMatch[1].split('.')[0] : "";
     
         //Limpando filtros do WHERE
-        const whereMatch = queryFormatada.match(/WHERE(.*?)$/);
-        const novoWhere = (whereMatch ? whereMatch[1].split(' ') : [])
-            .map(trexo => trexo.trim())
-            .filter(trexo => !operadoresParaRemover.includes(trexo))
-            .filter(trexo => trexo.length > 0);
+        const whereParametros = getParametrosWhere(queryFormatada);
     
         //Obtendo filtros
         const filtros: FiltroSQL[] = [];
-        regex = /\${(.*?)}/;
-        let regex2 = /\((.*?)\)/;
-        novoWhere.forEach((trexo, index) => {
-            const novoTrexo = regex.exec(trexo);
+        regex = /\((.*?)\)/;
+        whereParametros.forEach((trexo, index) => {
+            const novoTrexo = StringUtils.getVariavel(trexo);
             if (index < 1 || !novoTrexo) return;
-            let coluna = novoWhere[index -1];
+
+            let coluna = whereParametros[index -1];
             if (coluna.includes("(") && coluna.includes(")")) {
-                const regexResult = regex2.exec(coluna);
+                const regexResult = regex.exec(coluna);
                 if (!regexResult) return;
                 coluna = regexResult[1];
             }
@@ -83,6 +80,15 @@ export namespace ComandoSQL {
             });
         })
         return filtros;
+    }
+
+    //Limpando filtros do WHERE
+    function getParametrosWhere(query: string): string[] {
+        const whereMatch = query.match(/WHERE(.*?)$/);
+        return (whereMatch ? whereMatch[1].split(' ') : [])
+            .map(trexo => trexo.trim())
+            .filter(trexo => !operadoresParaRemover.includes(trexo))
+            .filter(trexo => trexo.length > 0);
     }
     
     //Formata a query para identificar e obter os filtros
@@ -115,5 +121,4 @@ export namespace ComandoSQL {
         };
     }
 }
-
 

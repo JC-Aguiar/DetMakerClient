@@ -1,13 +1,12 @@
-import { InputChangeEventDetail, IonBadge, IonCard, IonInput, IonItem, IonList, IonReorderGroup, IonRow, ItemReorderEventDetail, useIonAlert, useIonModal, useIonViewDidEnter } from '@ionic/react';
-import ModalConfigJob from '../Modals/ModalConfigJob';
-import { arrowUndo, flash, save, trash } from 'ionicons/icons';
-import { useRef } from 'react';
+import { InputChangeEventDetail, IonButton, IonButtons, IonCardContent, IonCol, IonIcon, IonInput, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, IonTitle, IonToolbar, ItemReorderEventDetail, useIonAlert, useIonModal } from '@ionic/react';
+import ConfigJobItem from '../Content/ConfigJobItem';
+import { addCircle, arrowUndo, cube, flash, layers, lockClosed, save, trash } from 'ionicons/icons';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../Store/ReduxStore';
 import { JobConfig, parseJobInfo, } from '../../data/JobConfigDTO';
 import { useDispatch } from 'react-redux';
 import { UpdateMainJobsIfxdateProps, addMensagem, atualizarMensagem, reorderMainJobs, setMainPipeline, updateMainJobsIfxdate } from '../../Store/Reducer/ReducerAtividade';
-import { UserDTO } from '../../data/UserDTO';
 import DynamicModal from '../Core/DynamicModal';
 import ModalExecPipeline from '../Modals/ModalExecPipeline';
 import { BotaoProps, Botoes } from '../Core/Botao';
@@ -15,46 +14,38 @@ import { PipelineInfoDTO } from '../../data/PIpelineInfoDTO';
 import { removePipeline, setPipelines } from '../../Store/Reducer/ReducerPipelines';
 import * as axiosRequest from "../../data/AxiosRequest";
 import { JobInfoDTO, getIndexParametroComIfxdate } from '../../data/JobInfoDTO';
+import { ListaRetratrilAgrupada, ListaRetratrilProps } from '../Core/ListaRetratil';
+import ListaVariaveisPipeline from './ListaVariaveisPipeline';
 
+//Componente <ListaConfigJobs>
+const ListaConfigJobs: React.FC = () => {
 
-const ConfigurarJobs: React.FC = () => {
     //Atributo para acionamento do Redux
     const dispatch = useDispatch();
 
-    //Atributos com estado gerenciado via React
-    //const reorderGroupRef = useRef<HTMLIonReorderGroupElement>(null);
-    //const inputIfxdateRef = useRef<HTMLIonInputElement>(null);
-    const [alerta] = useIonAlert();
-
     //Atributos com estado gerenciado via Redux
-    //const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
-    const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
+    //  1. Registros gerais obtidos no banco: 
     const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
     const catalogoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
+    const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
+    //  2. Registros selecionados e sendo modificados pelo usuário:
     const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
     const mainPipelineId: number = useSelector((state: RootState) => state.store.configAtividade.mainPipelineId);
     const mainPipelineDescricao: string | undefined = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo)
         .find((item) => item.nome === mainPipeline)?.descricao;
 
+    //Atributos com estado gerenciado via React
+    const [alerta] = useIonAlert();    
+
     //Modal para executar a Pipeline
-    const [modalConfigPipelineOn, modalConfigPipelineOff] = useIonModal(DynamicModal,
+    const [modalExecPipelineOn, modalExecPipelineOff] = useIonModal(DynamicModal,
         {
             titulo: "Executar Pipeline",
             elemento: <ModalExecPipeline />,
-            onDismiss: () => modalConfigPipelineOff(),
+            onDismiss: () => modalExecPipelineOff(),
         }
     );
-
-    //Acionamento realizado assim que esta página for montada
-    useIonViewDidEnter(() => {
-        if (mainJobs.length === 0) {
-            console.log(`[CONFIGURAR-JOBS] A pilha de jobs está vazia. Retornando página.`);
-        }
-        else {
-            console.log(`[CONFIGURAR-JOBS] Carregando cards da pilha dos jobs selecionados.`);
-        }
-    }, []);
 
     //Requisição para atualizar no banco a Pipeline atual
     async function atualizarPipeline() {
@@ -145,7 +136,7 @@ const ConfigurarJobs: React.FC = () => {
                         pipeline.jobs.forEach((pipelineJob, index) => {
                             const atividadeJobs = catalogoJobs.find((jobDto) => jobDto.nome === pipelineJob);
                             if (!atividadeJobs) {
-                                console.warn(`[CONFIGURAR JOBS]: Job '${pipelineJob}' não identificado no catálogo de Jobs.`);
+                                console.warn(`[LISTA CONFIGURAR-JOBS]: Job '${pipelineJob}' não identificado no catálogo de Jobs.`);
                                 return;
                             }
                             const configJob: JobConfig = parseJobInfo(atividadeJobs, index);
@@ -178,16 +169,13 @@ const ConfigurarJobs: React.FC = () => {
             ifxdate: ifxdate,
             jobs: [],
         };
-
         catalogoJobs.filter(item => mainJobs.some(mainJob => mainJob.id === item.id))
             .forEach((item, index) => {
                 const paramIndex = getIndexParametroComIfxdate(item);
                 if (paramIndex !== -1)
                     dados.jobs.push({ id: item.id , parametro: paramIndex });
             });
-
         console.log("JOBS: " + dados.jobs.map(job => JSON.stringify(job)).join("\n"));
-
         dispatch(updateMainJobsIfxdate(dados));
         dispatch(addMensagem({ 
             id: `Set_Ifxdate@${Date.now()}`, 
@@ -198,10 +186,6 @@ const ConfigurarJobs: React.FC = () => {
 
     //Faz o processo de reordenação visual se alinhar com a reordenação dos dados no Redux
     function reordenar(event: CustomEvent<ItemReorderEventDetail>) {
-        //Valida se a referência ao IonReorderGroup existe
-        //const itens = reorderGroupRef?.current?.children;
-        //if (!itens) return;
-
         //Métodos `from` e `to` contêm os índices (antes e depois) do item movido
         const indiceAtual = event.detail.from;
         const indiceNovo = event.detail.to;
@@ -210,75 +194,68 @@ const ConfigurarJobs: React.FC = () => {
         event.detail.complete();
 
         dispatch(reorderMainJobs({ ordemAntiga: indiceAtual, ordemNova: indiceNovo }));
-
-        /*
-        const novosJobs = mainJobs.map(job => ({...job}));
-        const jobMovido = novosJobs[indiceAtual];
-        console.log(`[CONFIG-JOBS]: Reordenando MainJob [ID ${jobMovido.id}] '${jobMovido.nome}', `
-            + `do Nº ${indiceAtual} para Nº ${indiceNovo}.`);
-
-        novosJobs.splice(indiceAtual, 1);
-        novosJobs.splice(indiceNovo, 0, jobMovido);
-        novosJobs.forEach((item, index) => item.ordem = index);
-        dispatch(setMainJobs(novosJobs));
-        */
     }
 
     //Botoes contendo as opções para cada Pipeline
     const botoes: BotaoProps[] = [
-        {icon: flash, text: "Executar",  handler: () => modalConfigPipelineOn()},
+        {icon: flash, text: "Executar",  handler: () => modalExecPipelineOn()},
         {icon: save, text: "Salvar",    handler: () => atualizarPipeline()},
-        //{icon: open, texto: "Ver Dados", handler: () => null},
         {icon: arrowUndo, text: "Resetar",  handler: () => resetarJobsPipeline()},
         {icon: trash, text: "Apagar",    handler: () => deletarMainPipeline()},
     ];
 
+    //Listas
+    const listasRefateis: ListaRetratrilProps[] = [
+        //{ title: "Massas Utilizadas", content: <ListaVariaveisPipeline /> }
+        { title: "Variáveis Globais", content: <ListaVariaveisPipeline /> }
+    ];
+
     //Renderização do componente
     return (
-        <div className='container mt-3'>
-            <IonCard className='glass text-white fixed-top mx-5 mt-3' style={{background: 'var(--ion-color-tertiary)' }}>
-                <div className='glass-content text-center'>
-                    <div className='h4 text-center text-dark py-2' style={{background: 'var(--ion-color-primary)'}}>
-                        {mainPipeline}
-                    </div>
-                    <div className='mb-3'>
-                        {mainPipelineDescricao} 
-                        <IonBadge className='mx-2 px-2' style={{ transform: 'translate(0px, 5px)' }}>
-                            Total de jobs: {mainJobs.length}
-                        </IonBadge>
-                    </div>
-                    <div className='px-3 pb-md-2 pb-5'>
+        <IonRow className='container ion-justify-content-center'>
+            <IonItem className='position-fixed w-100 px-5' lines='none' style={{ zIndex: '50' }} >
+                <IonToolbar color='tertiary' className='glass'>
+                    <IonTitle>{mainPipeline}</IonTitle>
+                    <IonButtons slot='end'>
                         <Botoes botoes={botoes} />
-                    </div>
-                </div>
-            </IonCard>
-            <div className='py-5 mt-5 mb-3' />
-            <IonRow className='ion-justify-content-center p-0 m-0 w-100'>
-                <IonList className='w-100 py-2 px-2'>
-                    <IonRow className='m-0 p-0 pb-2 ion-justify-content-end ion-align-items-center border-bottom'> 
-                        <span className='me-2'>Data do Ciclo Global</span>
-                        <IonItem className='glass m-0 me-2 p-0'>
-                            <IonInput inputmode='text'
-                                type='date'
-                                maxlength={500}
-                                className='text-white mx-2'
-                                //ref={inputIfxdateRef}
-                                onIonChange={(e) => preencherIfxdate(e)}
-                            />
-                        </IonItem>
-                    </IonRow>
-                    
-                    {/* ref={reorderGroupRef}  */}
+                    </IonButtons>
+                </IonToolbar>
+            </IonItem>
+            <div className='py-4'></div>
+            <IonCardContent className='w-100 mx-4 my-3 p-0 px-1'>
+                <ListaRetratrilAgrupada listas={listasRefateis} />
+                <IonList className='glass mx-2'>
+                    <IonItem lines='none' className='m-0 p-0'>
+                        <IonIcon icon={cube} className='ms-1 my-1' />
+                        <IonLabel color='light ms-2'>
+                            Fluxo de Execução: {mainJobs.length} Job{mainJobs.length > 1 ? "s" : ""}
+                        </IonLabel>
+                    </IonItem>
+                    {/* 
+                        ref={reorderGroupRef}
+                        <IonRow className='m-0 p-0 pb-2 ion-justify-content-end ion-align-items-center border-bottom'> 
+                            <span className='me-2'>Data do Ciclo Global</span>
+                            <IonItem className='glass m-0 me-2 p-0'>
+                                <IonInput inputmode='text'
+                                    type='date'
+                                    maxlength={500}
+                                    className='text-white mx-2'
+                                    //ref={inputIfxdateRef}
+                                    onIonChange={(e) => preencherIfxdate(e)}
+                                />
+                            </IonItem>
+                        </IonRow>  
+                    */}
                     <IonReorderGroup disabled={false} onIonItemReorder={reordenar} className='p-0 m-0' >
                         {
-                            mainJobs.map((item, index) => <ModalConfigJob key={index} index={index} />)
+                            mainJobs.map((item, index) => <ConfigJobItem key={index} index={index} />)
                         }
                     </IonReorderGroup>
                 </IonList>
-            </IonRow>
-        </div>
+            </IonCardContent>
+        </IonRow>
     );
 };
 
-export default ConfigurarJobs;
+export default ListaConfigJobs;
 
