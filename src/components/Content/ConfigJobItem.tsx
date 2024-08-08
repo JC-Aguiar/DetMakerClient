@@ -80,7 +80,6 @@ const ConfigJobItem: React.FC<JobCardProps> = ({ index }) => {
 
     //Método para salvar este JobCard (objeto ConfigJob) preenchido pelo usuário no banco
     async function salvandoItem() {
-        console.log(JSON.stringify(jobConfigurado));
         dispatch(updateOneMainJob(jobConfigurado));
     }
 
@@ -364,7 +363,7 @@ const ConfigJobItem: React.FC<JobCardProps> = ({ index }) => {
         */
         //Adicionando preenchimento manual para as ConfigQuery's pendentes 
         const queriesManuais = jobConfigurado.queries
-            .filter((cmdSql) => !cmdSql.autopreenchimento)
+            //.filter((cmdSql) => !cmdSql.autopreenchimento)
             .map((cmdSql, index) => inputQuerysManual(cmdSql, index));
 
         //Renderização da função

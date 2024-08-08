@@ -5,15 +5,22 @@ import { useDispatch, useSelector } from 'react-redux';
 import { atualizarMensagem, setMainPipeline } from "../../Store/Reducer/ReducerAtividade";
 import { setViewJobs } from "../../Store/Reducer/ReducerAtividade";
 import { loadingPipelines, setPipelines } from "../../Store/Reducer/ReducerPipelines";
-import { JobConfig, parseJobInfo } from "../../data/JobConfigDTO";
+import { JobConfig } from "../../data/JobConfigDTO";
 import { PipelineInfoDTO } from "../../data/PIpelineInfoDTO";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
 import Botao from "../Core/Botao";
 import { addMensagem } from "../../Store/Reducer/ReducerAtividade";
+import Informativo from "../Core/Informativo";
 
-const ModalNovaPipeline: React.FC = () => {
+
+export interface ModalNovaPipelineProps {
+    onSave?: () => void
+}
+
+//Componente <ModalNovaPipeline>
+const ModalNovaPipeline: React.FC<ModalNovaPipelineProps> = ({ onSave = () => null }) => {
     //Atrbiutos para usar recursos Redux e React
     const dispatch = useDispatch();
 
@@ -26,6 +33,7 @@ const ModalNovaPipeline: React.FC = () => {
     const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
 
     //Atibutos de estado gerenciados via Redux
+    const [loading, setLoading] = useState<boolean>(false);
     const [pipelineNome, setPipelineNome] = useState<string>("");
     const [pipelineDescricao, setPipelineDescricao] = useState<string>("");
     const [jobsParaUso, setJobsParaUso] = useState<JobInfoDTO[]>(jobsParaUsoInicial);
@@ -69,6 +77,7 @@ const ModalNovaPipeline: React.FC = () => {
             texto: 'Salvando nova Pipeline no catálogo do banco.',
             status: 'INFO'
         }));
+        setLoading(true);
         dispatch(loadingPipelines(true));
         dispatch(setViewJobs([]));
         try {
@@ -83,11 +92,9 @@ const ModalNovaPipeline: React.FC = () => {
             const novaPipelineSalva = await axiosRequest.salvarNovaPipeline(novaPipeline);
             const jobsNovaPipeline: JobConfig[] = catalogoJobs
                 .filter((item) => novaPipelineSalva.jobs.findIndex((jobNome) => jobNome === item.nome) !== -1)
-                .map((item, index) => parseJobInfo(item, index));
-            const catalogoPipelinesAtualizado = catalagoPipelines.slice();
-            catalogoPipelinesAtualizado.push(novaPipelineSalva);
-            dispatch(setPipelines(catalogoPipelinesAtualizado));
-
+                .map((item, index) => JobConfig.parseJobInfo(item, index));
+            
+            dispatch(setPipelines([...catalagoPipelines, novaPipelineSalva]));
             dispatch(setMainPipeline({ 
                 id: novaPipelineSalva.id,
                 nome: novaPipelineSalva.nome, 
@@ -98,6 +105,7 @@ const ModalNovaPipeline: React.FC = () => {
                 complmento: `Sucesso.`,
                 status: "OK"
             }));
+            onSave();
         }
         catch (error) {
             dispatch(atualizarMensagem({
@@ -106,6 +114,7 @@ const ModalNovaPipeline: React.FC = () => {
                 status: "ERROR"
             }));
         }
+        setLoading(false);
         dispatch(loadingPipelines(false));
     }
 
@@ -138,6 +147,7 @@ const ModalNovaPipeline: React.FC = () => {
     } 
 
     //Renderização do componente
+    if (loading) return <Informativo status="Carregando" />
     return <>
         <div className="container justify-content-center mt-1 px-5">
             <div className='glass px-3'>

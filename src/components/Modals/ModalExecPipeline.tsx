@@ -17,10 +17,17 @@ import { useHistory } from "react-router";
 import Botao, { BotaoProps, Botoes } from "../Core/Botao";
 import { closeCircle } from "ionicons/icons";
 import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
+import { VariavelDinamica } from "../../data/VariavelDinamica";
+import { MassaTabelaDTO } from "../../data/MassaTabelaDTO";
 
+
+export interface ModalExecPipelineProps {
+    variaveis?: VariavelDinamica[],
+    massas?: MassaTabelaDTO[]
+}
 
 //Componente <ModalExecPipeline>
-const ModalExecPipeline: React.FC = () => {
+const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
     //Atrbiutos Redux e React
     const dispatch = useDispatch();
     const history = useHistory();
@@ -125,19 +132,21 @@ const ModalExecPipeline: React.FC = () => {
                 configuracao: configuracao,
                 testeTipo: "Unitário",
             };
-            const jobsDto: JobExecuteDTO[] = mainJobs.map(JobExecuteDTO.parseJobConfig);
             const body: PipelineExecDTO = {
                 pipelineId: mainPipelineId,
                 atividade: relatorioDto,
-                jobs: jobsDto,
+                jobs: mainJobs.map(JobExecuteDTO.parseJobConfig),
                 user: {
                     nome: user ? user.name : null,
                     papel: user ? "DEV" : null,
                     empresa: user ? "PPW" : null,
                 } as UserInfoDTO,
                 ambienteId: mainAmbienteId,
-                clienteId: mainClienteId
+                clienteId: mainClienteId,
+                massas: props.massas?.map(m => m.nome),
+                configuracoes: {},
             };
+            props.variaveis?.forEach(item => body.configuracoes[item.nome] = item.valor);
 
             dispatch(removeRevisao());
             const relatorioParaRevisar: RelatorioHistoricoDTO = await axiosRequest.executarPipeline(body);
@@ -188,34 +197,6 @@ const ModalExecPipeline: React.FC = () => {
             disabled: !camposPreenchidos()
         },
     ];
-
-    //Renderiza (ou não) a lista de Jobs a serem executados pela Pipeline 
-    const jobs = () => {
-        if (jobsParaExec.length < 1) return <></>; 
-        return (
-            <IonCol size='12' className='mx-0 px-0 '>
-                <IonRow className='glass px-3 pt-2'>
-                    <IonCol size='12' className="opacity-50">Jobs</IonCol>
-                    {
-                        jobsParaExec.map((item, index) => <IonCol key={index} size="6" className=""> 
-                            <IonBadge color='tertiary' className='ion-align-items-center font-monospace small w-100 text-start'>
-                                <span style={{backgroundColor: 'var(--ion-color-dark)'}} className='rounded text-white px-1'>
-                                    Nº{index+1}
-                                </span>
-                                <span className="ms-1">{item.nome}</span>
-                                <IonIcon icon={closeCircle} 
-                                    color="light"
-                                    className="btn btn-outline m-0 p-0 ms-1 mb-1" 
-                                    onClick={() => setJobsParaExec(jobsParaExec.filter((job, jobIndex) => jobIndex !== index)) } 
-                                />
-                            </IonBadge>
-                        </IonCol>
-                        )
-                    }
-                </IonRow>
-            </IonCol>
-        );
-    }
 
     //Renderização deste componente 
     if (mainPipeline === "") return<></>;
@@ -277,7 +258,41 @@ const ModalExecPipeline: React.FC = () => {
                             />
                         </IonItem>
                     </IonCol>
-                    {jobs()}
+                    
+                    <IonCol size='12' className='mx-0 px-0' hidden={jobsParaExec.length < 1}>
+                        <IonRow className='glass px-3 pt-2'>
+                            <IonCol size='12' className="opacity-50">Jobs</IonCol>
+                            {
+                                jobsParaExec.map((item, index) => 
+                                    <IonCol key={index} size="6" className=""> 
+                                        <IonBadge color='tertiary' 
+                                            className='ion-align-items-center font-monospace small w-100 text-start'
+                                        >
+                                            <span style={{backgroundColor: 'var(--ion-color-dark)'}} 
+                                                className='rounded text-white px-1'
+                                            >
+                                                Nº{index+1}
+                                            </span>
+                                            <span className="ms-1">{item.nome}</span>
+                                            <IonIcon icon={closeCircle} 
+                                                color="light"
+                                                className="btn btn-outline m-0 p-0 ms-1 mb-1" 
+                                                onClick={() => setJobsParaExec(
+                                                    jobsParaExec.filter((job, jobIndex) => jobIndex !== index)
+                                                )} 
+                                            />
+                                        </IonBadge>
+                                    </IonCol>
+                                )
+                            }
+                        </IonRow>
+                    </IonCol>
+                    
+                    {
+                        props.variaveis?.map((item, index) => 
+                            <div key={index}>{item.nome} = {item.valor}</div>
+                        )
+                    }
                 </IonRow>
                 <IonRow className='py-3 ion-justify-content-end pe-1' >
                     <Botoes botoes={botoes} />

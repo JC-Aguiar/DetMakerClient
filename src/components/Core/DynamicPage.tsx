@@ -1,5 +1,6 @@
-import { IonPage, IonContent, useIonViewWillEnter, IonFooter } from "@ionic/react";
+import { IonPage, IonContent, IonFooter } from "@ionic/react";
 import { useDispatch } from 'react-redux';
+import Informativo from "./Informativo";
 
 export interface DynamicPageProps {
     titulo: string,
@@ -18,17 +19,23 @@ const DynamicPage: React.FC<DynamicPageProps> = ({ titulo, subtitulo, elemento }
         </span> 
     }
 
-    //Ações ao carregar esta página
-    useIonViewWillEnter(() => {  
-        //dispatch(setButtons([]));
-    }, []);
+    //Conteúdo a ser renderizado dentro da página
+    const conteudo = () => {
+        try {
+            return elemento;
+        }
+        catch (error) {
+            const mensagem = (error instanceof Error) ? error.message : `${error}`;
+            return <Informativo status="Erro" mensagem={mensagem} />
+        }
+    }
 
     //Renderização da página
     return (
         <IonPage className="mt-2">
             <IonContent scrollEvents={true} className="p-0 m-0" >
                 <div className="mx-2" >
-                    {elemento}
+                    {conteudo()}
                 </div>
             </IonContent>
             <IonFooter className='m-2 opacity-0' />
@@ -37,16 +44,3 @@ const DynamicPage: React.FC<DynamicPageProps> = ({ titulo, subtitulo, elemento }
 }
 
 export default DynamicPage;
-
-/*
-<IonHeader>
-                <p className="text-start p-0 m-0 pt-2">
-                    <IonBadge color="#" className="bg-transparent text-light text-start px-0 p-0 mx-3 border-bottom rounded rounded-0">
-                        <span className="h6 lh-1">
-                            {titulo} - 
-                        </span>
-                        {subtituloTag()}
-                    </IonBadge>
-                </p>
-            </IonHeader>
-*/

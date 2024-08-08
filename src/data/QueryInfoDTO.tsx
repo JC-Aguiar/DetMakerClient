@@ -1,17 +1,15 @@
-export interface QueryInfoDTO {
-    id: number,
-    nome: string,
-    descricao: string,
-    sql: string,
+import { ComandoSQL } from "./ComandoSQL";
+
+export interface QueryInfoDTO extends ComandoSQL {
+    id?: number,
+    jobId: number
 }
 
 export namespace QueryInfoDTO {
-    export function empty(): QueryInfoDTO {
+    export function empty(jobId: number): QueryInfoDTO {
         return {
-            id: -1,
-            nome: "",
-            descricao: "",
-            sql: "",
+            jobId: jobId,
+            ...ComandoSQL.empty()
         };
     }
 }

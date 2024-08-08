@@ -24,12 +24,11 @@ const catalogoMassas = createSlice({
             }
             console.log('[ReducerMassas]: Acionado controlador catalogoMassas.setMassas!');
             state.catalogo = action.payload;
-            //logClientes(state.catalogo);
+            state.loading = false;
         },
         addMassa: (state, action: PayloadAction<MassaTabelaDTO>) => {
             console.log('[ReducerMassas]: Acionado controlador catalogoMassas.addMassa!');
             state.catalogo.push(action.payload);
-            //logClientes(state.catalogo);
         },
         loadingMassa: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerMassas]: Acionado controlador catalogoMassas.loadingMassa!');

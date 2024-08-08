@@ -2,13 +2,13 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { JobInfoDTO } from '../../data/JobInfoDTO';
 import { QueryInfoDTO } from '../../data/QueryInfoDTO';
 
-const initialState = { 
+const initialState: ReducerCatalogoJobsProps = { 
     catalogo: [],
     loading: false,
-} as PilhaTYPE;
+};
 
 //Interface para definir o tipo de objeto do reducer
-interface PilhaTYPE {
+interface ReducerCatalogoJobsProps {
     catalogo: JobInfoDTO[],
     loading: boolean,
 }
@@ -25,16 +25,12 @@ const catalogoJobs = createSlice({
                 return { ...state };
             }
             state.catalogo = action.payload;
+            state.loading = false;
         },
         updateJob: (state, action: PayloadAction<JobInfoDTO>) => {
             console.log('[ReducerJobs]: Acionado controlador catalogoJobs.updateJob!');
             const index = state.catalogo.findIndex(job => job.id === action.payload.id);
             if(index !== -1) state.catalogo[index] = action.payload;
-        },
-        setJobQuerys: (state, action: PayloadAction<{ jobId: number, queries: QueryInfoDTO[] }>) => {
-            console.log('[ReducerJobs]: Acionado controlador catalogoJobs.setJobQuerys!');
-            const index = state.catalogo.findIndex(job => job.id === action.payload.jobId);
-            if(index !== -1) state.catalogo[index].queries = action.payload.queries;
         },
         loadingJobs: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerJobs]: Acionado controlador catalogoJobs.loadingJobs!');
@@ -47,4 +43,4 @@ const catalogoJobs = createSlice({
 
 
 export default catalogoJobs.reducer;
-export const { setJobs, updateJob, setJobQuerys, loadingJobs } = catalogoJobs.actions;
+export const { setJobs, updateJob, loadingJobs } = catalogoJobs.actions;

@@ -29,6 +29,8 @@ const ModalConfigMassa: React.FC<ModalConfigMassaProps & DynamicModalContent> = 
     const [massaConfig, setMassaConfig] = useState<MassaColunaDTO[]>( [...massa!.colunas] ); 
     const [usaPessoaConfig, setUsaPessoaConfig] = useState<boolean>(massa!.usaPessoa);
     const [massaGerada, setMassaGerada] = useState<MassaPreparada[]>([]);
+    const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
+    const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
 
     //configurações e propriedades da modal guia de uso do Gerador de Massa  
     const [verModalGuia, setVerModalGuia] = useState<boolean>(false);
@@ -62,7 +64,6 @@ const ModalConfigMassa: React.FC<ModalConfigMassaProps & DynamicModalContent> = 
     //const mainPipelineDescricao: string | undefined = useSelector(
     //    (state: RootState) => state.store.catalogoPipelines.catalogo)
     //    .find((item) => item.nome === mainPipeline)?.nome;
-    const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
 
     //Interface das colunas a serem renderizadas
     interface colunaTitulo {
@@ -178,7 +179,7 @@ const ModalConfigMassa: React.FC<ModalConfigMassaProps & DynamicModalContent> = 
                 colunas: massaConfig,
                 usaPessoa: usaPessoaConfig
             };
-            setMassaGerada(await axiosRequest.testarMassa(tabelaDto, mainClienteId));
+            setMassaGerada(await axiosRequest.testarMassa(tabelaDto, mainAmbienteId));
             dispatch(atualizarMensagem({ 
                 id: mensagenId, 
                 complmento: `Sucesso.`,

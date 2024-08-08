@@ -1,22 +1,35 @@
 import { IonRow, IonCol, IonIcon, IonProgressBar } from "@ionic/react";
-import { alertCircleOutline, informationCircleOutline } from "ionicons/icons";
+import { alertCircleOutline, bug, hourglass, informationCircleOutline } from "ionicons/icons";
 import React from "react";
 
 export interface InformativoProps {
     icone?: string,
     mensagem?: string,
-    status: 'SemDados' | 'Carregando' | 'Normal'
+    status: 'SemDados' | 'Carregando' | 'Normal' | 'Erro'
 }
 
-const Informativo: React.FC<InformativoProps> = ({icone = informationCircleOutline, mensagem = '', status = 'Normal'}) => {
+const Informativo: React.FC<InformativoProps> = ({icone, mensagem, status = 'Normal'}) => {
     const loadingBar = status === 'Carregando' ? <IonProgressBar type="indeterminate" /> : <></>;
-    
-    if (status === 'SemDados') {
-        icone = alertCircleOutline;
-        mensagem = 'Nenhum registro disponível foi encontrado no banco\n'+ mensagem;
+
+    switch (status) {
+        case "SemDados":
+            icone = alertCircleOutline;
+            mensagem = 'Nenhum registro disponível foi encontrado no banco\n'+ mensagem;
+            break;
+        case "Carregando":
+            icone = hourglass;
+            mensagem = 'Processando\n'+mensagem;
+            break;
+        case "Normal":
+            icone = informationCircleOutline;
+            break;
+        case "Erro":
+            icone = bug;
+            mensagem = 'Erro inesperado!\n'+mensagem;
+            break;
     }
 
-    const textoFinal = mensagem.replaceAll("}", "{")
+    const textoFinal = mensagem?.replaceAll("}", "{")
         .split("{")
         .map((item, index) => {
             if (index % 2 === 0) return <span key={index}>{item}</span>;

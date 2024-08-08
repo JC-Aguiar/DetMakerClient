@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { JobConfig, parseJobInfo } from '../../data/JobConfigDTO';
+import { JobConfig } from '../../data/JobConfigDTO';
 import { JobInfoDTO, getIndexParametroComIfxdate } from '../../data/JobInfoDTO';
 
 //Valores iniciais do recuder
@@ -12,6 +12,7 @@ const initialState = {
     mainPipelineId: -1,
     mainJobs: [],
     mainIfxdate: "",
+    mainMassas: [],
     jobsSelecionados: [],
     mensagens: [],
 } as ReducerAtividadeProps;
@@ -26,6 +27,7 @@ export interface ReducerAtividadeProps {
     mainPipelineId: number,
     mainJobs: JobConfig[],
     mainIfxdate: string,
+    mainMassas: string[],
     jobsSelecionados: number[],
     mensagens: AtividadeMensagemTYPE[],
 }
@@ -113,7 +115,7 @@ const configAtividade = createSlice({
                     jobs: [],
                 };
             }
-            console.log(`[ReducerAtividade]: Definindo Pipeline: '${action.payload.nome}'.`);
+            console.log(`[ReducerAtividade]: Definindo Pipeline ID ${action.payload.id}: '${action.payload.nome}'.`);
             console.log(`[ReducerAtividade]: Jobs inclusos: '${action.payload.jobs.map((item) => item.nome).join(", ")}'.`);
             state.mainPipelineId = action.payload.id;
             state.mainPipeline = action.payload.nome;
@@ -182,7 +184,7 @@ const configAtividade = createSlice({
             //Acionamento deve estar disponível apenas se nenhuma Pipeline estiver selecionada
             if (state.mainPipeline === "") return;
 
-            const novoJobConfig: JobConfig =  parseJobInfo(action.payload, state.mainJobs.length);
+            const novoJobConfig: JobConfig =  JobConfig.parseJobInfo(action.payload, state.mainJobs.length);
             const paramIndex = getIndexParametroComIfxdate(action.payload);
             if (paramIndex !== -1 && novoJobConfig.argumentos.length > paramIndex) {
                 novoJobConfig.argumentos[paramIndex] = state.mainIfxdate;
@@ -207,6 +209,16 @@ const configAtividade = createSlice({
                 return job;
             }).sort((item1, item2) => item1.ordem - item2.ordem);
             //logItemPilha(state.mainJobs);
+        },
+        setMainMassas: (state, action: PayloadAction<{ massas?: string[] }>) => {
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.setMainMassas!');
+            if (!action.payload.massas) {
+                console.log(`[ReducerAtividade]: Usuário removeu as Massas da Pipeline.`);
+                state.mainMassas = [];
+                return;
+            }
+            console.log(`[ReducerAtividade]: Usuário selecionou para a Pipeline as Massas: ${action.payload.massas.join(", ")}.`);
+            state.mainMassas = action.payload.massas;
         },
         setViewJobs: (state, action: PayloadAction<number[]>) => {
             console.log('[ReducerAtividade]: Acionado controlador configAtividade.setViewJobs!');

@@ -7,7 +7,7 @@ import catalogoJobs from './Reducer/ReducerJobs';
 import catalogoPipelines  from './Reducer/ReducerPipelines';
 import catalogoRelatorios  from './Reducer/ReducerRelatorios';
 import catalogoMassas  from './Reducer/ReducerMassas';
-//import catalogoQueries  from './Reducer/ReducerQueries';
+import catalogoQueries  from './Reducer/ReducerQueries';
 import docRevisao from "./Reducer/ReducerRevisao";
 import projetos from './Reducer/ReducerProjetos';
 
@@ -20,7 +20,7 @@ const rootReducer = combineReducers({
     catalogoJobs: catalogoJobs,
     catalogoPipelines: catalogoPipelines,
     catalogoMassas: catalogoMassas,
-    //catalogoQueries: catalogoQueries,
+    catalogoQueries: catalogoQueries,
     catalogoRelatorios: catalogoRelatorios,
     docRevisao: docRevisao,
 });

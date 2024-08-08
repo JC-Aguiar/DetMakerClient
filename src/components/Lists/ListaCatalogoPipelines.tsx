@@ -2,11 +2,10 @@ import { InputChangeEventDetail, IonInput, IonList, IonRadio, IonRadioGroup, Rad
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
-import { setViewJobs } from "../../Store/Reducer/ReducerAtividade";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
 import { setMainPipeline } from "../../Store/Reducer/ReducerAtividade";
 import { closeCircle, search } from "ionicons/icons";
-import { JobConfig, parseJobInfo } from "../../data/JobConfigDTO";
+import { JobConfig } from "../../data/JobConfigDTO";
 import { PipelineInfoDTO } from "../../data/PIpelineInfoDTO";
 import ItemLista from "../Core/ItemLista";
 
@@ -38,14 +37,14 @@ const ListaCatalogoPipelines: React.FC = () => {
 
         //Definido MainJobs com base na MainPipline
         const jobsMainPipline: JobConfig[] = [];
-        userPipeline.jobs.forEach((pipelineJob, index) => {
-            const atividadeJobs = catalogoJobs.find((jobDto) => jobDto.nome === pipelineJob);
+        userPipeline.jobs.forEach((jobNome, index) => {
+            const atividadeJobs = catalogoJobs.find((jobDto) => jobDto.nome === jobNome);
             if (!atividadeJobs) {
                 console.log(`[LISTA CATALOGO PIPELINES]: Nenhum dos Jobs informados na Pipeline selecionada '
                     + ('${userPipeline.nome}') foram identificados no catálogo de Jobs.`);
                 return;
             }
-            const configJob: JobConfig = parseJobInfo(atividadeJobs, index);
+            const configJob: JobConfig = JobConfig.parseJobInfo(atividadeJobs, index);
             jobsMainPipline.push(configJob);
         });
         dispatch(setMainPipeline({
@@ -53,9 +52,6 @@ const ListaCatalogoPipelines: React.FC = () => {
             nome: userPipeline.nome,
             jobs: jobsMainPipline
         }));
-        //reordenar();
-        //dispatch(setMainJobs(jobsMainPipline));
-        //dispatch(setDadosProjeto(novaPipelineConfig));
     };
 
     //Método para descelecionar a Pipeline do painel do Laboratório

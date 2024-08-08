@@ -1,13 +1,20 @@
 export interface FiltroSQL {
-    id?: number;
-    tabela: string;
-    coluna: string;
-    tipo?: string;
-    index: number;
-    array: boolean;
-    variavel: string;
-    //valor?: string;
+    id?: number,
+    tabela: string,
+    coluna: string,
+    tipo: TipoColuna,
+    index: number,
+    array: boolean,
+    variavel: string,
+    metaDados?: {
+        length?: number, 
+        precision?: number, 
+        scale?: number
+    }
+    //valor?: string,
 }
+
+export type TipoColuna = 'UNSET' | 'INT' | 'LOB' | 'CHAR' | 'LONG' | 'DATE' | 'REAL' | 'FLOAT' | 'DOUBLE' | 'NUMBER' | 'DECIMAL' | 'NUMERIC' | 'TIMESTAMP';
 
 export namespace FiltroSQL {
     export function isEquals(filtro1: FiltroSQL, filtro2: FiltroSQL) {

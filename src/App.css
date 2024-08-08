@@ -632,6 +632,11 @@ input[type="file"]::-webkit-file-upload-button {
   --min-height: 90%;
 }
 
+/* removendo seta para o <IonSelect> com classe 'select-button'  */
+ion-select.select-button::part(icon) {
+  display: none !important;
+ }
+
 /* customizando modal de Jobs */
 ion-modal.modal-job-card::part(content) {
   height: 90%;

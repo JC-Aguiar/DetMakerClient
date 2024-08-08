@@ -1,4 +1,4 @@
-import { IonAccordion, IonAccordionGroup, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonItem, IonLabel, IonMenu, IonModal, IonSplitPane, IonTitle, useIonModal, useIonViewWillEnter } from '@ionic/react';
+import { IonContent, IonMenu, IonModal, IonSplitPane, useIonModal, useIonViewWillEnter } from '@ionic/react';
 import { useRef, useState } from 'react';
 import { cloudUpload, cube, layers, library, listOutline, refresh } from 'ionicons/icons';
 import * as axiosRequest from "../data/AxiosRequest";
@@ -6,20 +6,17 @@ import { RootState } from '../Store/ReduxStore';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadingJobs, setJobs } from '../Store/Reducer/ReducerJobs';
 import DynamicModal from '../components/Core/DynamicModal';
-import { PipelineInfoDTO } from '../data/PIpelineInfoDTO';
 import { loadingPipelines, setPipelines } from '../Store/Reducer/ReducerPipelines';
 import { ButtonLayoutProps, layoutGrupoBotoes } from '../components/Core/ButtonLayout';
 import ListaConfigJobs from '../components/Lists/ListaConfigJobs';
 import { JobInfoDTO } from '../data/JobInfoDTO';
-import { setMainPipeline } from '../Store/Reducer/ReducerAtividade';
+import { setMainPipeline, setViewJobs } from '../Store/Reducer/ReducerAtividade';
 import ListaCatalogoJobs from '../components/Lists/ListaCatalogoJobs';
 import Schedule from '../components/Content/Schedule';
 import Informativo from '../components/Core/Informativo';
 import Carregando from '../components/Core/Carregando';
-import { QueryInfoDTO } from '../data/QueryInfoDTO';
 import { loadingQueries, setQueries } from '../Store/Reducer/ReducerQueries';
 import ModalNovaPipeline from '../components/Modals/ModalNovaPipeline';
-import { MassaTabelaDTO } from '../data/MassaTabelaDTO';
 import { loadingMassa, setMassas } from '../Store/Reducer/ReducerMassas';
 import { ListaRetratrilAgrupada, ListaRetratrilProps } from '../components/Core/ListaRetratil';
 import ListaCatalogoPipelines from '../components/Lists/ListaCatalogoPipelines';
@@ -34,9 +31,6 @@ const EscolherPipelines: React.FC = () => {
     const dispatch = useDispatch();
     
     //Atributos de input do usuário
-    const [conectionsCount, setConectionsCount] = useState<number>(0);
-    const [jobsSucesso, setJobsSucesso] = useState<boolean | null>(null);
-    const [pipelinesSucesso, setPipelinesSucesso] = useState<boolean | null>(null);
     const [verModalSchedule, setVerModalSchedule] = useState<boolean>(false);
     const modalScheduleRef = useRef<HTMLIonModalElement>(null);
     const novaScheduleRef = useRef<HTMLInputElement>(null);
@@ -58,7 +52,7 @@ const EscolherPipelines: React.FC = () => {
     const [modalNovaPipelineOn, modalNovaPipelineOff] = useIonModal(DynamicModal,
         {
             titulo: "Criar Nova Pipeline",
-            elemento: <ModalNovaPipeline />,
+            elemento: <ModalNovaPipeline onSave={() => modalNovaPipelineOff()} />,
             onDismiss: () => modalNovaPipelineOff(),
         }
     );
@@ -86,24 +80,29 @@ const EscolherPipelines: React.FC = () => {
 
     //Conjunto de Requisições para atualizar todos os recursos da página 
     async function coletarRecursos() {
-        dispatch(loadingJobs(true));
-        dispatch(loadingPipelines(true));
-        dispatch(setMainPipeline());
         const id = `Get_Resources@${Date.now()}`;
         dispatch(addMensagem({ 
             id: id, 
             texto: 'Obtendo catálogo de Recusos.',
             status: 'INFO'
         }));
-        //dispatch(loadingQueries(true));
-        //queries
-        await obterJobsBanco(id)
-            .then(() => obterPipelinesBanco(id))
-            .then(() => obterQueriesBanco(id))
-            .then(() => obterMassasBanco(id));
-        dispatch(loadingJobs(false));
-        dispatch(loadingPipelines(false));
-        //dispatch(loadingQueries(false));
+        const erros: {recurso: string, erro: string}[] = [];
+        const addErro = (recurso: string, erro: string) => erros.push({recurso, erro});
+        await Promise.all([
+            obterJobsBanco().catch(error => addErro('Jobs', error)),
+            obterPipelinesBanco().catch(error => addErro('Pipelines', error)),
+            obterQueriesBanco().catch(error => addErro('Queries', error)),
+            obterMassasBanco().catch(error => addErro('Massas', error)),
+        ]);
+        const mensagemGeral = erros.length < 1 ? 
+            "Todos os recursos foram botidos com sucesso. " :
+            "Alguns recursos falharam. ";
+        const mensagensDeErro = erros.map(item => `{${item.recurso}: ${item.erro}`).join("\n");
+        dispatch(atualizarMensagem({ 
+            id: id, 
+            complmento: mensagemGeral + mensagensDeErro,
+            status: (erros.length > 0 ? 'ERROR' : 'OK')
+        }));
     }
 
     //Requisição para abrir a planilha schedule para obter os jobs
@@ -144,99 +143,41 @@ const EscolherPipelines: React.FC = () => {
     }
 
     //Requisição para obter os jobs diretamente do banco
-    async function obterJobsBanco(id: string) {
-        setJobsSucesso(null);
-        setConectionsCount(c => c+1);
-        dispatch(setJobs([]));
-        try {
-            const novosJobs: JobInfoDTO[] = await axiosRequest.getAllJobs(mainClienteId);
-            dispatch(setJobs(novosJobs));
-            setJobsSucesso(true);
-            dispatch(atualizarMensagem({ 
-                id: id, 
-                complmento: 'Jobs: Sucesso.',
-                status: 'OK'
-            }));
-        }
-        catch (error) {
-            setJobsSucesso(false);
-            dispatch(atualizarMensagem({ 
-                id: id, 
-                complmento: `Jobs: ${error}`,
-                status: 'ERROR'
-            }));
-        }
+    async function obterJobsBanco() {
+        dispatch(loadingJobs(true));
+        dispatch(setViewJobs([]));
+        await axiosRequest.getAllJobs(mainClienteId)
+            .then(
+                novosJobs => dispatch(setJobs(novosJobs))
+            );
     }
 
     //Requisição para obter todas as pipelines do banco
-    async function obterPipelinesBanco(id: string) {
-        setPipelinesSucesso(null);
-        dispatch(setPipelines([]));
+    async function obterPipelinesBanco() {
+        dispatch(loadingPipelines(true));
         dispatch(setMainPipeline());
-        try {
-            const pipelines: PipelineInfoDTO[] = await axiosRequest.getAllPipelines(mainClienteId);
-            dispatch(setPipelines(pipelines));
-            setPipelinesSucesso(true);
-            dispatch(atualizarMensagem({ 
-                id: id, 
-                complmento: `Pipelines: Sucesso.`,
-                status: 'OK'
-            }));
-        }
-        catch (error) {
-            setPipelinesSucesso(false);
-            dispatch(atualizarMensagem({ 
-                id: id, 
-                complmento: `Pipelines: ${error}`,
-                status: 'ERROR'
-            }));
-        }
+        await axiosRequest.getAllPipelines(mainClienteId)
+            .then(
+                novasPipelines => dispatch(setPipelines(novasPipelines))
+            );
     }
 
     //Requisição para obter todas as Config-Queries do banco
-    async function obterQueriesBanco(id: string) {
-        dispatch(setQueries([]));
+    async function obterQueriesBanco() {
         dispatch(loadingQueries(true));
-        try {
-            const queriesBanco: QueryInfoDTO[] = await axiosRequest.getAllConfigQueries(mainClienteId);
-            dispatch(setQueries(queriesBanco));
-            dispatch(atualizarMensagem({ 
-                id: id, 
-                complmento: `Queries: Sucesso.`,
-                status: 'OK'
-            }));
-        }
-        catch (error) {
-            dispatch(atualizarMensagem({ 
-                id: id, 
-                complmento: `Queries: ${error}`,
-                status: 'ERROR'
-            }));
-        }
-        dispatch(loadingQueries(false));
+        await axiosRequest.getAllConfigQueries(mainClienteId)
+            .then(
+                queriesBanco => dispatch(setQueries(queriesBanco))
+            );
     }
 
     //Requisição para obter todas as MassaTabelaDTO's do banco
-    async function obterMassasBanco(id: string) {
+    async function obterMassasBanco() {
         dispatch(loadingMassa(true));
-        dispatch(setMassas([]));
-        try {
-            const massasBanco: MassaTabelaDTO[] = await axiosRequest.getAllMassas(mainClienteId);
-            dispatch(setMassas(massasBanco));
-            dispatch(atualizarMensagem({ 
-                id: id, 
-                complmento: `Massas: Sucesso.`,
-                status: 'OK'
-            }));
-        }
-        catch (error) {
-            dispatch(atualizarMensagem({ 
-                id: id, 
-                complmento: `Massas: ${error}`,
-                status: 'ERROR'
-            }));
-        }
-        dispatch(loadingMassa(false));
+        await axiosRequest.getAllMassas(mainClienteId)
+            .then(
+                massasBanco => dispatch(setMassas(massasBanco))
+            );
     }
 
     //Botões renderizados por esse componente
@@ -281,7 +222,7 @@ const EscolherPipelines: React.FC = () => {
     //Define conteúdo a ser exibido no painel principal (direita), com base nos recursos selecionado no painel de opções (esquerda)
     const conteudoPainelPrincipal = () => {
         if (jobsSelecionados.length > 0) 
-            return exibirJobsSelecionados();
+            return catalogoJobsSelecionados.map((jobDto, index) => <JobCard key={index} jobDto={jobDto}/> );
 
         if (mainPipeline !== "") 
             return <ListaConfigJobs />;
@@ -292,11 +233,6 @@ const EscolherPipelines: React.FC = () => {
         return <div className='position-absolute'>
             <Informativo mensagem={mensagem} status='Normal' />
         </div>;
-    }
-
-    //Exibição no painel principal (direita) listagem de cards, com base na Schedule, dos Jobs selecionados no painel de opções (esquerda)
-    function exibirJobsSelecionados() {
-        return catalogoJobsSelecionados.map((jobDto, index) => <JobCard key={index} jobDto={jobDto} /> );
     }
 
     //Conteúdo principal caso existam dados na base

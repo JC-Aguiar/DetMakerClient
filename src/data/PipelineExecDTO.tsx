@@ -8,5 +8,7 @@ export interface PipelineExecDTO {
     pipelineId: number,
     atividade: AtividadeInfoDTO,
     user: UserInfoDTO,
+    massas?: string[],
     jobs: JobExecuteDTO[],
+    configuracoes: { [key: string]: string },
 }

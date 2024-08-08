@@ -380,7 +380,7 @@ export async function getAllMassas(clienteId: number): Promise<MassaTabelaDTO[]>
 }
 
 //Requisição para testar uma Massa de banco
-export async function testarMassa(massa: MassaTabelaDTO, clienteId: number): Promise<MassaPreparada[]> {
+export async function testarMassa(massa: MassaTabelaDTO, ambienteId: number): Promise<MassaPreparada[]> {
     const titulo = "TESTANDO MASSA";
     requestStart(titulo);
 
@@ -388,7 +388,7 @@ export async function testarMassa(massa: MassaTabelaDTO, clienteId: number): Pro
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/gerar-massa/cliente/${clienteId}/test`,
+        url: `${REQUEST_URL}/gerar-massa/ambiente/${ambienteId}/test`,
         headers: headers,
         timeout: 30000,
         data: massa

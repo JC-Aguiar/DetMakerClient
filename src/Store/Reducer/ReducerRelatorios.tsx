@@ -1,9 +1,9 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RelatorioResumoDTO } from '../../data/RelatorioResumoDTO';
-import { Page, noPageContent } from '../../data/Page';
+import { Page } from '../../data/Page';
 
 const initialState = { 
-    catalogo: noPageContent<RelatorioResumoDTO>(),
+    catalogo: Page.empty<RelatorioResumoDTO>(),
     loading: false,
 } as ReducerRelatoriosProps;
 
@@ -35,7 +35,7 @@ const catalogoRelatorios = createSlice({
         loadingRelatorios: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerRelatorios]: Acionado controlador catalogoRelatorios.loadingRelatorios!');
             state.loading = action.payload;
-            if (state.loading) state.catalogo = noPageContent<RelatorioResumoDTO>();//[];
+            if (state.loading) state.catalogo = Page.empty<RelatorioResumoDTO>();//[];
             console.log(`[ReducerRelatorios]: Catalogo de Relatorios ${state.loading ? 'está carregando..' : 'pronto'}.`);
         },
     },

@@ -1,15 +1,15 @@
-import { InputChangeEventDetail, IonBadge, IonCheckbox, IonIcon, IonInput, IonItem, IonLabel, IonList } from "@ionic/react";
+import { InputChangeEventDetail, IonInput, IonList } from "@ionic/react";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
 import { addOneMainJob, addViewJobs, removeViewJobs, setViewJobs } from "../../Store/Reducer/ReducerAtividade";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
-import { setMainJobs } from "../../Store/Reducer/ReducerAtividade";
 import { addCircleOutline, checkbox, checkmark, closeCircle, search, square } from "ionicons/icons";
-import { JobConfig, parseJobInfo } from "../../data/JobConfigDTO";
+import { JobConfig } from "../../data/JobConfigDTO";
 import ItemLista from "../Core/ItemLista";
 
 
+//Componente <ListaCatalogoJobs>
 const ListaCatalogoJobs: React.FC = () => {
     //Atributo para usar Redux
     const dispatch = useDispatch();
@@ -85,23 +85,3 @@ const ListaCatalogoJobs: React.FC = () => {
 };
 
 export default ListaCatalogoJobs;
-
-/*
-<IonItem key={index} lines='none'
-                                color={color}
-                                className='p-0 m-0 text-white small '
-                                style={{ '--min-height': '32px', cursor: `${mainPipeline === "" ? 'auto' : 'pointer'}`  }}
-                                onClick={(e) => dispatch(addOneMainJob(item))}
-                            >
-                                {identificarTipoBotao(item)}
-                                <IonLabel className='p-0 m-0 text-wrap' >
-                                    <span className='font-monospace text-white text-break'>{item.nome}</span>
-                                    <IonBadge color='secondary'
-                                        className='ms-1 small fw-normal opacity-25'
-                                        style={{transform: 'translate(0px, 3px)'}}
-                                    >
-                                        ID {item.id}
-                                    </IonBadge>
-                                </IonLabel>
-                            </IonItem>
-*/

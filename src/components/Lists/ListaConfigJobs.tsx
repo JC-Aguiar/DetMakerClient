@@ -1,10 +1,9 @@
-import { InputChangeEventDetail, IonButton, IonButtons, IonCardContent, IonCol, IonIcon, IonInput, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, IonTitle, IonToolbar, ItemReorderEventDetail, useIonAlert, useIonModal } from '@ionic/react';
+import { InputChangeEventDetail, IonButtons, IonCardContent, IonIcon, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, IonTitle, IonToolbar, ItemReorderEventDetail, useIonAlert, useIonModal } from '@ionic/react';
 import ConfigJobItem from '../Content/ConfigJobItem';
-import { addCircle, arrowUndo, cube, flash, layers, lockClosed, save, trash } from 'ionicons/icons';
-import { useEffect, useState } from 'react';
+import { arrowUndo, cube, flash, options, save, trash } from 'ionicons/icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../Store/ReduxStore';
-import { JobConfig, parseJobInfo, } from '../../data/JobConfigDTO';
+import { JobConfig, } from '../../data/JobConfigDTO';
 import { useDispatch } from 'react-redux';
 import { UpdateMainJobsIfxdateProps, addMensagem, atualizarMensagem, reorderMainJobs, setMainPipeline, updateMainJobsIfxdate } from '../../Store/Reducer/ReducerAtividade';
 import DynamicModal from '../Core/DynamicModal';
@@ -15,7 +14,9 @@ import { removePipeline, setPipelines } from '../../Store/Reducer/ReducerPipelin
 import * as axiosRequest from "../../data/AxiosRequest";
 import { JobInfoDTO, getIndexParametroComIfxdate } from '../../data/JobInfoDTO';
 import { ListaRetratrilAgrupada, ListaRetratrilProps } from '../Core/ListaRetratil';
-import ListaVariaveisPipeline from './ListaVariaveisPipeline';
+import ListaVariaveisPipeline, { ListaVariaveisPipelineRef } from './ListaVariaveisPipeline';
+import { useRef } from 'react';
+import BotaoMassasPipeline, { BotaoMassasPipelineRef } from '../Content/BotaoMassasPipeline';
 
 //Componente <ListaConfigJobs>
 const ListaConfigJobs: React.FC = () => {
@@ -36,13 +37,15 @@ const ListaConfigJobs: React.FC = () => {
         .find((item) => item.nome === mainPipeline)?.descricao;
 
     //Atributos com estado gerenciado via React
-    const [alerta] = useIonAlert();    
+    const [alerta] = useIonAlert(); 
+    const variaveisRef = useRef<ListaVariaveisPipelineRef>(null);
+    const massasRef = useRef<BotaoMassasPipelineRef>(null);
 
     //Modal para executar a Pipeline
     const [modalExecPipelineOn, modalExecPipelineOff] = useIonModal(DynamicModal,
         {
             titulo: "Executar Pipeline",
-            elemento: <ModalExecPipeline />,
+            elemento: <ModalExecPipeline variaveis={variaveisRef.current?.variaveis()} massas={massasRef.current?.massas()} />,
             onDismiss: () => modalExecPipelineOff(),
         }
     );
@@ -61,7 +64,9 @@ const ListaConfigJobs: React.FC = () => {
                 id: mainPipelineId,
                 nome: mainPipeline,
                 descricao: !mainPipelineDescricao ? "" : mainPipelineDescricao,
-                jobs: mainJobs.map(job => job.nome),
+                jobs: [...mainJobs]
+                    .sort((item1, item2) => item1.ordem - item2.ordem)
+                    .map(job => job.nome),
                 checked: true,
             };
             await axiosRequest.atualizarPipeline(novaPipeline);
@@ -97,11 +102,11 @@ const ListaConfigJobs: React.FC = () => {
             texto: `Deletando Pipeline '${mainPipeline}' do catálogo do banco.`,
             status: 'INFO'
         }));
-        dispatch(setMainPipeline());
-        dispatch(removePipeline(mainPipelineId));
         
         try {
             await axiosRequest.deletePipeline(mainClienteId, mainPipeline);
+            dispatch(setMainPipeline());
+            dispatch(removePipeline(mainPipelineId));
             dispatch(atualizarMensagem({ 
                 id: mensagemId, 
                 complmento: `Sucesso.`,
@@ -114,7 +119,6 @@ const ListaConfigJobs: React.FC = () => {
                 complmento: `${error}.`,
                 status: 'ERROR'
             }));
-            dispatch(setPipelines( [...catalogoPipelines, pipeline] ));
         }
     }
 
@@ -133,13 +137,13 @@ const ListaConfigJobs: React.FC = () => {
 
                         dispatch(setMainPipeline());
                         const jobsMainPipline: JobConfig[] = [];
-                        pipeline.jobs.forEach((pipelineJob, index) => {
-                            const atividadeJobs = catalogoJobs.find((jobDto) => jobDto.nome === pipelineJob);
+                        pipeline.jobs.forEach((jobNome, index) => {
+                            const atividadeJobs = catalogoJobs.find((jobDto) => jobDto.nome === jobNome);
                             if (!atividadeJobs) {
-                                console.warn(`[LISTA CONFIGURAR-JOBS]: Job '${pipelineJob}' não identificado no catálogo de Jobs.`);
+                                console.warn(`[LISTA CONFIGURAR-JOBS]: Job ID ${jobNome} não identificado no catálogo de Jobs.`);
                                 return;
                             }
-                            const configJob: JobConfig = parseJobInfo(atividadeJobs, index);
+                            const configJob: JobConfig = JobConfig.parseJobInfo(atividadeJobs, index);
                             jobsMainPipline.push(configJob);
                         });
                         dispatch(setMainPipeline({
@@ -196,6 +200,7 @@ const ListaConfigJobs: React.FC = () => {
         dispatch(reorderMainJobs({ ordemAntiga: indiceAtual, ordemNova: indiceNovo }));
     }
 
+
     //Botoes contendo as opções para cada Pipeline
     const botoes: BotaoProps[] = [
         {icon: flash, text: "Executar",  handler: () => modalExecPipelineOn()},
@@ -206,8 +211,12 @@ const ListaConfigJobs: React.FC = () => {
 
     //Listas
     const listasRefateis: ListaRetratrilProps[] = [
-        //{ title: "Massas Utilizadas", content: <ListaVariaveisPipeline /> }
-        { title: "Variáveis Globais", content: <ListaVariaveisPipeline /> }
+        { 
+            title: `Variáveis Globais`,
+            arrow: false,
+            icon: options,
+            content: <ListaVariaveisPipeline ref={variaveisRef}/> 
+        }
     ];
 
     //Renderização do componente
@@ -223,12 +232,18 @@ const ListaConfigJobs: React.FC = () => {
             </IonItem>
             <div className='py-4'></div>
             <IonCardContent className='w-100 mx-4 my-3 p-0 px-1'>
+                {/* Massas */}
+                <BotaoMassasPipeline ref={massasRef}/>
+
+                {/* Variáeis Globais (Configurações) */}
                 <ListaRetratrilAgrupada listas={listasRefateis} />
+
+                {/* Jobs */}
                 <IonList className='glass mx-2'>
                     <IonItem lines='none' className='m-0 p-0'>
-                        <IonIcon icon={cube} className='ms-1 my-1' />
+                        <IonIcon icon={cube} className='ms-0 my-1' />
                         <IonLabel color='light ms-2'>
-                            Fluxo de Execução: {mainJobs.length} Job{mainJobs.length > 1 ? "s" : ""}
+                            Fluxo de Execução: {mainJobs.length} Job{mainJobs.length === 1 ? "" : "s"}
                         </IonLabel>
                     </IonItem>
                     {/* 

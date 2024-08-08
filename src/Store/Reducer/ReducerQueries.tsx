@@ -1,18 +1,20 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { ComandoSQL } from '../../data/ComandoSQL';
 import { QueryInfoDTO } from '../../data/QueryInfoDTO';
 
+//Valores iniciais do Reducer
 const initialState = { 
     catalogo: [],
     loading: false,
 } as ReducerQueriesProps;
 
-//Interface para definir o tipo de objeto do reducer
+//Interface para definir o tipo de objeto do Reducer
 interface ReducerQueriesProps {
     catalogo: QueryInfoDTO[],
     loading: boolean,
 }
 
-//Controlador reducer para os relatórios
+//Controlador Reducer para os relatórios
 const catalogoQueries = createSlice({
     name: 'catalogoQueries',
     initialState,
@@ -24,12 +26,28 @@ const catalogoQueries = createSlice({
             }
             console.log('[ReducerQueries]: Acionado controlador catalogoQueries.setQueries!');
             state.catalogo = action.payload;
-            //logQueries(state.catalogo);
+            state.loading = false;
         },
-        addQueries: (state, action: PayloadAction<QueryInfoDTO>) => {
-            console.log('[ReducerQueries]: Acionado controlador catalogoQueries.addQueries!');
+        addQuery: (state, action: PayloadAction<QueryInfoDTO>) => {
+            console.log('[ReducerQueries]: Acionado controlador catalogoQueries.addQuery!');
             state.catalogo.push(action.payload);
-            //logQueries(state.catalogo);
+        },
+        updateQuery: (state, action: PayloadAction<QueryInfoDTO>) => {
+            console.log('[ReducerQueries]: Acionado controlador catalogoQueries.updateQuery!');
+            const novaQuery = action.payload;
+            const index = state.catalogo
+                .findIndex(item => item.id === novaQuery.id);
+            if (index === -1) {
+                if (!novaQuery.id) return;
+                state.catalogo.push(novaQuery);
+                return;    
+            }
+            state.catalogo[index] = novaQuery;
+        },
+        removeQuery: (state, action: PayloadAction<number>) => {
+            console.log('[ReducerQueries]: Acionado controlador catalogoQueries.removeQuery!');
+            if (action.payload > -1 && action.payload < state.catalogo.length)
+                state.catalogo.splice(action.payload, 1);
         },
         loadingQueries: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerQueries]: Acionado controlador catalogoQueries.loadingQueries!');
@@ -40,14 +58,5 @@ const catalogoQueries = createSlice({
     },
 });
 
-//Exibe informações da item-pilah pelos controladores
-function logQueries(clientes: QueryInfoDTO[]) {
-    console.log(`[ReducerQueries] Catálogo de Queries em memória:` + '\n' + clientes.map(
-        (item) => ` - ID: ${item.id}` + '\n' 
-                + ` - Nome: ${item.nome}`
-                + ` - SQL: '${item.sql}'`
-    ));
-}
-
 export default catalogoQueries.reducer;
-export const { setQueries, addQueries, loadingQueries } = catalogoQueries.actions;
+export const { setQueries, addQuery, updateQuery, removeQuery, loadingQueries } = catalogoQueries.actions;

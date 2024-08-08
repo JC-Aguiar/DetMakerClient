@@ -4,18 +4,23 @@ import { StringUtils } from "./StringUtils";
 
 //Interface que interpreta os dados de um SQL 
 export interface ComandoSQL {
-    id?: number,
-    jobId: number,
     nome: string,
     descricao: string,
     sql: string,
     filtros: FiltroSQL[],
-    valores: { [key: string]: string },
-    autopreenchimento: boolean,
 }
 
 //Compilado de métodos úteis relacionados ao ComandoSQL
 export namespace ComandoSQL {
+
+    export function empty(): ComandoSQL {
+        return {
+            nome: '',
+            descricao: '',
+            sql: '',
+            filtros: []
+        };
+    }
 
     //Lista dos operadores a serem removidos numa query
     const operadoresParaRemover =[
@@ -96,29 +101,5 @@ export namespace ComandoSQL {
         return getFiltros(formarQuery(query));
     }
     
-    //Converte QueryInfoDTO em ComandoSQL
-    export function parseQueryInfo(dto: QueryInfoDTO, jobId: number): ComandoSQL {
-        const queryFormatada = formarQuery(dto.sql);
-      
-        //Obtem campos do SELECT
-        //const selectMatch = queryFormatada.match(/SELECT(.*?)FROM/);
-        //const campos = (selectMatch ? selectMatch[1].split(',') : [])
-        //    .map(item => item.trim())
-        //   .filter(item => item !== "*");
-      
-        //Retornando nova instância de ComandoSQL
-        return {
-            id: dto.id,
-            jobId: jobId,
-            nome: dto.nome,
-            //campos: campos,
-            descricao: dto.descricao,
-            sql: queryFormatada,
-            filtros: getFiltros(queryFormatada),
-            valores: {},
-            autopreenchimento: false,
-            //dinamico: true,
-        };
-    }
 }
 

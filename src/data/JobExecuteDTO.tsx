@@ -1,10 +1,11 @@
+import { ComandoSQL } from "./ComandoSQL";
 import { JobCarga, JobConfig } from "./JobConfigDTO";
 
 export interface JobExecuteDTO {
     id: number,
     ordem: number,
     argumentos: string,
-    queries: string[],
+    queries: ComandoSQL[],
     cargas: JobCarga[],
     variaveis: { [key: string]: string },
 }
@@ -18,9 +19,13 @@ export namespace JobExecuteDTO {
             id: configDto.id,
             ordem: configDto.ordem,
             argumentos: configDto.argumentos.join(" "),
-            queries: configDto.queries.map(query => query.sql),
+            queries: configDto.queries, //.map(query => query.sql)
             cargas: configDto.cargas,
-            variaveis: configDto.variaveis,
+            variaveis: configDto.variaveis
+                .reduce((objeto, item) => {
+                    objeto[item.nome] = item.valor;
+                    return objeto;
+                }, {})
         };
     }
 }
