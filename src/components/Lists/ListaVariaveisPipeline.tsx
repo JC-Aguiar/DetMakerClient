@@ -40,7 +40,8 @@ const ListaVariaveisPipeline = forwardRef<ListaVariaveisPipelineRef>((props, ref
     //Identifica as variáveis glovais (campo 'configuracoes') mínimas obrigatórias com base nas variáveis dos Jobs selecionados
     function identificarJobsVariaveis(): VariavelDinamica[] {
         const vars = mainJobs.flatMap(job => job.variaveis);
-        queries.flatMap(query => query.filtros.map(filtro => VariavelDinamica.parseFiltroSql(filtro)))
+        queries.flatMap(query => Array.from(query.filtros.entries()))
+            .map(([coluna, variavel]) => VariavelDinamica.newQueryFiltro(coluna, variavel))
             .forEach(item => vars.push(item));
         
         return vars.reduce((listaFinal: VariavelDinamica[], v) => {

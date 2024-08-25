@@ -1,5 +1,5 @@
-import { ComandoSQL } from "./ComandoSQL";
 import { JobInfoDTO } from "./JobInfoDTO";
+import { QueryInfo } from "./QueryInfoDTO";
 import { VariavelDinamica } from "./VariavelDinamica";
 
 export interface JobConfig {
@@ -7,7 +7,7 @@ export interface JobConfig {
     ordem: number,
     nome: string,
     argumentos: string[],
-    queries: ComandoSQL[],
+    queries: QueryInfo[],
     cargas: JobCarga[],
     variaveis: VariavelDinamica[],
 }
@@ -19,6 +19,7 @@ export interface JobCarga {
 }
 
 export namespace JobCarga {
+
     export function empty(): JobCarga {
         return {
             nome: '',
@@ -26,18 +27,15 @@ export namespace JobCarga {
             tipo: '',
         };
     }
+    
 }
 
 export namespace JobConfig {
 
     export function identificarVariaveis(infoDto: JobInfoDTO): VariavelDinamica[] {
-/*
-        const vars = infoDto.queries.map(query => query.sql)
-            .flatMap(sql => ComandoSQL.getFiltrosFromQuery(sql))
-            .map((filtro, index) => VariavelDinamica.parseFiltroSql(infoDto.nome, index, filtro));
-*/
-        return infoDto.parametros
-            .map((param, index) => VariavelDinamica.parseJobParamiter(param, infoDto.descricaoParametros[index]));
+        return infoDto.parametros.map(
+            (param, index) => VariavelDinamica.parseJobParamiter(param, infoDto.descricaoParametros[index])
+        );
     }
 
     /**
@@ -52,7 +50,7 @@ export namespace JobConfig {
             id: infoDto.id,
             nome: infoDto.nome,
             argumentos: infoDto.parametros.map(() => ""),
-            queries: infoDto.queries, //TODO: exceção daqui deve ser tratada nos componentes-pai
+            queries: infoDto.queries.map(item => QueryInfo.parseDTO(item)), //TODO: exceção daqui deve ser tratada nos componentes-pai
             cargas: infoDto.mascaraEntrada.map((item) => JobCarga.empty()),
             variaveis: JobConfig.identificarVariaveis(infoDto),
         }

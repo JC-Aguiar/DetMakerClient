@@ -17,7 +17,6 @@ import { MassaPreparada } from './MassaPreparada';
 import { AmbienteInfoDTO } from './AmbienteInfoDTO';
 import { ClienteNovoDTO } from './ClienteNovoDTO';
 import { Page } from './Page';
-import { FiltroSQL } from './FiltroSQL';
 
 const EM_TESTE = false;
 
@@ -41,7 +40,7 @@ export const URL_DET = `/evidence`;
 export const URL_LOGIN = `/login`;
 
 //Headers para requisições ao backend do Det-Maker
-const headers: AxiosRequestHeaders = {
+export const headers: AxiosRequestHeaders = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": `${REQUEST_URL}/*`,
     "Access-Control-Allow-Methods": "POST, GET",
@@ -697,30 +696,6 @@ export async function getAllConfigQueries(clienteId: number): Promise<QueryInfoD
         });
 }
 
-//Requisição para obter todos os Filtros ConfigQuery no banco
-export async function getQueryFiltros(queryId: number): Promise<FiltroSQL[]> {
-    const titulo = `OBTER CONFIG-QUERY ID ${queryId}`;
-    requestStart(titulo);
-
-    //Preparando requisição
-    let config: AxiosRequestConfig = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/query/${queryId}/vars`,
-        headers: headers,
-        timeout: 30000,
-    };
-    //Executando requisição
-    return await axios
-        .request(config)
-        .then((response) => {
-            return response.data;
-        })
-        .catch((error: AxiosError) => {
-            throw requestErro(titulo, error);
-        });
-}
-
 //Deletando uma ConfigQuery com base no ID
 export async function deleteConfigQuery(queryId: number): Promise<string> {
     const titulo = `DELETAR CONFIG-QUERY ID ${queryId}`;
@@ -746,19 +721,18 @@ export async function deleteConfigQuery(queryId: number): Promise<string> {
 }
 
 //Requisição para validar querys
-export async function validarQuery(ambienteId: number, comandoSql: ComandoSQL | string): Promise<string> {
+export async function validarQuery(ambienteId: number, query: string): Promise<string> {
     const titulo = "VALIDAR QUERY";
     requestStart(titulo);
-    const endpoint = (typeof comandoSql === 'string') ? 'manual' : 'dynamic';
 
     //Instanciando Axios
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/query/validade/${endpoint}/ambiente/${ambienteId}`,
+        url: `${REQUEST_URL}/query/validade/ambiente/${ambienteId}`,
         headers: headers,
         timeout: 10000,
-        data: comandoSql,
+        data: query,
     };
     //Executando requisiçãao
     return await axios.request(config)

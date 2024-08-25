@@ -1,6 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { ComandoSQL } from '../../data/ComandoSQL';
-import { QueryInfoDTO } from '../../data/QueryInfoDTO';
+import { QueryInfo, QueryInfoDTO } from '../../data/QueryInfoDTO';
 
 //Valores iniciais do Reducer
 const initialState = { 
@@ -10,7 +9,7 @@ const initialState = {
 
 //Interface para definir o tipo de objeto do Reducer
 interface ReducerQueriesProps {
-    catalogo: QueryInfoDTO[],
+    catalogo: QueryInfo[],
     loading: boolean,
 }
 
@@ -25,16 +24,16 @@ const catalogoQueries = createSlice({
                 return { ...state };
             }
             console.log('[ReducerQueries]: Acionado controlador catalogoQueries.setQueries!');
-            state.catalogo = action.payload;
+            state.catalogo = action.payload.map(query => QueryInfo.parseDTO(query));
             state.loading = false;
         },
         addQuery: (state, action: PayloadAction<QueryInfoDTO>) => {
             console.log('[ReducerQueries]: Acionado controlador catalogoQueries.addQuery!');
-            state.catalogo.push(action.payload);
+            state.catalogo.push(QueryInfo.parseDTO(action.payload));
         },
         updateQuery: (state, action: PayloadAction<QueryInfoDTO>) => {
             console.log('[ReducerQueries]: Acionado controlador catalogoQueries.updateQuery!');
-            const novaQuery = action.payload;
+            const novaQuery = QueryInfo.parseDTO(action.payload);
             const index = state.catalogo
                 .findIndex(item => item.id === novaQuery.id);
             if (index === -1) {

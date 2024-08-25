@@ -1,20 +1,17 @@
-import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonIcon, IonInput, IonItem, IonLabel, IonReorder, IonRow, IonTextarea, TextareaChangeEventDetail, useIonModal } from "@ionic/react";
+import { IonBadge, IonButton, IonIcon, IonItem, IonReorder, IonRow, useIonModal } from "@ionic/react";
 import React, { useEffect, useState } from "react";
 import { JobCarga, JobConfig } from "../../data/JobConfigDTO";
-import { ComandoSQL } from "../../data/ComandoSQL";
-import { bookmark, chatboxEllipses, cube, reorderFour, save, settings, shieldCheckmark, trash } from "ionicons/icons";
+import { bookmark, chatboxEllipses, cube, reorderFour, save, trash } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
 import DynamicModal from "../Core/DynamicModal";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
 import { addMensagem, atualizarMensagem, removeOneMainJob, updateOneMainJob } from "../../Store/Reducer/ReducerAtividade";
-import { FiltroSQL } from "../../data/FiltroSQL";
 import Botao from "../Core/Botao";
 import Uploader from "../Core/Uploader";
 import ListaRetratril, { ListaRetratrilAgrupada, ListaRetratrilProps } from "../Core/ListaRetratil";
 import GlassInput from "../Core/GlassInput";
-import ItemLista from "../Core/ItemLista";
 
 //Interface com os atributos do componente <ConfigJobItem>
 export interface JobCardProps {
@@ -70,66 +67,10 @@ const ConfigJobItem: React.FC<JobCardProps> = ({ index }) => {
         </IonBadge>
     };
 
-    //Método chamado quando este componente fica visível
-    useEffect(() => {
-        //console.log(`[MODAL CONFIG-JOB] JobConfig: ${JSON.stringify(jobExec)}`);
-        //console.log(`[MODAL CONFIG-JOB] Queries: ${JSON.stringify(jobExec.queries)}`);
-        //console.log(`[MODAL CONFIG-JOB] jobExec.queries:  ${jobExec.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
-        //console.log(`[MODAL CONFIG-JOB] jobUserInput.queries: ${jobConfigurado.queries.map((item) => JSON.stringify(item)).join('\n')}.`);
-    }, [jobExec]); 
-
     //Método para salvar este JobCard (objeto ConfigJob) preenchido pelo usuário no banco
     async function salvandoItem() {
         dispatch(updateOneMainJob(jobConfigurado));
     }
-
-    //Método de tratamento dos inputs do usuário para os Parâmetros
-    const preencherParametro = (event: CustomEvent<InputChangeEventDetail>, index: number) => {
-        const value = (event.target as HTMLInputElement).value;
-        const novosParam = [...jobConfigurado.argumentos];
-        novosParam[index] = value.trim();
-        setJobConfigurado( {...jobConfigurado, argumentos: novosParam} );
-        console.log(`[MODAL CONFIG-JOB] ${jobConfigurado.nome} parâmetro[${index}] = ${jobConfigurado.argumentos[index]}.`);
-    }
-
-    //Método de tratamento dos inputs do usuário para as Queries (manuais)
-    const preencherQueries = (event: CustomEvent<TextareaChangeEventDetail>, index: number) => {
-        setJobConfigurado(jobConfig => {
-            jobConfig.queries[index].sql = (event.target as HTMLInputElement).value;
-            return jobConfig;
-        });
-        console.log(`[MODAL CONFIG-JOB] ${jobConfigurado.nome} `
-            + `query[${index}]='${jobConfigurado.queries[index].nome}', sql='${jobConfigurado.queries[index].sql}'.`
-        );
-    }
-
-    //Método de tratamento dos inputs do usuário para as ConfigQueries (automáticas)
-    /*
-    const preencherConfigQueries = (event: CustomEvent<InputChangeEventDetail>, queryIndex: number, filtroIndex: number) => {
-        const value = (event.target as HTMLInputElement).value;
-        
-        const novasQueries = [...jobConfigurado.queries];
-        const novosFiltros: FiltroSQL[] = [...novasQueries[queryIndex].filtros]
-            .map((item, index) => {
-                if (index !== filtroIndex) return item
-                return {...item, valor: value };
-            });
-
-        novasQueries[queryIndex] = {
-            campos: novasQueries[queryIndex].campos,
-            nome: novasQueries[queryIndex].nome,
-            filtros: novosFiltros,
-            sql: novasQueries[queryIndex].sql,
-            descricao: novasQueries[queryIndex].descricao,
-            dinamico: novasQueries[queryIndex].dinamico,
-        };
-
-        setJobConfigurado( {...jobConfigurado, queries: novasQueries} );
-        console.log(
-            `[MODAL CONFIG-JOB] ${jobConfigurado.nome} config-query[${queryIndex}]='${jobConfigurado.queries[queryIndex].nome}', filtro[${filtroIndex}]='${jobConfigurado.queries[queryIndex].filtros[filtroIndex].valor}'.`
-        );
-    }
-    */
 
     //Método de tratamento dos inputs do usuário para as Cargas
     const preencherCarga = (files: FileList | null) => {
@@ -173,18 +114,6 @@ const ConfigJobItem: React.FC<JobCardProps> = ({ index }) => {
             setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
         }
         catch (error) {
-            //e.target.value = '';
-            /*
-            let errorMessage: string;
-
-            if (typeof error === "string")
-              errorMessage = error;
-            else if (error instanceof Error)
-              errorMessage = error.message;
-            else
-              errorMessage = String(error);
-            */
-            //console.warn(errorMessage);
             dispatch(atualizarMensagem({ 
                 id: mensagemId, 
                 complmento: `Pipeline '${mainPipeline}' - Job '${jobInfo.nome}': Erro no processo de carga. ${error}`,
@@ -268,114 +197,6 @@ const ConfigJobItem: React.FC<JobCardProps> = ({ index }) => {
         );
     }
 
-    //Exibindo os campos de Parâmetros
-    const camposInputParametros = () => {
-        if (!jobExec || jobExec.argumentos.length < 1 || !jobInfo) return;
-        return (
-            <div className="px-1 mb-2">
-                {labelTitulo('PARÂMETROS DE ENTRADA', `job${id}-param`)}
-                {
-                    jobExec.argumentos.map((param, index) => {
-                        return (
-                            <div key={index} className="position-relative mx-3 my-1 pt-2 pb-4 px-2">
-                                {badgeInfo(jobInfo.parametros[index], 10, -25)}
-                                <IonInput id={`job${id}-param`}
-                                    type="text"
-                                    className="form-control text-white w-100 glass"
-                                    aria-label="Sizing example input"
-                                    aria-describedby="inputGroup-sizing-default"
-                                    placeholder={jobInfo.descricaoParametros[index]}
-                                    onIonChange={(e) => preencherParametro(e, index)}
-                                    value={jobConfigurado.argumentos[index]}
-                                />
-                            </div>
-                        );
-                    })
-                }
-            </div>
-        );
-    }
-
-    //Mecânica auxiliar para identificar e exibir as queries (veja mais no método 'camposInputQueries')
-    const inputQuerysManual = (cmdSql: ComandoSQL, index: number) => {
-        if (!jobInfo || !jobExec) return;
-        return (
-            <div className="px-1 mt-2 mb-2" key={index}>
-                <div className="position-relative text-center mx-3 mt-1 mb-4">
-                    <IonIcon icon={shieldCheckmark}
-                        className="btn btn-info sticky-top border rounded rounded-circle p-2"
-                        color="tertiary" 
-                        title="Validar Query"
-                        style={{ position: 'absolute', top: '0%', left: `100%`, transform: `translate(-55%, -45%)` }}
-                        onClick={(e) => validarQuery(jobConfigurado.queries[index].sql)}
-                    />
-                    { badgeInfo(cmdSql.nome, 0, -50) }
-                    <IonTextarea id={`job${id}-sql`}
-                        className="form-control text-white glass text-start m-0 p-0"
-                        aria-label="With textarea"
-                        autoGrow={true}
-                        placeholder={`Insira o comando SQL aqui`}
-                        onIonChange={(e) => preencherQueries(e, index)}
-                        value={jobConfigurado.queries[index].sql}
-                    />
-                </div>
-            </div>
-        );
-    }
-
-    //Exibindo os campos de Queries 
-    const camposInputQueries = () => {
-        if (!jobInfo || !jobExec || jobExec.queries.length < 1) return null;
-        
-        //Gerando preenchimento dinâmico para as ConfigQuery's cadastradas
-        /*
-        const queriesDinamicas = jobConfigurado.queries
-            .filter((cmdSql) => !cmdSql.autopreenchimento)
-            //.filter((cmdSql) => cmdSql.filtros.length > 0)
-            .map((cmdSql, queryIndex) =>
-                <div key={queryIndex} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
-                    <IonIcon icon={shieldCheckmark}
-                        className="btn btn-info border rounded rounded-circle p-2"
-                        color="tertiary"
-                        title="Validar Query"
-                        style={{ position: 'absolute', top: '0%', left: `100%`, transform: `translate(-50%, -50%)` }}
-                        onClick={(e) => validarQuery(jobConfigurado.queries[queryIndex])}
-                    />
-                    {badgeInfo(cmdSql.nome, 0, -50)}
-                    {cmdSql.descricao}
-                    <br />
-                    <IonCard color="dark" className="font-monospace small opacity-75 mx-0 my-2 px-2 ">
-                        {cmdSql.dinamico ? cmdSql.sql : null}
-                    </IonCard>
-                    {
-                        cmdSql.filtros.map((filtro, filtroIndex) =>
-                            <IonItem className="text-primary glass" key={queryIndex * filtroIndex}>
-                                <IonLabel className="fw-bold">{filtro.coluna + ":"}</IonLabel>
-                                <IonInput placeholder={filtro.nome}
-                                    value={filtro.valor}
-                                    onIonChange={(e) => preencherConfigQueries(e, queryIndex, filtroIndex)}
-                                />
-                            </IonItem>
-                        )
-                    }
-                </div>
-            );
-        */
-        //Adicionando preenchimento manual para as ConfigQuery's pendentes 
-        const queriesManuais = jobConfigurado.queries
-            //.filter((cmdSql) => !cmdSql.autopreenchimento)
-            .map((cmdSql, index) => inputQuerysManual(cmdSql, index));
-
-        //Renderização da função
-        return (
-            <div className="px-1 mb-2">
-                {labelTitulo('QUERIES DE CONSULTA', `job${id}-sql`)}
-                {/*queriesDinamicas*/}
-                {queriesManuais}
-            </div>
-        );
-    }
-
     //Exibindo campos de Cargas do Job
     const camposInputCargas = () => {
         if (!jobInfo || !jobExec || !jobInfo.mascaraEntrada || jobInfo.mascaraEntrada.length === 0) 
@@ -399,7 +220,7 @@ const ConfigJobItem: React.FC<JobCardProps> = ({ index }) => {
     }
 
     //Faz a validação da query já preenchida (tanto manual, quanto autmática)
-    const validarQuery = async (comandoSql: ComandoSQL | string) => {
+    const validarQuery = async (query: string) => { 
         const mensagemId = `Check_Query@${Date.now()}`;
         dispatch(addMensagem({ 
             id: mensagemId, 
@@ -407,7 +228,7 @@ const ConfigJobItem: React.FC<JobCardProps> = ({ index }) => {
             status: 'INFO'
         }));
         try {
-            const resultado: string = await axiosRequest.validarQuery(mainAmbienteId, comandoSql);
+            const resultado: string = await axiosRequest.validarQuery(mainAmbienteId, query);
             dispatch(atualizarMensagem({ 
                 id: mensagemId, 
                 complmento: `${resultado}`,
@@ -432,8 +253,6 @@ const ConfigJobItem: React.FC<JobCardProps> = ({ index }) => {
                     </>,
             elemento: <div className="p-2">
                         {informacoes()}
-                        {camposInputParametros()}
-                        {camposInputQueries()}
                         {camposInputCargas()}
                         <div className="d-flex ion-justify-content-end me-2 pe-1">
                             <Botao icon={save} text="Salvar" handler={salvandoItem} />

@@ -1,14 +1,12 @@
-import { TextareaChangeEventDetail, IonTextarea, IonRow, IonCol, IonItem, IonGrid, IonBadge, IonInput, InputChangeEventDetail } from "@ionic/react";
+import { TextareaChangeEventDetail, IonTextarea, IonRow, IonCol, IonItem, IonBadge, IonInput, InputChangeEventDetail } from "@ionic/react";
 import { save } from "ionicons/icons";
 import { useEffect, useState } from "react";
 import Botao from "../Core/Botao";
-import { FiltroSQL } from "../../data/FiltroSQL";
 import * as AxiosRequest from "../../data/AxiosRequest";
 import Informativo from "../Core/Informativo";
 import { useDispatch, useSelector } from "react-redux";
 import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
 import { RootState } from "../../Store/ReduxStore";
-import { ComandoSQL } from "../../data/ComandoSQL";
 import GlassInput from "../Core/GlassInput";
 import axios, { AxiosError, AxiosRequestConfig, AxiosRequestHeaders } from "axios";
 import { updateQuery } from "../../Store/Reducer/ReducerQueries";
@@ -36,8 +34,7 @@ const ModalConfigQuery: React.FC<ModalConfigQueryProps> = ({onSave = () => null,
     const [loading, setLoading] = useState<boolean>(false);
     const [infos, setInfos] = useState<QueryInfoDTO>(
         props.queryInfo ? props.queryInfo : novaQueryInfo() 
-    ); 
-    const [inputFiltros, setInputFiltros] = useState<FiltroSQL[]>([...infos.filtros]);
+    );
 
     //Criando uma QueryInfoDTO nova associada ao Job infomrado na criação do componente
     function novaQueryInfo(): QueryInfoDTO {
@@ -46,21 +43,7 @@ const ModalConfigQuery: React.FC<ModalConfigQueryProps> = ({onSave = () => null,
 
     //Atributos de validação dos inputs
     const sqlValida = () => infos.sql.trim().length > 15;
-    const configValida = () => infos.nome && infos.nome.length > 3
-        && inputFiltros.every(filtro => filtro.tabela && filtro.tabela.length > 3)
-        && sqlValida();
-
-    //Acionamento automático na alteração da query
-    useEffect(() => { 
-        setInputFiltros(filtrosAtuais => ComandoSQL
-            .getFiltrosFromQuery(infos.sql)
-            .map(novoFiltro => {
-                const filtro = filtrosAtuais.find(filtro => FiltroSQL.isEquals(novoFiltro, filtro));
-                if (!filtro) return novoFiltro;
-                return {...filtro, tabela: novoFiltro.tabela};
-            })
-        );
-    }, [infos.sql]);
+    const configValida = () => infos.nome && infos.nome.length > 3 && sqlValida();
 
     //Handler para preencher o nome dessa configuração
     const preencherNome = (event: CustomEvent<InputChangeEventDetail>) => {
@@ -83,36 +66,17 @@ const ModalConfigQuery: React.FC<ModalConfigQueryProps> = ({onSave = () => null,
         setInfos(thisInfo => ({ ...thisInfo, sql: sql }));
     }
 
-    //Handler para preeencer o nome da tabela de uma variável em determinado índice 
-    const preencherTabela = (e: CustomEvent<InputChangeEventDetail>, index: number) => {
-        const valor = e.detail.value;
-        if (!valor) return;
-        if (inputFiltros.length <= index) return;
-        setInputFiltros(thisFiltro => {
-            thisFiltro[index].tabela = valor;
-            return thisFiltro;
-        });
-    }
-
     //Requisição para validar e salvar a ConfigQiery no banco
     async function saveConfigQuery(ambienteId: number, queryInfo: QueryInfoDTO): Promise<QueryInfoDTO> {
         //Preparando requisição
         const titulo = `SALVANDO CONFIG-QUERY`;
         AxiosRequest.requestStart(titulo);
 
-        const REQUEST_URL = "http://localhost:1990";
-        const headers: AxiosRequestHeaders = {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": `${REQUEST_URL}/*`,
-            "Access-Control-Allow-Methods": "POST, GET",
-            "Access-Control-Allow-Headers": "*",
-            "Access-Control-Max-Age": "60000",
-        }
         const config: AxiosRequestConfig = {
             method: 'POST',
             maxBodyLength: Infinity,
-            url: `${REQUEST_URL}/query/ambiente/${ambienteId}`,
-            headers: headers,
+            url: `${AxiosRequest.REQUEST_URL}/query/ambiente/${ambienteId}`,
+            headers: AxiosRequest.headers,
             timeout: 30000,
             data: queryInfo,
         };
@@ -138,7 +102,7 @@ const ModalConfigQuery: React.FC<ModalConfigQueryProps> = ({onSave = () => null,
                 texto: `Salvando ${mensagem}.`,
                 status: 'INFO'
             }));
-            const novaQuery = await saveConfigQuery(mainAmbinteId, {...infos, filtros: inputFiltros});
+            const novaQuery = await saveConfigQuery(mainAmbinteId, infos);
             setInfos(novaQuery);
             dispatch(updateQuery(novaQuery));
             dispatch(atualizarMensagem({
@@ -159,15 +123,6 @@ const ModalConfigQuery: React.FC<ModalConfigQueryProps> = ({onSave = () => null,
             setLoading(false);
         }
     }
-
-    //Header da tabela de configuração de query
-    const tabelaFiltrosHeader = [
-        "Variável",
-        "Coluna",
-        "Tabela",
-        "Input",
-        "Tipo"
-    ];
 
     //Renderização visual do componente
     if (loading) return <Informativo status="Carregando" mensagem="Obtendo dados da Query no banco" />;
@@ -217,52 +172,6 @@ const ModalConfigQuery: React.FC<ModalConfigQueryProps> = ({onSave = () => null,
                     {infos.sql.length}/900
                 </IonBadge>
             </GlassInput>
-            <IonItem className="p-0 mx-0 my-2" lines="none">
-                <IonGrid className="p-0 m-0">
-                    <IonRow className="p-1 border-bottom" hidden={inputFiltros.length < 1}>
-                        {
-                            tabelaFiltrosHeader.map((col, index) =>
-                                <IonCol key={index} className="p-0 m-0">{col}</IonCol>
-                            )
-                        }
-                    </IonRow>
-                    {
-                        inputFiltros.map((filtro, index) => {
-                            const color = index % 2 === 0 ? 'none' : 'medium'
-                            return (
-                                <div key={index}>
-                                    <IonBadge hidden className="position-absolute" style={{ transform: 'translate(0%, 50%)' }}>
-                                        {index + 1}
-                                    </IonBadge>
-                                    <IonItem className="p-0 m-0 small lh-1 border-bottom" color={color} lines="none">
-                                        <IonCol className="p-0 m-0 small lh-1">
-                                            {filtro.variavel.substring(0, 25)}
-                                        </IonCol>
-                                        <IonCol className="p-0 m-0 small lh-1">
-                                            {filtro.coluna}
-                                        </IonCol>
-                                        <IonCol className="p-0 pe-3 m-0 lh-1">
-                                            <IonInput inputmode='text'
-                                                maxlength={50}
-                                                placeholder="?"
-                                                value={filtro.tabela}
-                                                className='glass px-1 lh-1'
-                                                onIonChange={(e) => preencherTabela(e, index)}
-                                            />
-                                        </IonCol>
-                                        <IonCol className="p-0 m-0 small lh-1">
-                                            {filtro.array ? "Múltiplo" : "Unitário"}
-                                        </IonCol>
-                                        <IonCol className="p-0 m-0 small lh-1">
-                                            {filtro.tipo}
-                                        </IonCol>
-                                    </IonItem>
-                                </div>
-                            );
-                        })
-                    }
-                </IonGrid>
-            </IonItem>
             <IonRow className='ion-justify-content-end mt-5'>
                 <Botao text="Salvar" icon={save} disabled={!configValida()} handler={salvar} /> 
             </IonRow>

@@ -1,26 +1,7 @@
-import { FiltroSQL } from "./FiltroSQL";
-import { QueryInfoDTO } from "./QueryInfoDTO";
 import { StringUtils } from "./StringUtils";
-
-//Interface que interpreta os dados de um SQL 
-export interface ComandoSQL {
-    nome: string,
-    descricao: string,
-    sql: string,
-    filtros: FiltroSQL[],
-}
 
 //Compilado de métodos úteis relacionados ao ComandoSQL
 export namespace ComandoSQL {
-
-    export function empty(): ComandoSQL {
-        return {
-            nome: '',
-            descricao: '',
-            sql: '',
-            filtros: []
-        };
-    }
 
     //Lista dos operadores a serem removidos numa query
     const operadoresParaRemover =[
@@ -51,7 +32,7 @@ export namespace ComandoSQL {
     }
     
     //Identificada e obtêm os filtros da query 
-    function getFiltros(queryFormatada: string): FiltroSQL[] {
+    function getFiltros(queryFormatada: string): Map<string, string> {
         //Obtendo possível nome de tabela
         let regex = /FROM\s+([\w.]+)/i;
         const fromMatch = queryFormatada.match(regex);
@@ -61,7 +42,7 @@ export namespace ComandoSQL {
         const whereParametros = getParametrosWhere(queryFormatada);
     
         //Obtendo filtros
-        const filtros: FiltroSQL[] = [];
+        const filtros = new Map<string, string>();
         regex = /\((.*?)\)/;
         whereParametros.forEach((trexo, index) => {
             const novoTrexo = StringUtils.getVariavel(trexo);
@@ -75,6 +56,7 @@ export namespace ComandoSQL {
             }
             const nome = novoTrexo[1];
             const array = trexo.startsWith("(") && trexo.endsWith(")");
+            /*
             filtros.push({
                 variavel: nome,
                 coluna: coluna,
@@ -83,6 +65,8 @@ export namespace ComandoSQL {
                 index: filtros.length,
                 array: array,
             });
+            */
+            filtros.set(coluna, nome);
         })
         return filtros;
     }
@@ -97,7 +81,7 @@ export namespace ComandoSQL {
     }
     
     //Formata a query para identificar e obter os filtros
-    export function getFiltrosFromQuery(query: string): FiltroSQL[] {
+    export function getFiltrosFromQuery(query: string): Map<string, string> {
         return getFiltros(formarQuery(query));
     }
     

@@ -1,4 +1,4 @@
-import { FiltroSQL, TipoColuna } from "./FiltroSQL";
+import { TipoColuna } from "./TipoColuna";
 
 export interface VariavelDinamica {
     nome: string,
@@ -6,7 +6,7 @@ export interface VariavelDinamica {
     tipo: TipoColuna,
     array: boolean,
     metaDados?: {
-        length?: number, 
+        length?: number,
         precision?: number, 
         scale?: number
     },
@@ -72,15 +72,15 @@ export namespace VariavelDinamica {
         };
     }
 
-    export function parseFiltroSql(filtro: FiltroSQL): VariavelDinamica {
+    export function newQueryFiltro(coluna: string, variavel: string): VariavelDinamica {
         return {
-            nome: filtro.variavel,
-            descricao: filtro.coluna,
-            tipo: filtro.tipo,
-            array: filtro.array,
+            nome: variavel,
+            descricao: coluna,
+            tipo: "CHAR",
+            array: false,
             valor: '',
             removivel: false,
-            metaDados: filtro.metaDados,
+            metaDados: { length: 255 },
             origem: "query"
         };
     }
