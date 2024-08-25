@@ -3,7 +3,7 @@ import { lockClosed, trash, addCircle } from "ionicons/icons";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
-import { JobConfig } from "../../data/JobConfigDTO";
+import { JobConfig } from "../../data/JobConfig";
 import { VariavelDinamica } from "../../data/VariavelDinamica";
 
 

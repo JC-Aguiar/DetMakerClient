@@ -7,7 +7,7 @@ export interface JobConfig {
     ordem: number,
     nome: string,
     argumentos: string[],
-    queries: QueryInfo[],
+    //queries: QueryInfo[],
     cargas: JobCarga[],
     variaveis: VariavelDinamica[],
 }
@@ -50,7 +50,7 @@ export namespace JobConfig {
             id: infoDto.id,
             nome: infoDto.nome,
             argumentos: infoDto.parametros.map(() => ""),
-            queries: infoDto.queries.map(item => QueryInfo.parseDTO(item)), //TODO: exceção daqui deve ser tratada nos componentes-pai
+            //queries: [], //infoDto.queries.map(item => QueryInfo.parseDTO(item)),
             cargas: infoDto.mascaraEntrada.map((item) => JobCarga.empty()),
             variaveis: JobConfig.identificarVariaveis(infoDto),
         }

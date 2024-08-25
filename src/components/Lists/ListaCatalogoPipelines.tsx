@@ -5,7 +5,7 @@ import { RootState } from "../../Store/ReduxStore";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
 import { setMainPipeline } from "../../Store/Reducer/ReducerAtividade";
 import { closeCircle, search } from "ionicons/icons";
-import { JobConfig } from "../../data/JobConfigDTO";
+import { JobConfig } from "../../data/JobConfig";
 import { PipelineInfoDTO } from "../../data/PIpelineInfoDTO";
 import ItemLista from "../Core/ItemLista";
 

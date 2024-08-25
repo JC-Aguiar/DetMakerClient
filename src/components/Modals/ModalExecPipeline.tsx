@@ -1,11 +1,9 @@
-import { IonTextarea, IonButton, IonInput, IonLabel, IonItem, InputChangeEventDetail, TextareaChangeEventDetail, IonTitle, IonRow, IonCol, IonBadge, IonIcon, useIonAlert } from "@ionic/react";
+import { IonTextarea, IonInput, IonItem, InputChangeEventDetail, TextareaChangeEventDetail, IonTitle, IonRow, IonCol, IonBadge, IonIcon, useIonAlert } from "@ionic/react";
 import { useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
-import { JobConfig } from "../../data/JobConfigDTO";
-import { PipelineInfoDTO } from "../../data/PIpelineInfoDTO";
+import { JobConfig } from "../../data/JobConfig";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
-import { setRelatorios } from "../../Store/Reducer/ReducerRelatorios";
 import { removeRevisao, addRevisao } from "../../Store/Reducer/ReducerRevisao";
 import { JobExecuteDTO } from "../../data/JobExecuteDTO";
 import { PipelineExecDTO } from "../../data/PipelineExecDTO";
@@ -14,11 +12,12 @@ import { AtividadeInfoDTO } from "../../data/AtividadeInfoDTO";
 import { UserInfoDTO } from "../../data/UserInfoDTO";
 import { UserDTO } from "../../data/UserDTO";
 import { useHistory } from "react-router";
-import Botao, { BotaoProps, Botoes } from "../Core/Botao";
 import { closeCircle } from "ionicons/icons";
 import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
 import { VariavelDinamica } from "../../data/VariavelDinamica";
 import { MassaTabelaDTO } from "../../data/MassaTabelaDTO";
+import { QueryInfo } from "../../data/QueryInfoDTO";
+import { BotaoProps, Botoes } from "../Core/Botao";
 
 
 export interface ModalExecPipelineProps {
@@ -42,6 +41,10 @@ const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
         (state: RootState) => state.store.catalogoPipelines.catalogo)
         .find((item) => item.nome === mainPipeline)?.nome;
     const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
+    const queries: QueryInfo[] = useSelector(
+        (state: RootState) => state.store.catalogoQueries.catalogo.filter(
+            item => mainJobs.some(job => item.jobId === job.id)
+    )); 
 
     //Atributos com estado gerenciado via React
     const [projetoId, setProjetoId] = useState<string>("");
@@ -135,7 +138,7 @@ const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
             const body: PipelineExecDTO = {
                 pipelineId: mainPipelineId,
                 atividade: relatorioDto,
-                jobs: mainJobs.map(JobExecuteDTO.parseJobConfig),
+                jobs: mainJobs.map(job => JobExecuteDTO.parseJobConfig(job, queries)),
                 user: {
                     nome: user ? user.name : null,
                     papel: user ? "DEV" : null,

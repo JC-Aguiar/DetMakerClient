@@ -3,7 +3,7 @@ import ConfigJobItem from '../Content/ConfigJobItem';
 import { arrowUndo, cube, flash, options, save, trash } from 'ionicons/icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../Store/ReduxStore';
-import { JobConfig, } from '../../data/JobConfigDTO';
+import { JobConfig, } from '../../data/JobConfig';
 import { useDispatch } from 'react-redux';
 import { UpdateMainJobsIfxdateProps, addMensagem, atualizarMensagem, reorderMainJobs, setMainPipeline, updateMainJobsIfxdate } from '../../Store/Reducer/ReducerAtividade';
 import DynamicModal from '../Core/DynamicModal';

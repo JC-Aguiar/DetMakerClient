@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { JobConfig } from '../../data/JobConfigDTO';
+import { JobConfig } from '../../data/JobConfig';
 import { JobInfoDTO, getIndexParametroComIfxdate } from '../../data/JobInfoDTO';
 
 //Valores iniciais do recuder

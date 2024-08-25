@@ -5,7 +5,7 @@ import { RootState } from "../../Store/ReduxStore";
 import { addOneMainJob, addViewJobs, removeViewJobs, setViewJobs } from "../../Store/Reducer/ReducerAtividade";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
 import { addCircleOutline, checkbox, checkmark, closeCircle, search, square } from "ionicons/icons";
-import { JobConfig } from "../../data/JobConfigDTO";
+import { JobConfig } from "../../data/JobConfig";
 import ItemLista from "../Core/ItemLista";
 
 

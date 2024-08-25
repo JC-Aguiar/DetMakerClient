@@ -25,7 +25,7 @@ export interface JobInfoDTO {
     escalation: string;
     dataAtualizacao: string;
     atualizadoPor: string;
-    queries: QueryInfoDTO[];
+    //queries: QueryInfoDTO[];
 
     //Atributos de uso do front:
     //checked: boolean;

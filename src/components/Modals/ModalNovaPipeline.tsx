@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { atualizarMensagem, setMainPipeline } from "../../Store/Reducer/ReducerAtividade";
 import { setViewJobs } from "../../Store/Reducer/ReducerAtividade";
 import { loadingPipelines, setPipelines } from "../../Store/Reducer/ReducerPipelines";
-import { JobConfig } from "../../data/JobConfigDTO";
+import { JobConfig } from "../../data/JobConfig";
 import { PipelineInfoDTO } from "../../data/PIpelineInfoDTO";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
 import { RootState } from "../../Store/ReduxStore";

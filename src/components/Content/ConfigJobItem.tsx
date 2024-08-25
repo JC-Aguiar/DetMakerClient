@@ -1,6 +1,6 @@
 import { IonBadge, IonButton, IonIcon, IonItem, IonReorder, IonRow, useIonModal } from "@ionic/react";
 import React, { useEffect, useState } from "react";
-import { JobCarga, JobConfig } from "../../data/JobConfigDTO";
+import { JobCarga, JobConfig } from "../../data/JobConfig";
 import { bookmark, chatboxEllipses, cube, reorderFour, save, trash } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
@@ -12,22 +12,27 @@ import Botao from "../Core/Botao";
 import Uploader from "../Core/Uploader";
 import ListaRetratril, { ListaRetratrilAgrupada, ListaRetratrilProps } from "../Core/ListaRetratil";
 import GlassInput from "../Core/GlassInput";
+import { QueryInfo } from "../../data/QueryInfoDTO";
 
 //Interface com os atributos do componente <ConfigJobItem>
-export interface JobCardProps {
+export interface ConfigJobItemProps {
     index: number,
 }
 
 //Componente <ConfigJobItem>
-const ConfigJobItem: React.FC<JobCardProps> = ({ index }) => {
+const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
     
     //Atributos principais de controle
     const dispatch = useDispatch();
     const jobExec: JobConfig | undefined = useSelector((state: RootState) => state.store.configAtividade.mainJobs)[index];
     const id = jobExec != undefined ? jobExec.id : -1;
     const nome = jobExec !== undefined ? jobExec.nome : "";
-    const jobInfo: JobInfoDTO | undefined = useSelector((state: RootState) => state.store.catalogoJobs.catalogo)
-        .filter((item) => item.id === id)[0];
+    const jobInfo: JobInfoDTO | undefined = useSelector(
+        (state: RootState) => state.store.catalogoJobs.catalogo.filter(item => item.id === id)[0]
+    );
+    const queries: QueryInfo[] = useSelector(
+        (state: RootState) => state.store.catalogoQueries.catalogo.filter(item => item.jobId === id)
+    ); 
     const [jobConfigurado, setJobConfigurado] = useState<JobConfig>({...jobExec});
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
@@ -167,14 +172,14 @@ const ConfigJobItem: React.FC<JobCardProps> = ({ index }) => {
                         </ol> 
             });
         }
-        if (jobInfo.queries.length > 0) {
+        if (queries.length > 0) {
             listaJobDados.push({ 
                 title: "Queries:", 
                 glass: false, 
                 content: <ol className="small">
                         { 
-                            jobInfo.queries.map((item, index) => 
-                                <li key={index} className="ms-3">{item.sql}</li>
+                            queries.map(
+                                (item, index) => <li key={index} className="ms-3">{item.sql}</li>
                             ) 
                         }
                         </ol> 

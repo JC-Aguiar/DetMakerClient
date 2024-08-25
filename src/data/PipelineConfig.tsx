@@ -1,4 +1,4 @@
-import { JobConfig } from "./JobConfigDTO";
+import { JobConfig } from "./JobConfig";
 
 export interface PipelineConfig {
     id: number,
