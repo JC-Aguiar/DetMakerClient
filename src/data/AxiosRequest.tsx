@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosRequestHeaders } from 'axios';
-import { PipelineInfoDTO } from './PIpelineInfoDTO';
+import { PipelineInfoDTO } from './PipelineInfoDTO';
 import { PipelineExecDTO } from './PipelineExecDTO';
 import { ComandoSQL } from './ComandoSQL';
 import { RelatorioHistoricoDTO } from './RelatorioHistoricoDTO';
@@ -17,6 +17,7 @@ import { MassaPreparada } from './MassaPreparada';
 import { AmbienteInfoDTO } from './AmbienteInfoDTO';
 import { ClienteNovoDTO } from './ClienteNovoDTO';
 import { Page } from './Page';
+import { QueuePushResponseDTO } from './QueuePushResponseDTO';
 
 const EM_TESTE = false;
 
@@ -517,12 +518,9 @@ export async function atualizarPipeline(pipeline: PipelineInfoDTO): Promise<stri
 }
 
 //Requisição para executar a Pipeline
-export async function executarPipeline(body: PipelineExecDTO): Promise<RelatorioHistoricoDTO> {
+export async function executarPipeline(body: PipelineExecDTO): Promise<QueuePushResponseDTO> {
     const titulo = "EXECUTAR PIPELINE";
     requestStart(titulo);
-
-    //Gerando timeout com base na quantidade de JObs (aprimorar!) 
-    const timeout = 40000 * body.jobs.length;
 
     //Instanciando Axios
     let config: AxiosRequestConfig = {
@@ -530,7 +528,7 @@ export async function executarPipeline(body: PipelineExecDTO): Promise<Relatorio
         maxBodyLength: Infinity,
         url: `${REQUEST_URL}/pipeline/run`,
         headers: headers,
-        timeout: timeout,
+        timeout: 10000,
         data: body,
     };
     //Executando requisiçãao

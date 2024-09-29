@@ -5,7 +5,7 @@ import { JobConfig } from "../../data/JobConfig";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
 import { removeRevisao, addRevisao } from "../../Store/Reducer/ReducerRevisao";
-import { JobExecuteDTO } from "../../data/JobExecuteDTO";
+import { PipelineJobInputDTO } from "../../data/PipelineJobInputDTO";
 import { PipelineExecDTO } from "../../data/PipelineExecDTO";
 import { RelatorioHistoricoDTO } from "../../data/RelatorioHistoricoDTO";
 import { AtividadeInfoDTO } from "../../data/AtividadeInfoDTO";
@@ -18,6 +18,8 @@ import { VariavelDinamica } from "../../data/VariavelDinamica";
 import { MassaTabelaDTO } from "../../data/MassaTabelaDTO";
 import { QueryInfo } from "../../data/QueryInfoDTO";
 import { BotaoProps, Botoes } from "../Core/Botao";
+import { PipelineQueryInputDTO } from "../../data/PipelineQueryInputDTO";
+import { QueuePushResponseDTO } from "../../data/QueuePushResponseDTO";
 
 
 export interface ModalExecPipelineProps {
@@ -118,6 +120,7 @@ const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
         }));
         
         try {
+            if(!user) throw "Usuário não identificado/logado para executar Pipeline";
             /*
             const pipelineDto: PipelineInfoDTO = {
                 id: mainPipelineId,
@@ -127,7 +130,6 @@ const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
                 jobs: mainJobs.map((item) => item.nome),
                 checked: true,
             };
-            */
             const relatorioDto: AtividadeInfoDTO = {
                 idProjeto: projetoId,
                 nomeProjeto: projetoNome,
@@ -135,15 +137,18 @@ const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
                 configuracao: configuracao,
                 testeTipo: "Unitário",
             };
+            const userDto: UserInfoDTO = {
+                nome: user ? user.name : null,
+                papel: user ? "DEV" : null,
+                empresa: user ? "PPW" : null,
+            }:
+            */
             const body: PipelineExecDTO = {
                 pipelineId: mainPipelineId,
-                atividade: relatorioDto,
-                jobs: mainJobs.map(job => JobExecuteDTO.parseJobConfig(job, queries)),
-                user: {
-                    nome: user ? user.name : null,
-                    papel: user ? "DEV" : null,
-                    empresa: user ? "PPW" : null,
-                } as UserInfoDTO,
+                //atividade: relatorioDto,
+                jobs: mainJobs.map(job => PipelineJobInputDTO.parseJobConfig(job, queries)),
+                user: user.name,
+                //user: userDto
                 ambienteId: mainAmbienteId,
                 clienteId: mainClienteId,
                 massas: props.massas?.map(m => m.nome),
@@ -152,9 +157,10 @@ const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
             props.variaveis?.forEach(item => body.configuracoes[item.nome] = item.valor);
 
             dispatch(removeRevisao());
-            const relatorioParaRevisar: RelatorioHistoricoDTO = await axiosRequest.executarPipeline(body);
+            const solicitacao: QueuePushResponseDTO = await axiosRequest.executarPipeline(body);
             //dispatch(loadingRelatorios(true));
             //dispatch(addRevisao({ value: relatorio }));
+            /*
             const buttons = [
                 {
                   text: 'Revisar',
@@ -166,12 +172,12 @@ const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
                   },
                 }
             ];
+            */
             //dispatch(setRelatorios(null));
             //dispatch(loadingRelatorios(false));
             dispatch(atualizarMensagem({ 
                 id: mensagemId, 
-                complmento: 'Sucesso.\n'
-                    + `Atualize a página de Relatórios e produce pelo ID ${relatorioParaRevisar.id}.`,
+                complmento: `Solicitação ${solicitacao.ticket}: ${solicitacao.message}.`,
                 status: 'OK'
             }));
         }

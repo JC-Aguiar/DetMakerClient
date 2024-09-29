@@ -8,19 +8,19 @@ export interface JobConfig {
     nome: string,
     argumentos: string[],
     //queries: QueryInfo[],
-    cargas: JobCarga[],
+    cargas: PipelineJobCargaDTO[],
     variaveis: VariavelDinamica[],
 }
 
-export interface JobCarga {
+export interface PipelineJobCargaDTO {
     nome: string,
     conteudo: string,
     tipo: string,
 }
 
-export namespace JobCarga {
+export namespace PipelineJobCargaDTO {
 
-    export function empty(): JobCarga {
+    export function empty(): PipelineJobCargaDTO {
         return {
             nome: '',
             conteudo: '',
@@ -51,7 +51,7 @@ export namespace JobConfig {
             nome: infoDto.nome,
             argumentos: infoDto.parametros.map(() => ""),
             //queries: [], //infoDto.queries.map(item => QueryInfo.parseDTO(item)),
-            cargas: infoDto.mascaraEntrada.map((item) => JobCarga.empty()),
+            cargas: infoDto.mascaraEntrada.map((item) => PipelineJobCargaDTO.empty()),
             variaveis: JobConfig.identificarVariaveis(infoDto),
         }
     }

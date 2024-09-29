@@ -1,4 +1,4 @@
-import { TextareaChangeEventDetail, IonTextarea, IonButton, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonItem } from "@ionic/react";
+import { TextareaChangeEventDetail, IonTextarea, IonIcon, InputChangeEventDetail, IonRow, IonBadge, IonCol, IonInput, IonItem } from "@ionic/react";
 import { closeCircle, save } from "ionicons/icons";
 import { useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,7 +6,7 @@ import { atualizarMensagem, setMainPipeline } from "../../Store/Reducer/ReducerA
 import { setViewJobs } from "../../Store/Reducer/ReducerAtividade";
 import { loadingPipelines, setPipelines } from "../../Store/Reducer/ReducerPipelines";
 import { JobConfig } from "../../data/JobConfig";
-import { PipelineInfoDTO } from "../../data/PIpelineInfoDTO";
+import { PipelineInfoDTO } from "../../data/PipelineInfoDTO";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";

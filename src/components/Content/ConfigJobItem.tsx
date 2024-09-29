@@ -1,6 +1,6 @@
 import { IonBadge, IonButton, IonIcon, IonItem, IonReorder, IonRow, useIonModal } from "@ionic/react";
 import React, { useEffect, useState } from "react";
-import { JobCarga, JobConfig } from "../../data/JobConfig";
+import { PipelineJobCargaDTO, JobConfig } from "../../data/JobConfig";
 import { bookmark, chatboxEllipses, cube, reorderFour, save, trash } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
@@ -97,7 +97,7 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
                 console.log(`[MODAL CONFIG-JOB]: Anexando arquivo '${file.name}'.`);
                 const reader = new FileReader();
                 reader.onload = () => {
-                    const cargaNova: JobCarga = {
+                    const cargaNova: PipelineJobCargaDTO = {
                         nome: file.name,
                         conteudo: reader.result as string,
                         tipo: file.type,

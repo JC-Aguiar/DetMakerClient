@@ -1,14 +1,12 @@
-import { JobExecuteDTO } from "./JobExecuteDTO";
-import { AtividadeInfoDTO } from "./AtividadeInfoDTO";
-import { UserInfoDTO } from "./UserInfoDTO";
+import { PipelineJobInputDTO } from "./PipelineJobInputDTO";
 
 export interface PipelineExecDTO {
     clienteId: number,
     ambienteId: number,
     pipelineId: number,
-    atividade: AtividadeInfoDTO,
-    user: UserInfoDTO,
+    //atividade: AtividadeInfoDTO,
+    user: string, //UserInfoDTO,
     massas?: string[],
-    jobs: JobExecuteDTO[],
+    jobs: PipelineJobInputDTO[],
     configuracoes: { [key: string]: string },
 }

@@ -9,7 +9,7 @@ import { UpdateMainJobsIfxdateProps, addMensagem, atualizarMensagem, reorderMain
 import DynamicModal from '../Core/DynamicModal';
 import ModalExecPipeline from '../Modals/ModalExecPipeline';
 import { BotaoProps, Botoes } from '../Core/Botao';
-import { PipelineInfoDTO } from '../../data/PIpelineInfoDTO';
+import { PipelineInfoDTO } from '../../data/PipelineInfoDTO';
 import { removePipeline, setPipelines } from '../../Store/Reducer/ReducerPipelines';
 import * as axiosRequest from "../../data/AxiosRequest";
 import { JobInfoDTO, getIndexParametroComIfxdate } from '../../data/JobInfoDTO';
@@ -17,6 +17,13 @@ import { ListaRetratrilAgrupada, ListaRetratrilProps } from '../Core/ListaRetrat
 import ListaVariaveisPipeline, { ListaVariaveisPipelineRef } from './ListaVariaveisPipeline';
 import { useRef } from 'react';
 import BotaoMassasPipeline, { BotaoMassasPipelineRef } from '../Content/BotaoMassasPipeline';
+import { UserDTO } from '../../data/UserDTO';
+import { removeRevisao, addRevisao } from '../../Store/Reducer/ReducerRevisao';
+import { PipelineJobInputDTO } from '../../data/PipelineJobInputDTO';
+import { PipelineExecDTO } from '../../data/PipelineExecDTO';
+import { RelatorioHistoricoDTO } from '../../data/RelatorioHistoricoDTO';
+import { QueryInfo } from '../../data/QueryInfoDTO';
+import { QueuePushResponseDTO } from '../../data/QueuePushResponseDTO';
 
 //Componente <ListaConfigJobs>
 const ListaConfigJobs: React.FC = () => {
@@ -33,8 +40,18 @@ const ListaConfigJobs: React.FC = () => {
     const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
     const mainPipelineId: number = useSelector((state: RootState) => state.store.configAtividade.mainPipelineId);
-    const mainPipelineDescricao: string | undefined = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo)
-        .find((item) => item.nome === mainPipeline)?.descricao;
+    const mainPipelineDescricao: string | undefined = useSelector(
+        (state: RootState) => state.store.catalogoPipelines
+            .catalogo
+            .find(item => item.nome === mainPipeline)
+            ?.descricao
+    );
+    const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
+    const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
+    const queries: QueryInfo[] = useSelector(
+        (state: RootState) => state.store.catalogoQueries.catalogo.filter(
+            item => mainJobs.some(job => item.jobId === job.id)
+    )); 
 
     //Atributos com estado gerenciado via React
     const [alerta] = useIonAlert(); 
@@ -200,10 +217,52 @@ const ListaConfigJobs: React.FC = () => {
         dispatch(reorderMainJobs({ ordemAntiga: indiceAtual, ordemNova: indiceNovo }));
     }
 
+    //TODO: REMOVER DEPOIS
+    //Requisição para executar a Pipeline
+    async function executarPipeline() {
+        const mensagemId = `Run_Pipeline@${Date.now()}`;
+        dispatch(addMensagem({ 
+            id: mensagemId, 
+            texto: `Executando Pipeline '${mainPipeline}'.`,
+            status: 'INFO'
+        }));
+        
+        try {
+            if(!user) throw "Usuário não identificado/logado para executar Pipeline";
+            const body: PipelineExecDTO = {
+                pipelineId: mainPipelineId,
+                //atividade: relatorioDto,
+                jobs: mainJobs.map(job => PipelineJobInputDTO.parseJobConfig(job, queries)),
+                user: user.name,
+                ambienteId: mainAmbienteId,
+                clienteId: mainClienteId,
+                massas: massasRef.current?.massas().map(m => m.nome),
+                configuracoes: {},
+            };
+            variaveisRef.current?.variaveis().forEach(
+                item => body.configuracoes[item.nome] = item.valor
+            );
+            dispatch(removeRevisao());
+            const solicitacao: QueuePushResponseDTO = await axiosRequest.executarPipeline(body);
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `Solicitação ${solicitacao.ticket}: ${solicitacao.message}.`,
+                status: 'OK'
+            }));
+        }
+        catch (error) {
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `${error}.`,
+                status: 'ERROR'
+            }));
+        }
+    }
+    //TODO: REMOVER DEPOIS
 
     //Botoes contendo as opções para cada Pipeline
     const botoes: BotaoProps[] = [
-        {icon: flash, text: "Executar",  handler: () => modalExecPipelineOn()},
+        {icon: flash, text: "Executar",  handler: () => executarPipeline()}, //modalExecPipelineOn()},
         {icon: save, text: "Salvar",    handler: () => atualizarPipeline()},
         {icon: arrowUndo, text: "Resetar",  handler: () => resetarJobsPipeline()},
         {icon: trash, text: "Apagar",    handler: () => deletarMainPipeline()},

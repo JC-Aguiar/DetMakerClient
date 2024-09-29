@@ -7,7 +7,7 @@ import { RelatorioResumoDTO } from "../data/RelatorioResumoDTO";
 import { loadingRelatorios, setRelatorios } from "../Store/Reducer/ReducerRelatorios";
 import { calendar, caretBack, caretForward, closeCircle, document, filter, flag, helpCircle, layers, play, pricetag, refresh, search, swapVertical, text } from "ionicons/icons";
 import { layoutGrupoBotoes, ButtonLayoutProps } from "../components/Core/ButtonLayout";
-import { PipelineInfoDTO } from "../data/PIpelineInfoDTO";
+import { PipelineInfoDTO } from "../data/PipelineInfoDTO";
 import Carregando from "../components/Core/Carregando";
 import Informativo from "../components/Core/Informativo";
 import TicketRelatorio from "../components/Content/TicketRelatorio";

@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { PipelineInfoDTO } from '../../data/PIpelineInfoDTO';
+import { PipelineInfoDTO } from '../../data/PipelineInfoDTO';
 
 //Valores iniciais do recuder
 const initialState = { 
