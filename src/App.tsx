@@ -7,6 +7,24 @@ import Intro from './pages/Intro';
 import "./App.css";
 import miniLogo from './resources/det-maker-logo-v3-mini.png';
 import iconUserTie from './resources/user-tie.svg';
+import './theme/variables.css';
+import { useRef, useState } from 'react';
+import { receipt, checkmarkCircle, logoGoogle, flask } from 'ionicons/icons'; 
+import Login from './pages/Login';
+import EscolherPipelines from './pages/EscolherPipelines';
+import { RootState } from './Store/ReduxStore';
+import RevisarRelatorio from './pages/RevisarRelatorio';
+import { validarJwt } from './data/JwtDTO';
+import { validarUser } from './data/UserDTO';
+import Avatar from './components/Core/Avatar';
+import DynamicPage from './components/Core/DynamicPage';
+import { URL_CLIENTES, URL_PIPELINES, URL_RELATORIOS, URL_DET, URL_LOGIN } from './data/AxiosRequest';
+import EscolherClientes from './pages/EscolherClientes';
+import EscolherRelatorios from './pages/EscolherRelatorios';
+import Fundo from './components/Core/Fundo';
+import PaginaGit from './pages/PaginaGit';
+import PipelinePanel from './components/Panel/PipelinePanel';
+import ClientePanel from './components/Panel/ClientePanel';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -24,24 +42,6 @@ import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
 
-/* Theme variables */
-import './theme/variables.css';
-import { useState } from 'react';
-import { receipt, checkmarkCircle, logoGoogle, flask, logoGitlab } from 'ionicons/icons'; 
-import Login from './pages/Login';
-import EscolherPipelines from './pages/EscolherPipelines';
-import { RootState } from './Store/ReduxStore';
-import RevisarRelatorio from './pages/RevisarRelatorio';
-import { validarJwt } from './data/JwtDTO';
-import { validarUser } from './data/UserDTO';
-import Avatar from './components/Core/Avatar';
-import DynamicPage from './components/Core/DynamicPage';
-import { URL_CLIENTES, URL_PIPELINES, URL_RELATORIOS, URL_DET, URL_LOGIN } from './data/AxiosRequest';
-import { JobInfoDTO } from './data/JobInfoDTO';
-import EscolherClientes from './pages/EscolherClientes';
-import EscolherRelatorios from './pages/EscolherRelatorios';
-import Fundo from './components/Core/Fundo';
-import PaginaGit from './pages/PaginaGit';
 
 // Recursos de uso comum
 setupIonicReact();
@@ -53,6 +53,7 @@ type MenuRotaProps = {
     titulo: string,
     subtitulo: string,
     conteudo: JSX.Element,
+    painel?: JSX.Element,
     icone: string,
     desativado: boolean,
     efeito: JSX.Element | null,
@@ -91,7 +92,7 @@ const App = () => {
     const isLoadingJobs: boolean = useSelector((state: RootState) => state.store.catalogoJobs.loading);
     const isLoadingPipelines: boolean = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
     const isLoadingRelatorios: boolean = useSelector((state: RootState) => state.store.catalogoRelatorios.loading);
-    
+
     //Configurando as rotas URL do menu prinicipal
     const rotas: MenuRotaProps[] = [
         {
@@ -99,6 +100,7 @@ const App = () => {
             exact: true,
             titulo: "Clientes", 
             subtitulo: "Escolha ou crie perfis de Clientes para acessar os recursos", 
+            painel: <ClientePanel />,
             conteudo: <EscolherClientes />,
             icone: iconUserTie,
             desativado: false,
@@ -110,6 +112,7 @@ const App = () => {
             titulo: "Laboratório", 
             subtitulo: "Escolha ou crie uma Pipeline para iniciar um fluxo de execução", 
             conteudo: <EscolherPipelines />,
+            painel: <PipelinePanel />,
             icone: flask,
             desativado: mainAmbiente.length < 1 || isLoadingJobs || isLoadingPipelines,
             efeito: null, 
@@ -120,6 +123,7 @@ const App = () => {
             titulo: "Relatórios", 
             subtitulo: "Lista dos relatórios prontos ou a revisar", 
             conteudo: <EscolherRelatorios />,
+            painel: <></>,
             icone: receipt,
             desativado: mainAmbiente.length < 1 || isLoadingRelatorios,
             efeito: null, //contadorConfigJobs(),
@@ -194,7 +198,12 @@ const App = () => {
                 {
                     rotas.map((r, index) =>
                         <Route key={index} path={r.path} exact={r.exact}>
-                            <DynamicPage key={index} titulo={r.titulo} subtitulo={r.subtitulo} elemento={r.conteudo} />
+                            <DynamicPage key={index} 
+                                titulo={r.titulo} 
+                                subtitulo={r.subtitulo} 
+                                elemento={r.conteudo} 
+                                painel={r.painel}
+                            />
                         </Route>
                     )
                 }

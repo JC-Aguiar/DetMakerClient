@@ -297,6 +297,7 @@ export const {
     reorderMainJobs,
     addOneMainJob,
     removeOneMainJob,
+    setMainMassas,
     setViewJobs,
     addViewJobs,
     removeViewJobs,

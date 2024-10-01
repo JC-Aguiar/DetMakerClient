@@ -420,12 +420,6 @@ ion-alert .alert-wrapper {
   --background: var(--ion-color-tertiary);
 }
 
-ion-split-pane {
-  /*--side-width: 24%; */
-  /*--side-min-width: calc(min(5vw, 5px));*/
-  /*--side-max-width: 10px;*/
-  /*--border: 2px solid var(--ion-color-warning);*/
-}
 
 ion-menu {
   --side-min-width: 400px;

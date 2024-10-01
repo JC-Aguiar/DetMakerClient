@@ -22,6 +22,7 @@ export interface PopoverInputProps {
     onIonInput?: (e: CustomEvent<InputEvent>) => void,
 }
 
+//export namespace PopoverProps
 export const layoutGrupoBotoes = (grupo: ButtonLayoutProps[]) => {
     return (
         <IonFab slot="fixed" 
@@ -77,8 +78,8 @@ const ButtonLayout: React.FC<ButtonLayoutProps> = ({ title, icon, disabled, trig
             id={id}
             color="#" 
             disabled={disabled}
-            className="btn btn-primary glass"
-            style={{width: '64px'}}
+            className="btn btn-primary glass w-100"
+            style={{ maxHeight: '64px', minHeight: '64px'}}
             onMouseLeave={(e) => setMouseLeaveButton(true)}
             onMouseEnter={(e) => setMouseLeaveButton(false)}
         >

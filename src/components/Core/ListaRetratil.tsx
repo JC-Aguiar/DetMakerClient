@@ -54,8 +54,12 @@ const ListaRetratril: React.FC<ListaRetratrilProps> = ({ icon = '', glass = true
 
 export default ListaRetratril;
 
-export const ListaRetratrilAgrupada: React.FC<{listas: ListaRetratrilProps[]}> = ({ listas }) => {
-    return <IonAccordionGroup multiple={true} className='px-2'>
+export interface ListaRetratrilAgrupadaProps {
+    listas: ListaRetratrilProps[],
+    disable?: boolean,
+}
+export const ListaRetratrilAgrupada: React.FC<ListaRetratrilAgrupadaProps> = ({ listas, disable = false }) => {
+    return <IonAccordionGroup multiple={true} className='px-2' disabled={disable}>
         {
             listas.map(
                 (item, index) => <ListaRetratril key={index} {...item} />

@@ -1,14 +1,16 @@
-import { IonPage, IonContent, IonFooter } from "@ionic/react";
+import { IonPage, IonContent, IonFooter, IonMenu, IonSplitPane } from "@ionic/react";
 import { useDispatch } from 'react-redux';
 import Informativo from "./Informativo";
+import { ListaRetratrilAgrupada } from "./ListaRetratil";
 
 export interface DynamicPageProps {
     titulo: string,
     subtitulo: string,
-    elemento: JSX.Element
+    elemento: JSX.Element,
+    painel?: JSX.Element,
 }
 
-const DynamicPage: React.FC<DynamicPageProps> = ({ titulo, subtitulo, elemento }) => {  
+const DynamicPage: React.FC<DynamicPageProps> = ({ titulo, subtitulo, elemento, painel }) => {  
     //Atributos gerais
     const dispatch = useDispatch();
     const recuo = <div className='py-1 py-md-2' />;
@@ -31,14 +33,23 @@ const DynamicPage: React.FC<DynamicPageProps> = ({ titulo, subtitulo, elemento }
     }
 
     //Renderização da página
+    // <IonFooter className='m-2 opacity-0' >
     return (
         <IonPage className="mt-2">
-            <IonContent scrollEvents={true} className="p-0 m-0" >
-                <div className="mx-2" >
-                    {conteudo()}
+            <IonSplitPane when="xs" contentId="pipelineContent" className=''>
+                <div className='glass w-25' color='#' hidden={!painel}>
+                    <IonContent className='glass-content p-0 m-0'>
+                        <div className="ps-2">
+                            {painel}
+                        </div>
+                    </IonContent>
                 </div>
-            </IonContent>
-            <IonFooter className='m-2 opacity-0' />
+                <div className="container" id="pipelineContent" >
+                    <IonContent scrollEvents={true} className="p-0 m-0 w-100 h-100">
+                        {conteudo()}
+                    </IonContent>
+                </div>
+            </IonSplitPane>
         </IonPage>
     );
 }

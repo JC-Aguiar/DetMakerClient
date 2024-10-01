@@ -33,6 +33,8 @@ const EscolherRelatorios: React.FC = () => {
         (state: RootState) => state.store.catalogoRelatorios.catalogo);
     const isLoading: boolean = useSelector((state: RootState) => state.store.catalogoRelatorios.loading);
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
+    const mainClienteId = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
+    const mainCliente = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
 
     //TODO: concertar!!!
     const [pageIndex, setPageIndex] = useState<number>(catalogoRelatorios.number +1);
@@ -112,10 +114,12 @@ const EscolherRelatorios: React.FC = () => {
         handler: () => aplicarFiltros(),
     }
 
-    //Ações ao carregar esta página
-    //    useIonViewWillEnter(() => {
-    //        if (catalogoRelatorios.length < 1 && !isLoading) coletarRecursos();
-    //    }, []);
+    //Acionamento para componentes específicos
+    useEffect(() => {
+        dispatch(setRelatorios(
+            Page.empty<RelatorioResumoDTO>()
+        ));
+    }, [mainClienteId, mainCliente]);
 
     //Acionamento para componentes específicos
     useEffect(() => {
@@ -231,8 +235,8 @@ const EscolherRelatorios: React.FC = () => {
     if (isLoading) return <Carregando />;
     return (
         <div className='p-0 m-0'>
-            <IonSplitPane when="xs" contentId="relatorioContent" className='p-0 m-0'>
-                <IonMenu contentId="relatorioContent" className='glass' color='#'>
+            <IonSplitPane when="true" contentId="relatorio-menu" className='p-0 m-0'>
+                <IonMenu contentId="relatorio-menu" className='glass' color='#'>
                     <IonContent className='glass-content p-0 m-0'>
                         <IonCard className="glass shadow shadow-0" disabled={paginaVazia()}>
                             <IonCardHeader color="primary" className="m-0 p-0 text-center">
@@ -328,7 +332,7 @@ const EscolherRelatorios: React.FC = () => {
                         </IonCard>
                     </IonContent>
                 </IonMenu>
-                <div className="container" id="relatorioContent" >
+                <div className="container" id="relatorio-menu" >
                     <IonContent className='w-100 h-100' scrollY fullscreen>
                         {conteudo()}
                     </IonContent>

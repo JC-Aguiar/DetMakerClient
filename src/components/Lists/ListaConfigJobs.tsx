@@ -279,9 +279,11 @@ const ListaConfigJobs: React.FC = () => {
     ];
 
     //Renderização do componente
+    //IonItem className='position-fixed 
+    //<div className='py-4'></div>
     return (
         <IonRow className='container ion-justify-content-center'>
-            <IonItem className='position-fixed w-100 px-5' lines='none' style={{ zIndex: '50' }} >
+            <IonItem className='w-100 mx-3' lines='none' style={{ zIndex: '50' }} >
                 <IonToolbar color='tertiary' className='glass'>
                     <IonTitle>{mainPipeline}</IonTitle>
                     <IonButtons slot='end'>
@@ -289,7 +291,6 @@ const ListaConfigJobs: React.FC = () => {
                     </IonButtons>
                 </IonToolbar>
             </IonItem>
-            <div className='py-4'></div>
             <IonCardContent className='w-100 mx-4 my-3 p-0 px-1'>
                 {/* Massas */}
                 <BotaoMassasPipeline ref={massasRef}/>
