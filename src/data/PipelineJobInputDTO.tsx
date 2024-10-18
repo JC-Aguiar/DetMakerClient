@@ -21,7 +21,11 @@ export namespace PipelineJobInputDTO {
             argumentos: configDto.argumentos.join(" "),
             queries: queriesInfo
                 .filter(query => query.jobId === configDto.id)
-                .map(query => ({ sql: query.sql })),
+                .map(query => ({
+                    nome: query.nome,
+                    descricao: query.descricao, 
+                    sql: query.sql,
+                })),
             cargas: configDto.cargas,
             //variaveis: configDto.variaveis
             //    .reduce((objeto, item) => {

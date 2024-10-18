@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../Store/ReduxStore';
 import { JobConfig, } from '../../data/JobConfig';
 import { useDispatch } from 'react-redux';
-import { UpdateMainJobsIfxdateProps, addMensagem, atualizarMensagem, reorderMainJobs, setMainPipeline, updateMainJobsIfxdate } from '../../Store/Reducer/ReducerAtividade';
+import { UpdateMainJobsIfxdateProps, addMensagem, addMeuTicket, atualizarMensagem, reorderMainJobs, setMainPipeline, updateMainJobsIfxdate } from '../../Store/Reducer/ReducerAtividade';
 import DynamicModal from '../Core/DynamicModal';
 import ModalExecPipeline from '../Modals/ModalExecPipeline';
 import { BotaoProps, Botoes } from '../Core/Botao';
@@ -244,6 +244,7 @@ const ListaConfigJobs: React.FC = () => {
             );
             dispatch(removeRevisao());
             const solicitacao: QueuePushResponseDTO = await axiosRequest.executarPipeline(body);
+            dispatch(addMeuTicket(solicitacao.ticket));
             dispatch(atualizarMensagem({ 
                 id: mensagemId, 
                 complmento: `Solicitação ${solicitacao.ticket}: ${solicitacao.message}.`,

@@ -17,6 +17,7 @@ import { setMassas } from "../../Store/Reducer/ReducerMassas";
 import { setPipelines } from "../../Store/Reducer/ReducerPipelines";
 import { setJobs } from "../../Store/Reducer/ReducerJobs";
 import { setQueries } from "../../Store/Reducer/ReducerQueries";
+import { setRelatorios } from "../../Store/Reducer/ReducerRelatorios";
 
 
 const ClientePanel: React.FC = () => {

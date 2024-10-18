@@ -1,18 +1,20 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RelatorioHistoricoDTO } from '../../data/RelatorioHistoricoDTO';
 import { DetStatusTYPE } from '../../pages/RevisarRelatorio';
-import { EvidenciaInfoDTO, checkEvidenciaPronta } from '../../data/EvidenciaInfoDTO';
+import { EvidenciaInfoDTO } from '../../data/EvidenciaInfoDTO';
+import { ResumoEvidenciasRevisadasDTO } from '../../data/AxiosRequest';
+import { EvidenciaRevisadaDTO } from '../../data/EvidenciaRevisadaDTO';
 
 //Valores iniciais do recuder
 const initialState = { 
-    value: null,
+    relatorio: null,
     idsLocked: [],
 } as ReducerRevisaoProps;
 
 //Interface das propriedades deste reducer
 export interface ReducerRevisaoProps {
     //value: RelatorioHistoricoDTO[],
-    value: RelatorioHistoricoDTO | null,
+    relatorio: RelatorioHistoricoDTO | null,
     idsLocked: number[],
 }
 
@@ -35,22 +37,35 @@ const relatorios = createSlice({
     reducers: {
         addRevisao: (state, action: PayloadAction<RelatorioHistoricoDTO>) => {
             console.log('[ReducerRevisao] Acionado controlador relatorios.addRelatorio! \n');
-            state.value = action.payload;
-            state.idsLocked = state.value.evidencias.filter((item) => checkEvidenciaPronta(item))
+            state.relatorio = action.payload;
+            state.idsLocked = state.relatorio.evidencias
+                .filter(EvidenciaInfoDTO.isEvidenciaPronta)
                 .map((item) => item.id);
             logRevisao(state);
         },
         removeRevisao: (state) => {
             console.log('[ReducerRevisao] Acionado controlador relatorios.removeRelatorio! \n');
-            state.value = null;
+            state.relatorio = null;
             state.idsLocked = [];
             logRevisao(state);
+        },
+        setDadosRevisao: (state, action: PayloadAction<EvidenciaRevisadaDTO[]>) => {
+            console.log('[ReducerRevisao] Acionado controlador relatorios.setDadosRevisao! \n');
+            state.relatorio?.evidencias.map(item => {
+                const dadosRevisao = action.payload.find(dto => dto.evidenciaId === item.id);
+                if (!dadosRevisao) return item;
+                item.resultado = dadosRevisao.resultado;
+                item.revisor = dadosRevisao.resivor;
+                item.dataRevisao = dadosRevisao.dataRevisao;
+                item.comentario = dadosRevisao.comentario;
+                return item;
+            });
         },
         setTestcaseExpectativa: (state, action: PayloadAction<SetTestcaseExpectativaTYPE>) => {
             console.log('[ReducerRevisao] Acionado controlador relatorios.setTestcaseExpectativa! \n');
             let {index, valor} = action.payload;
             valor = (valor === null || valor === undefined) ? "" : valor;
-            if (state.value) state.value.evidencias[index].comentario = valor;
+            if (state.relatorio) state.relatorio.evidencias[index].comentario = valor;
             logRevisao(state);
         },
         setTestcaseResultado: (state, action: PayloadAction<SetTestcaseResultadoTYPE>) => {
@@ -59,17 +74,17 @@ const relatorios = createSlice({
             console.log(`[ReducerRevisao] Atualizando revisão da evidência Nº${index}` + '\n'
                 + `Resultado: ${resultado}  (Revisor: ${revisor})`
             );
-            if (state.value) {
-                state.value.evidencias[index].resultado = resultado;
-                state.value.evidencias[index].revisor = revisor;
+            if (state.relatorio) {
+                state.relatorio.evidencias[index].resultado = resultado;
+                state.relatorio.evidencias[index].revisor = revisor;
             }
             logRevisao(state);
         },
         setTestcaseLock: (state, action: PayloadAction<number[]>) => {
             console.log('[ReducerRevisao] Acionado controlador relatorios.setTestcaseLock! \n');
             state.idsLocked = action.payload.filter((evId) => {
-                if (state.value && state.value.evidencias && state.value.evidencias.length > 0) {
-                    const index = state.value.evidencias.findIndex((ev) => ev.id === evId);
+                if (state.relatorio && state.relatorio.evidencias && state.relatorio.evidencias.length > 0) {
+                    const index = state.relatorio.evidencias.findIndex((ev) => ev.id === evId);
                     console.log(`[ReducerRevisao]: Travando evidência[${index}] ID ${evId}.`)
                     return index !== -1;
                 }
@@ -81,17 +96,17 @@ const relatorios = createSlice({
 });
 
 function logRevisao(state: ReducerRevisaoProps) {
-    if(!state.value) {
+    if(!state.relatorio) {
         console.log('[ReducerRevisao] Relatório: null');
         return;
     }
     console.log('[ReducerRevisao] Relatório: \n' 
-        + ` - Projeto: ${state.value.idProjeto} ${state.value.nomeProjeto}` + '\n'
-        + ` - Atividade: ${state.value.nomeAtividade}` + '\n'
-        + ` - Configuração: ${state.value.configuracao}` + '\n'
+        + ` - Projeto: ${state.relatorio.idProjeto} ${state.relatorio.nomeProjeto}` + '\n'
+        + ` - Atividade: ${state.relatorio.nomeAtividade}` + '\n'
+        + ` - Configuração: ${state.relatorio.inconformidades}` + '\n'
         + ` - IdLockeds: ${state.idsLocked.join(", ")}` + '\n'
         + ` - Evidências: ` + '\n' 
-        + state.value.evidencias.map((ev, index) => logEvidencias(ev, index))
+        + state.relatorio.evidencias.map((ev, index) => logEvidencias(ev, index))
     );
 }
 
@@ -103,4 +118,4 @@ function logEvidencias(evidencia: EvidenciaInfoDTO, index: number): string {
 }
 
 export default relatorios.reducer;
-export const { addRevisao, removeRevisao, setTestcaseExpectativa, setTestcaseResultado, setTestcaseLock } = relatorios.actions;
+export const { addRevisao, removeRevisao, setDadosRevisao } = relatorios.actions;

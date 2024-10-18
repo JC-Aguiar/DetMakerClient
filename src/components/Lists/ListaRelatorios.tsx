@@ -1,5 +1,5 @@
-import { IonButton, IonIcon, IonBadge, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonRow, IonFab } from "@ionic/react";
-import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, cubeOutline, eye, flag, flash, layers, newspaperOutline, pricetagOutline, document } from "ionicons/icons";
+import { IonButton, IonIcon, IonBadge, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonRow, IonFab, IonItem, IonChip, IonCol, IonLabel } from "@ionic/react";
+import { alertCircleOutline, calendarOutline, checkmarkCircleOutline, cubeOutline, eye, flag, flash, layers, newspaperOutline, pricetagOutline, document, ticket, personCircle, cube, pricetag, flagOutline, ticketOutline } from "ionicons/icons";
 import * as axiosRequest from "../../data/AxiosRequest";
 import { useDispatch, useSelector } from "react-redux";
 import { RelatorioResumoDTO } from "../../data/RelatorioResumoDTO";
@@ -10,29 +10,48 @@ import { RelatorioHistoricoDTO } from "../../data/RelatorioHistoricoDTO";
 import { useHistory } from "react-router";
 import { RootState } from "../../Store/ReduxStore";
 import { UserDTO } from "../../data/UserDTO";
-import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
+import { addMensagem, addMeuTicket, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
+import ButtonLayout, { ButtonLayoutProps } from "../Core/ButtonLayout";
+import GlassInput from "../Core/GlassInput";
+import { Page } from "../../data/Page";
 
-//Atributos de entrada do componente TicketRelatorio
-export interface TicketRelatorioProps {
+//Atributos de entrada do componente ListaRelatorios
+export interface ListaRelatoriosProps {
     relatorio: RelatorioResumoDTO,
     index: number,
 }
 
-const TicketRelatorio: React.FC<TicketRelatorioProps> = ({ relatorio, index }) => { 
+const ListaRelatorios: React.FC<ListaRelatoriosProps> = ({ relatorio, index }) => { 
     //Atributos do componente
     const dispatch = useDispatch();
     const history = useHistory();
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
-    const fonteCodigo = 'h6 lh-1 font-monospace text-white ';
-    const tagSucesso = !relatorio.sucesso ? tag(alertCircleOutline, null, true) : <></>;
+    const catalogoRelatorios: Page<RelatorioResumoDTO> = useSelector(
+        (state: RootState) => state.store.catalogoRelatorios.catalogo);
+    const tagSucesso = !relatorio.erro ? undefined : tag(alertCircleOutline, null, true);
     const jaRevisado = relatorio.revisados === relatorio.evidencias;
     const buttonClass = `btn btn-outline-dark border-0 my-1 p-0 w-100`;
 
-    //Botões renderizados dentro de cada TicketRelatorio 
-    const butoes = [
-        layoutButao("Reexecutar", flash, () => reexecutarRelatorio()),
-        layoutButao("Revisar", eye, () => obterUmaRevisao()),
-        layoutButao("Gerar DET", document, () => obterDet()),
+    //Botões renderizados por esse componente
+    const butoes: ButtonLayoutProps[] = [ 
+        {
+            title: 'Reexecutar',
+            icon: flash,
+            trigger: () =>  reexecutarRelatorio(),
+            disabled: false,
+        },
+        {
+            title: 'Revisar',
+            icon: eye,
+            trigger: () =>  obterUmaRevisao(),
+            disabled: false,
+        },
+        {
+            title: 'Gerar DET',
+            icon: document,
+            trigger: () =>  obterDet(),
+            disabled: false,
+        }
     ];
 
     //Permite configurar diferentes tipos de tag, para renderizar diferentes símbolos
@@ -68,7 +87,7 @@ const TicketRelatorio: React.FC<TicketRelatorioProps> = ({ relatorio, index }) =
         const mensagemId = `Open_Report@${Date.now()}`;
         dispatch(addMensagem({ 
             id: mensagemId, 
-            texto: `Abrindo Relatório ID ${relatorio.id}.`,
+            texto: `Abrindo Relatório ticket ${relatorio.ticket}.`,
             status: 'INFO'
         }));
         try {
@@ -96,7 +115,7 @@ const TicketRelatorio: React.FC<TicketRelatorioProps> = ({ relatorio, index }) =
         const mensagemId = `Rerun_Report@${Date.now()}`;
         dispatch(addMensagem({ 
             id: mensagemId, 
-            texto: `Reexecutando Relatório ID ${relatorio.id}.`,
+            texto: `Reexecutando Relatório ticket ${relatorio.ticket}.`,
             status: 'INFO'
         }));
         try {
@@ -108,10 +127,10 @@ const TicketRelatorio: React.FC<TicketRelatorioProps> = ({ relatorio, index }) =
                   handler: () => iniciarRevisao(relatorioReexecutado),
                 }
             ];
+            dispatch(addMeuTicket(relatorioReexecutado.ticket));
             dispatch(atualizarMensagem({ 
                 id: mensagemId, 
-                complmento: 'Sucesso.\n'
-                    + `Atualize a página de Relatórios e produce pelo ID ${relatorioReexecutado.id}.`,
+                complmento: 'Sucesso.',
                 status: 'OK'
             }));
             //toastOk(`${titulo}: Realizado com sucesso.`, buttons);
@@ -134,14 +153,14 @@ const TicketRelatorio: React.FC<TicketRelatorioProps> = ({ relatorio, index }) =
         if (!user) {
             dispatch(addMensagem({ 
                 id: mensagemId, 
-                texto: `Usuário não definido. Não será possível obter DET do Relatório ID ${relatorio.id}.`,
+                texto: `Usuário não definido. Não será possível obter DET do ticket ${relatorio.ticket}.`,
                 status: 'INFO'
             }));
             return;
         };
         dispatch(addMensagem({ 
             id: mensagemId, 
-            texto: `Obtendo DET do Relatório ID ${relatorio.id}.`,
+            texto: `Obtendo DET do ticket ${relatorio.ticket}.`,
             status: 'INFO'
         }));
 
@@ -187,58 +206,63 @@ const TicketRelatorio: React.FC<TicketRelatorioProps> = ({ relatorio, index }) =
 
     //Renderiza o componente
     return (
-        <IonRow className="ion-align-items-center p-2 px-4 ">
-            <div className="glass d-flex w-100 glass-content align-content-end ion-align-items-center">
-                <IonFab slot="fixed" 
-                    vertical="top" 
-                    horizontal="start" 
-                    edge
-                >
-                    <IonBadge color="primary" 
-                        className="text-center" 
-                        style={{ transform: 'translate(-11px, 27px)', minWidth: '24px' }}
-                    >
-                        <small>{index+1}</small>
-                    </IonBadge>
-                </IonFab>
-                <div className="ms-3">
+        <GlassInput text={`Ticket ${relatorio.ticket}`} icon={ticketOutline}>
+            <IonRow className="d-flex w-100 glass-content align-content-end ion-align-items-center m-0 p-0">
+                <IonLabel className="text-center">
                     <IonIcon icon={newspaperOutline} 
-                        color='primary' 
+                        color={relatorio.erro ? 'danger' : 'success'} 
                         size="large"
-                        className="pe-1" 
-                        style={{transform: 'translate(0px, 3px)'}} 
+                        className="ms-3 px-1 mt-2" 
+                        style={{transform: 'translate(-8px, 3px)'}} 
                     />
-                    {relatorio.id}
-                </div>
-                <IonCard className="ms-0 mb-0 w-100 bg-transparent border-0" style={{boxShadow: '0 0 0 '}}>
-                    <IonCardHeader className='m-0 p-0'>
-                        <IonCardTitle className='text-white py-0 ion-align-items-center'>
-                            {tag(calendarOutline, offsetDateTimeParaString(relatorio.data))}
-                            {tag(pricetagOutline, relatorio.idProjeto +" - "+ relatorio.nomeProjeto)}
-                            {tag(cubeOutline, relatorio.evidencias)}
-                            {tag(checkmarkCircleOutline, relatorio.revisados, !jaRevisado)}
-                            {tagSucesso}
-                        </IonCardTitle>
-                    </IonCardHeader>
-                    <IonCardContent className='p-0 m-0'>
-                        <div className={fonteCodigo}>
-                            <div className="">
-                                <IonIcon icon={flag} color="light" className="pe-1" style={{transform: 'translate(0px, 3px)'}} />
-                                {relatorio.nomeAtividade}
-                            </div>
-                            <div className="">
-                                <IonIcon icon={layers} className='ms-1' style={{fill: 'var(--ion-color-light)', transform: 'translate(-3px, 3px)'}}/>
-                                {relatorio.nomePipeline}
-                            </div>
-                        </div>
-                    </IonCardContent>
-                </IonCard>
-                <div className="p-0 pe-2">
-                    {butoes}
-                </div>
-            </div>
-        </IonRow>
+                    <br/>
+                    <IonBadge color={relatorio.erro ? 'danger' : 'success'}>
+                        Nº {catalogoRelatorios.pageable.pageNumber * catalogoRelatorios.pageable.pageSize + index +1}
+                    </IonBadge>
+                </IonLabel>
+                <IonCol size="6">
+                    <IonCard className="ms-0 mb-0 w-100 bg-transparent border-0" style={{boxShadow: '0 0 0 '}}>
+                        <IonCardContent className='h6 lh-1 font-monospace text-white m-0 p-0'>
+                            <IonBadge className="m-0 p-0 text-start h6" color="none">
+
+                                <div>
+                                    <IonIcon icon={personCircle} color="light"/> {relatorio.autor} <span className="mx-2" /> 
+                                    <IonIcon icon={calendarOutline} color="light"/> {offsetDateTimeParaString(relatorio.data)}
+                                </div>
+                                <div>
+                                    <IonIcon icon={layers} color="light"/> Pipeline {relatorio.nomePipeline}
+                                </div>
+                                {
+                                /*
+                                <div>
+                                    <IonIcon icon={checkmarkCircleOutline} color="light"/> Evidências 
+                                    revisadas: {relatorio.revisados}/{relatorio.evidencias}
+                                </div>
+                                */
+                                }
+                                <div>
+                                    <IonIcon icon={pricetag} color="light"/> Projeto {relatorio.idProjeto} {relatorio.nomeProjeto !== null ? relatorio.nomeProjeto : "(Pendente)"}
+                                </div>
+                                <div>
+                                    <IonIcon icon={flag} color="light"/> Atividade {relatorio.nomeAtividade !== null ? relatorio.nomeAtividade : "(Pendente)"}
+                                </div>
+                            </IonBadge>
+                        </IonCardContent>
+                    </IonCard>
+                </IonCol>
+                <IonCol className="p-0 pe-2">
+                    <IonRow className="m-0 p-0 mb-2 ion-justify-content-around ">
+                        {
+                            butoes.map((item, index) => <IonCol className="w-100" >
+                                    <ButtonLayout key={index} {...item} />
+                                </IonCol>
+                            )
+                        }
+                    </IonRow>
+                </IonCol>
+            </IonRow>
+        </GlassInput>
     );
 }
 
-export default TicketRelatorio;
+export default ListaRelatorios;

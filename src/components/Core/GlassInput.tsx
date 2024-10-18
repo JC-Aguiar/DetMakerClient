@@ -8,6 +8,7 @@ export interface GlassInputProps {
     textButtons?: GlassInputIconProps[], 
     color?: string, 
     children?: ReactNode,
+    className?: string,
 }
 
 export interface GlassInputIconProps {
@@ -30,19 +31,19 @@ const GlassInput: React.FC<GlassInputProps> = ({ text, icon, children, ...props 
     const blur = () => setColor(getPropsColor());
 
     return(
-        <IonRow className="d-flex w-100 p-0 px-1 py-2 m-0 ">
-            <IonItem className='glass w-100' hidden={!children}>
-                <span onFocus={focus} onBlur={blur} className="w-100">
+        <IonRow className={`d-flex w-100 p-0 py-2 m-0`}>
+            <IonItem className='w-100 m-0 p-0' lines="none" hidden={!children}>
+                <span onFocus={focus} onBlur={blur} className="glass w-100 ">
                     {children}
                 </span>
             </IonItem>
             <IonChip  
                 hidden={!text}
-                className="stick py-0 pe-2 m-0 lh-1"
+                className="stick p-0 pe-2 m-0 ms-2 lh-1"
                 style={{ backgroundColor: `var(--ion-color-${color})`, color: `var(--ion-color-${color}-contrast)` }}
             >
-                <IonIcon icon={icon} color='dark' hidden={!icon} size="small" className="m-0 p-0" />
-                <IonLabel hidden={!text} style={{ '--color': `var(--ion-color-${color}-contrast)` }} className="me-2" >
+                <IonIcon icon={icon} color='dark' hidden={!icon} size="small" className="m-0 p-0 ms-1" />
+                <IonLabel hidden={!text} style={{ '--color': `var(--ion-color-${color}-contrast)` }} className="ms-1" >
                     {text}
                 </IonLabel>
                 {

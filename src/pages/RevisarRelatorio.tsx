@@ -1,20 +1,23 @@
-import { IonCol, IonGrid, IonIcon, IonItem, IonLabel, IonRadio, IonRadioGroup, IonRow, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonViewWillEnter } from '@ionic/react';
-import capaDet from '../resources/VIVO_DET_PAGE_BACKGROUND_3.png';
+import { IonCol, IonGrid, IonIcon, IonInput, IonItem, IonLabel, IonRadio, IonRadioGroup, IonRow, IonTextarea, RadioGroupChangeEventDetail, TextareaChangeEventDetail, useIonViewWillEnter } from '@ionic/react';
+import capaDet from '../resources/PPW_BACKGROUND_WHITE_01.png';
 import { useDispatch, useSelector } from 'react-redux';
 import { RelatorioHistoricoDTO } from '../data/RelatorioHistoricoDTO';
 import { RootState } from '../Store/ReduxStore';
-import { setTestcaseExpectativa, setTestcaseResultado, setTestcaseLock } from '../Store/Reducer/ReducerRevisao';
-import { checkEvidenciaPronta } from '../data/EvidenciaInfoDTO';
+import { addRevisao, setDadosRevisao } from '../Store/Reducer/ReducerRevisao';
+import { EvidenciaInfoDTO } from '../data/EvidenciaInfoDTO';
 import './template/template.css';
 import { alertCircle, checkmarkCircle, document, helpCircle, save } from 'ionicons/icons';
 import { UserDTO } from '../data/UserDTO';
 import { EvidenciaRevisadaDTO } from '../data/EvidenciaRevisadaDTO';
 import * as axiosRequest from '../data/AxiosRequest';
-import { EvidenciasRevisadasDTO } from '../data/AxiosRequest';
-import { offsetDateTimeParaString } from '../App';
+import { ResumoEvidenciasRevisadasDTO } from '../data/AxiosRequest';
+import { dataParaString, offsetDateTimeParaString } from '../App';
 import { useHistory } from 'react-router';
 import { layoutGrupoBotoes, ButtonLayoutProps } from '../components/Core/ButtonLayout';
 import { addMensagem, atualizarMensagem } from '../Store/Reducer/ReducerAtividade';
+import { useEffect, useState } from 'react';
+import Carregando from '../components/Core/Carregando';
+import { RelatorioComplementoDTO } from '../data/RelatorioComplementoDTO';
 
 
 //Interface das tabelas da sessão 'Evolução dos Testes' no DET
@@ -47,47 +50,113 @@ export interface DetTestcase {
 //Typo para determinar os possíveis status de uma Evidência
 export type DetStatusTYPE = "Aprovado" | "Reprovado" | "Parcial";
 
+//Interface contendo os campos de uma Evidência que podem ser revisados pelo usuário
+interface UserRevisaoProps {
+    id: number,
+    resultado: string,
+    revisor: string,
+    comentario: string,
+    pendente: boolean,
+}
 
 //Componente <RevisarRelatorio>
 const RevisarRelatorio: React.FC = () => {
     //Atributos prinicpais
     const dispatch = useDispatch();
     const history = useHistory();
+
+    const [isLoading, setLoading] = useState<boolean>(false);
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
-    const relatorio: RelatorioHistoricoDTO | null = useSelector((state: RootState) => state.store.docRevisao.value);
-    const IdsLocked: number[] = useSelector((state: RootState) => state.store.docRevisao.idsLocked);
+    const relatorio: RelatorioHistoricoDTO | null = useSelector((state: RootState) => state.store.docRevisao.relatorio);
+    const [mensagemErros, setMensagemErros] = useState<Map<number, string>>(new Map());
+    const [inputProjetoId, setInputProjetoId] = useState<string>(
+        relatorio?.idProjeto ? relatorio.idProjeto : ""
+    );
+    const [inputProjetoNome, setInputProjetoNome] = useState<string>(
+        relatorio?.nomeProjeto ? relatorio.nomeProjeto : ""
+    );
+    const [inputAtividade, setInputAtividade] = useState<string>(
+        relatorio?.nomeAtividade ? relatorio.nomeAtividade : ""
+    );
+    const [inputConsideracoes, setInputConsideracoes] = useState<string>(
+        relatorio?.consideracoes ? relatorio.consideracoes : ""
+    );
+    const [inputRevisao, setInputRevisao] = useState<UserRevisaoProps[]>([]);
+    const relatorioCompleto = relatorio !== null
+            && relatorio.idProjeto !== null
+            && relatorio.nomeProjeto !== null
+            && relatorio.nomeAtividade !== null
+            && relatorio.idProjeto.trim().length > 0
+            && relatorio.nomeProjeto.trim().length > 0
+            && relatorio.nomeAtividade.trim().length > 0;
+
+    const validarInputsRevisao = (userRevisao: UserRevisaoProps) => {
+        return userRevisao.resultado !== null
+            && userRevisao.revisor !== null
+            && userRevisao.resultado.trim().length > 0
+            && userRevisao.revisor.trim().length > 0
+            && userRevisao.resultado !== 'null'
+            && userRevisao.revisor !== 'null'
+    };
+
+    /*
+    const relatorioCompleto = (relatorio: RelatorioHistoricoDTO) => {
+        return relatorio.idProjeto !== null
+            && relatorio.nomeProjeto !== null
+            && relatorio.nomeAtividade !== null
+            && relatorio.idProjeto.trim().length > 0
+            && relatorio.nomeProjeto.trim().length > 0
+            && relatorio.nomeAtividade.trim().length > 0;
+    }
+    */
 
     //Atributos de botões
-    const botaoSalvar = {
+    const botaoSalvar: ButtonLayoutProps = {
         title: 'Salvar',
         icon: save,
         trigger: () => salvarRevisao(),
         disabled: false,
-    } as ButtonLayoutProps;
-    const botaoDET = {
+    };
+    const botaoDET: ButtonLayoutProps = {
         title: 'DET',
         icon: document,
         trigger: () => gerarDet(),
         disabled: !podeGerarDet(), //isLoading(),
-    } as ButtonLayoutProps;
+    };
     
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {
-        //dispatch(setButtons( [botaoSalvar, botaoDET] ));
         if (relatorio === null) {
             console.warn("O RelatorioHistoricoDTO no ReducerRelatorio está nulo. A página Evidência não poderá ser gerada.");
             history.push(axiosRequest.URL_PIPELINES);
+            return;
         }
     }, []);
+
+    //Açao automática caso alguma Evidência do Relatório seja atualizada 
+    useEffect(() => {
+        if (relatorio === null) return;
+        const evidenciasInput = relatorio.evidencias.map(item => ({
+            id: item.id,
+            resultado: item.resultado,
+            revisor: item.revisor,
+            comentario: item.comentario,
+            pendente: !EvidenciaInfoDTO.isEvidenciaPronta(item),
+        }));
+        setInputRevisao(evidenciasInput);
+    }, [relatorio?.evidencias]);
 
     const resultadoStatus: DetStatusTYPE[] = ["Aprovado", "Reprovado", "Parcial"];
 
     if (!relatorio || !user) return <></>;
 
     //campos da sessão 'identificação' no DET
+    const ticketSolicitacao = relatorio.ticket;
+    const usuarioAcionador = relatorio.usuario;
     const idProjeto = relatorio.idProjeto;
     const nomeProjeto = relatorio.nomeProjeto;
     const nomeAtividade = relatorio.nomeAtividade;
+    const consideracoes = relatorio.consideracoes;
     const testeTipo = relatorio.testeTipo;
     const cliente = relatorio.cliente;
     const nome = user.name;
@@ -95,12 +164,14 @@ const RevisarRelatorio: React.FC = () => {
     const empresa = "PPW";
     const email = user.email;
     const phone = "";
+    const envolvidos = [relatorio.usuario]; 
+    relatorio.evidencias.map(item => item.revisor).forEach(item => envolvidos.push(item));
 
-    //campos da sessão 'detalhamento' no DET
-    const modulos = relatorio.pipeline;
-    const parametros = relatorio.parametros;
-    const dados = relatorio.dados;
-    const config = relatorio.configuracao;
+    //Campos da sessão 'Detalhes do Fluxo'
+    const pipeline = relatorio.pipeline;
+    const descricao = relatorio.descricao;
+    const comandoExec = relatorio.evidencias.map(ev => ev.comandoExec).join('\n');
+    const inconformidades = relatorio.inconformidades !== null ? relatorio.inconformidades.split('\n') : [];
     const ambiente = relatorio.ambiente;
 
     const testcases = () => {
@@ -115,8 +186,9 @@ const RevisarRelatorio: React.FC = () => {
             const erroFatal = evidencia.erroFatal;
             const comentario = evidencia.comentario;
             const resultado = evidencia.resultado;
-            const parametros = evidencia.argumentos;
+            const comandoExec = evidencia.comandoExec;
             const revisor = evidencia.revisor;
+            const dataRevisao = dataParaString(evidencia.dataRevisao);
             const data = offsetDateTimeParaString(evidencia.dataFim);
             const queries = evidencia.queries;
             const tabelasNome = evidencia.queriesNome;
@@ -124,40 +196,50 @@ const RevisarRelatorio: React.FC = () => {
             const tabelasPosJob = evidencia.tabelasPosJob;
             const queriesInconformidade = evidencia.queriesInconformidade;
             const anexosTotais: JSX.Element[] = [];
-            const pronto = checkEvidenciaPronta(evidencia);
-            const lock = IdsLocked.findIndex((item) => item === evidencia.id) !== -1;
+            const camposRevisao = inputRevisao.find(item => item.id === evidenciaId);
+            if (!camposRevisao) return [<></>];
 
+            const pronto = validarInputsRevisao(camposRevisao);
             const logsConteudo: string[] = [];
             const logsNome: string[] = [];
             const cargasConteudo: string[] = [];
             const cargasNome: string[] = [];
             const saidasConteudo: string[] = [];
             const saidasNome: string[] = [];
-            const anexosInconformidade: string[] = queriesInconformidade.slice();
+            const anexosInconformidade: string[] = queriesInconformidade
+                .filter(text => text !== null && text !== undefined && text !== "")
+                .slice();
 
             evidencia.logs.forEach((anexo) => {
+                if (anexo.inconformidade) {
+                    anexosInconformidade.push(`Coleta do log ${anexo.mascara}: ${anexo.inconformidade}`);
+                    return;
+                }
                 logsConteudo.push(anexo.conteudo);
                 logsNome.push(anexo.nome);
-                if (anexo.inconformidade)
-                    anexosInconformidade.push(anexo.inconformidade);
             });
             evidencia.cargas.forEach((anexo) => {
+                if (anexo.inconformidade) {
+                    anexosInconformidade.push(`Envio da carga ${anexo.mascara}: ${anexo.inconformidade}`);
+                    return;
+                }
                 cargasConteudo.push(anexo.conteudo);
                 cargasNome.push(anexo.nome); 
-                if (anexo.inconformidade)
-                    anexosInconformidade.push(anexo.inconformidade);
             });
             evidencia.saidas.forEach((anexo) => {
+                if(anexo.inconformidade !== null && anexo.inconformidade !== "") {
+                    anexosInconformidade.push(`Coleta da remessa ${anexo.mascara}: ${anexo.inconformidade}`);
+                    return;
+                };
+                if(anexo.nome === null || anexo.nome === "") return;
                 saidasConteudo.push(anexo.conteudo);
                 saidasNome.push(anexo.nome);
-                if (anexo.inconformidade)
-                    anexosInconformidade.push(anexo.inconformidade);
             });
 
             //Preenchendo anexos de tabelas por query
             queries.forEach((query, index) => {
-                const nomePreJob = `Tabela ${tabelasNome[index]} antes` + '\n';
-                const nomePosJob = `Tabela ${tabelasNome[index]} depois` + '\n';
+                const nomePreJob = `Tabela antes` + '\n';
+                const nomePosJob = `Tabela depois` + '\n';
                 const bancoInfo = <div>
                     <h5 className='fw-bold mt-3'>{tabelasNome[index]}</h5>
                     <p className='my-0 px-2 py-0 small font-monospace bg-light'>{query + '\n'}</p>
@@ -219,44 +301,54 @@ const RevisarRelatorio: React.FC = () => {
                 anexosTotais.push(saidaInfo);
             });
 
-            const setResultado = (e: CustomEvent<RadioGroupChangeEventDetail<any>>) => { 
-                const revisao = {
-                    index: evIndex,
-                    resultado: e.detail.value,
-                    revisor: user.name,
-                }
-                dispatch(setTestcaseResultado(revisao));
+            const setResultado = (evId: number, e: CustomEvent<RadioGroupChangeEventDetail<any>>) => { 
+                const novosInputs = inputRevisao.slice();
+                const ev = novosInputs.find(item => item.id === evId);
+                if(!ev) return;
+                ev.resultado = e.detail.value;
+                ev.revisor = user.name;
+
+                setInputRevisao(novosInputs);
+                //dispatch(setTestcaseResultado(revisao));
             };
 
-            const setComentario = (e: CustomEvent<TextareaChangeEventDetail>) => { 
+            const setComentario = (evId: number, e: CustomEvent<TextareaChangeEventDetail>) => { 
                 if (!e.detail.value) return;
-                setTestcaseExpectativa({ index: evIndex, valor: e.detail.value })
+                setInputRevisao(revisao => {
+                    const ev = revisao.find(item => item.id === evId);
+                    if(!ev || !e.detail.value) return revisao;
+
+                    ev.comentario = e.detail.value;
+                    return revisao;
+                });
+                //setTestcaseExpectativa({ index: evIndex, valor: e.detail.value })
             };
 
             return (
-                <div className='table-responsive' key={evIndex}>
+                <div className='table-responsive p-0 m-0' key={evIndex}>
                     <IonGrid className='ion-align-items-center pt-3 pb-0'>
                         <IonRow>
-                            {iconCampoObrigatorio(pronto ? "sim" : "")}
+                            <h1 className='me-2 badge bg-primary h5 fs-5'>{evIndex+1}</h1>
                             <span id={`${evidenciaId}`} className='h3'>{nome}</span>
+                            {iconCampoObrigatorio(pronto ? "sim" : "")}
                         </IonRow>
                     </IonGrid>
-                    <table className='table table-light table-striped m-0 mb-5 text-start'>
+                    <table className='table table-light table-striped p-0 m-0 mb-5 text-start'>
                         <tbody>
                             <tr>
                                 <th>Evidência ID</th>
-                                <td>EVIDÊNCIA ID {evidenciaId}</td>
+                                <td>{evidenciaId}</td>
                             </tr>
                             <tr>
                                 <th>Descrição do Job</th>
                                 <td>{descricao}</td>
                             </tr>
                             <tr>
-                                <th>Parâmetros do Job</th>
-                                <td>{parametros}</td>
+                                <th>Comando de Execução</th>
+                                <td>{comandoExec}</td>
                             </tr>
                             <tr>
-                                <th>SHA256</th>
+                                <th>Sha256</th>
                                 <td>{sha256}</td>
                             </tr>
                             <tr>
@@ -269,42 +361,52 @@ const RevisarRelatorio: React.FC = () => {
                             </tr>
                             <tr>
                                 <th>Inconformidades</th>
-                                <td className='ms-0 ps-0'>
-                                    <ol style={{ width: "100%", maxWidth: "950px" }}>
+                                <td>
+                                    <span hidden={anexosInconformidade.length > 0}>Nenhuma</span>
+                                    <ol className="m-0 p-0" 
+                                        style={{ width: "100%", maxWidth: "950px" }} 
+                                        hidden={anexosInconformidade.length === 0}
+                                    >
                                     { 
-                                        anexosInconformidade.filter(linha => linha !== null && linha.length > 0)
-                                            .map((linha, linhaIndex) => <li key={linhaIndex}> {linha}</li>) 
+                                        anexosInconformidade
+                                            .filter(linha => linha !== null && linha.length > 0)
+                                            .map((linha, linhaIndex) => <li key={linhaIndex} className='ms-3'>{linha}</li>) 
                                     }
                                     </ol>
                                 </td>
                             </tr>
                             <tr>
-                                <th>Erro Fatal</th>
-                                <td>{erroFatal}</td>
+                                <th>Erro Fatal no Job</th>
+                                <td>{erroFatal === null || erroFatal === "" ? "Não" : erroFatal}</td>
                             </tr>
                             <tr>
                                 <th>
                                     <IonGrid>
                                         <IonRow className='ion-align-items-center'>
                                             <IonCol className='p-0 m-0'>Resultado Obtido</IonCol>
-                                            <IonCol className='p-0 m-0' size='auto'>
-                                                {iconCampoObrigatorio(resultado)}
+                                            <IonCol className='p-0 m-0' size='auto' hidden={!camposRevisao.pendente}>
+                                                {iconCampoObrigatorio(camposRevisao.resultado)}
                                             </IonCol>
                                         </IonRow>
                                     </IonGrid>
                                 </th>
                                 <td>
-                                    <IonRadioGroup value={resultado} onIonChange={setResultado} >
+                                    <IonRadioGroup 
+                                        value={camposRevisao.resultado} 
+                                        onIonChange={e => setResultado(evidenciaId, e)}
+                                        hidden={!camposRevisao.pendente} 
+                                    >
                                         <div className='d-flex justify-items-center'>
                                         {
                                             resultadoStatus.map((item, index) => {
                                                 return ( 
                                                     <IonItem key={index} 
                                                         lines='none' 
-                                                        disabled={lock}
                                                         className='bg-info bg-opacity-25 rounded rounded-4 m-1 my-2'
                                                     >
-                                                        <IonLabel color='primary' className='p-0 m-0'>{item}</IonLabel>
+                                                        <IonLabel color='primary' className='p-0 m-0'>
+                                                            {item}
+                                                        </IonLabel>
                                                         <IonRadio color='primary' className='p-0 m-1' slot="start" value={item} />
                                                     </IonItem>
                                                 );
@@ -312,6 +414,9 @@ const RevisarRelatorio: React.FC = () => {
                                         }
                                         </div>
                                     </IonRadioGroup>
+                                    <div className='mt-1' hidden={camposRevisao.pendente}>
+                                        {resultado}
+                                    </div>
                                 </td>
                             </tr>
                             <tr>
@@ -319,12 +424,19 @@ const RevisarRelatorio: React.FC = () => {
                                     <IonGrid>
                                         <IonRow className='ion-align-items-center'>
                                             <IonCol className='p-0 m-0'>Revisor</IonCol>
-                                            <IonCol className='p-0 m-0' size='auto'>{iconCampoObrigatorio(revisor)}</IonCol>
+                                            <IonCol className='p-0 m-0' size='auto' hidden={!camposRevisao.pendente}>
+                                                {iconCampoObrigatorio(camposRevisao.revisor)}
+                                            </IonCol>
                                         </IonRow>
                                     </IonGrid>
                                 </th>
-                                <td className='align-middle'>
-                                    <span className='text-primary h6'>{revisor}</span>
+                                <td className='align-middle h6'>
+                                    <span className='text-primary' hidden={!camposRevisao.pendente}>
+                                        {camposRevisao.revisor}
+                                    </span>
+                                    <span className='text-dark' hidden={camposRevisao.pendente}>
+                                        {revisor} - {dataRevisao}
+                                    </span>
                                 </td>
                             </tr>
                             <tr>
@@ -332,18 +444,23 @@ const RevisarRelatorio: React.FC = () => {
                                     <IonGrid>
                                         <IonRow className='ion-align-items-center'>
                                             <IonCol className='p-0 m-0'>Notas do Revisor</IonCol>
-                                            <IonCol className='p-0 m-0' size='auto'>{iconCampoFacultativo(comentario)}</IonCol>
+                                            <IonCol className='p-0 m-0' size='auto' hidden={!camposRevisao.pendente}>
+                                                {iconCampoFacultativo(camposRevisao.comentario)}
+                                            </IonCol>
                                         </IonRow>
                                     </IonGrid>
                                 </th>
                                 <td>
                                     <IonTextarea inputmode='text'
                                         maxlength={280}
-                                        className='text-dark bg-white bg-opacity-50 ps-2 mb-2 rounded rounded-3 border'
-                                        value={comentario}
-                                        disabled={lock}
-                                        onIonChange={setComentario}
+                                        className='text-dark bg-white ps-2 mb-2 rounded rounded-3 border'
+                                        value={camposRevisao.comentario}
+                                        hidden={!camposRevisao.pendente}
+                                        onIonChange={e => setComentario(evidenciaId, e)}
                                     />
+                                    <div hidden={camposRevisao.pendente}>
+                                        {comentario}
+                                    </div>
                                 </td>
                             </tr>
                             <tr>
@@ -357,21 +474,14 @@ const RevisarRelatorio: React.FC = () => {
         })
     };
 
-    //Definindo o id do elemento de cada tabela testecase com base no índice dela na lista
-    //testcases?.map((tabela, index) => {
-    //    const idString = tabela.titulo.replaceAll(" ", "-").toLocaleLowerCase();
-    //    tabela.id = `teste-${index}-${idString}`;
-    //    return tabela;
-    //});
-
-    const iconCampoObrigatorio = (texto: string) => {
+    const iconCampoObrigatorio = (texto: string | null) => {
         const valido = (texto && texto.length > 0);
         const status = valido ? checkmarkCircle : alertCircle;
         const opacity = valido ? 'opacity-50' : 'opacity-75';
         return <IonIcon icon={status} size='large' color={valido ? 'primary' : 'warning'} className={opacity} />
     }
 
-    const iconCampoFacultativo = (texto: string) => {
+    const iconCampoFacultativo = (texto: string | null) => {
         const status = (texto && texto.length > 0) ? checkmarkCircle : helpCircle;
         return <IonIcon icon={status} size='large' color='primary' className='opacity-50' />
     }
@@ -379,6 +489,7 @@ const RevisarRelatorio: React.FC = () => {
     const gerarEstatisticas = (): JSX.Element => {
         if (!relatorio) return <></>;
 
+        let pendentes = 0;
         let aprovados = 0;
         let reprovados = 0;
         let parciais = 0;
@@ -386,18 +497,22 @@ const RevisarRelatorio: React.FC = () => {
             if (teste.resultado === "Reprovado") reprovados++;
             else if (teste.resultado === "Parcial") parciais++;
             else if (teste.resultado === "Aprovado") aprovados++;
+            else pendentes++;
         });
         let aprovadosPorcent = Math.round((aprovados * 100) / relatorio.evidencias.length);
         let reprovadosPorcent = Math.round((reprovados * 100) / relatorio.evidencias.length);
         let parciaisPorcent = Math.round((parciais * 100) / relatorio.evidencias.length);
+        let pendentesPorcent = Math.round((pendentes * 100) / relatorio.evidencias.length);
 
         const elementos: { valor: string, cor: string }[] = [];
         if (aprovados > 0)
             elementos.push({ valor: `Jobs Aprovados: ${aprovados} (${aprovadosPorcent}%)`, cor: 'bg-primary' });
         if (parciais > 0)
-            elementos.push({ valor: `Jobs Parciais: ${parciais} (${parciaisPorcent}%)`, cor: 'bg-secondary' });
+            elementos.push({ valor: `Jobs Parciais: ${parciais} (${parciaisPorcent}%)`, cor: 'bg-info text-secondary' });
         if (reprovados > 0)
             elementos.push({ valor: `Jobs Reprovados: ${reprovados} (${reprovadosPorcent}%)`, cor: 'bg-warning' });
+        if (pendentes > 0)
+            elementos.push({ valor: `Jobs Pendentes: ${pendentes} (${pendentesPorcent}%)`, cor: 'bg-secondary' });
 
         return (
             <h4 className='py-0 my-0'>
@@ -429,53 +544,67 @@ const RevisarRelatorio: React.FC = () => {
 
     const salvarRevisao = async () => {
         if (!relatorio) {
-            console.warn("ERRO: Nenhum relatório para Revisão disponível");
+            console.warn("Nenhum Relatório disponível para revisão!");
             return;
         };
+        atualizarComplementoRelatorio();
         
-        const mensagemId = `Save_Review@${Date.now()}`;
-        console.log(`Revisoeres: ${relatorio.evidencias.map((item) => item.revisor).join(", ")}`);
-        if (IdsLocked.length === relatorio.evidencias.length) {
+        const data = new Date();
+        const mensagemId = `Save_Review@${data.getTime()}`;
+        if (inputRevisao.filter(item => item.pendente).length < 1) {
             dispatch(addMensagem({ 
                 id: mensagemId, 
-                texto: `Relatório ID ${relatorio.id}: Já consta 100% revisado.`,
+                texto: `O Relatório já consta 100% revisado.`,
                 status: 'INFO'
             }));
             return;
         }
-        const data = new Date();
-        const evidenciasParaSalvar: EvidenciaRevisadaDTO[] = relatorio.evidencias
-            //.filter((item) => checkEvidenciaPronta(item))
-            //.filter((item) => IdsLocked.findIndex((idLocked) => idLocked !== item.id) === -1)
-            .map((item) => {
-                return {
-                    evidenciaId: item.id,
-                    resivor: item.revisor,
-                    dataRevisao: data,
-                    comentario: item.comentario,
-                    resultado: item.resultado,
-                } as EvidenciaRevisadaDTO;
-            });
+        const evidenciasParaSalvar: EvidenciaRevisadaDTO[] = inputRevisao
+            .filter(item => item.pendente)
+            .filter(item => validarInputsRevisao(item))
+            .map(item => ({
+                evidenciaId: item.id,
+                resivor: item.revisor,
+                dataRevisao: data,
+                comentario: item.comentario,
+                resultado: item.resultado,
+            }));
         console.log(`[REVISAR-RELATORIO]: IDs das Evidências revisadas para salvar: ` + evidenciasParaSalvar.map((item) => item.evidenciaId));
         console.log(`[REVISAR-RELATORIO]: Total de Evidências revisadas para salvar: ` + evidenciasParaSalvar.length);
 
         if (evidenciasParaSalvar.length === 0) {
             dispatch(addMensagem({ 
                 id: mensagemId, 
-                texto: `Relatório ID ${relatorio.id}: Revise ao menos 1 Evidência pendente para ataulizar o banco.`,
-                status: 'INFO'
+                texto: `O Relatório não possui revisões a serem salvas no banco...`,
+                status: 'ERROR'
             }));
             return;
         }
-        
-        dispatch(addMensagem({ 
-            id: mensagemId, 
-            texto: `Relatório ID ${relatorio.id}: Salvando ${evidenciasParaSalvar.length} Evidência(s) no banco.`,
-            status: 'INFO'
-        }));
         try {
-            const evidenciasSalvas: EvidenciasRevisadasDTO = await axiosRequest.saveRevisaoEvidencia(evidenciasParaSalvar);
-            dispatch(setTestcaseLock(evidenciasSalvas.saved))
+            setLoading(true);
+            dispatch(addMensagem({ 
+                id: mensagemId, 
+                texto: `Relatório ID ${relatorio.id}: Salvando ${evidenciasParaSalvar.length} Evidência(s) no banco.`,
+                status: 'INFO'
+            }));
+            const resultadoRevisao: ResumoEvidenciasRevisadasDTO = await axiosRequest.saveRevisaoEvidencia(evidenciasParaSalvar);
+            const revisaoErros = new Map<number, string>();
+            for (let key in resultadoRevisao.failed) {
+                if(!resultadoRevisao.failed.hasOwnProperty(key)) continue;
+                const id = parseInt(key);
+                const erro = resultadoRevisao.failed[key];
+                revisaoErros.set(id, erro);
+                console.warn(id + ": " + erro);
+            }
+            setMensagemErros(revisaoErros);
+            
+            const revisaoSucesso: EvidenciaRevisadaDTO[] = [];
+            resultadoRevisao.saved
+                .map(id => evidenciasParaSalvar.find(item => item.evidenciaId === id))
+                .filter(evSalva => evSalva !== undefined)
+                .forEach(evSalva => evSalva ? revisaoSucesso.push(evSalva) : null);
+            dispatch(setDadosRevisao(revisaoSucesso));
+
             dispatch(atualizarMensagem({ 
                 id: mensagemId, 
                 complmento: `Sucesso.`,
@@ -489,7 +618,53 @@ const RevisarRelatorio: React.FC = () => {
                 status: 'ERROR'
             }));
         }
-        
+        finally {
+            setLoading(false);
+        }    
+    };
+
+    const atualizarComplementoRelatorio = async () => {
+        const mensagemId = `Save_Review@${Date.now()}`;
+        if (relatorioCompleto) return;
+
+        const complementoValido = inputProjetoId.trim().length > 0 
+            && inputProjetoNome.trim().length > 0
+            && inputAtividade.trim().length > 0;
+        if (!complementoValido) {
+            dispatch(addMensagem({ 
+                id: mensagemId, 
+                texto: `A identificação do Relatório possui campos pendente.`,
+                status: 'ERROR'
+            }));
+            return;
+        }
+        const complemento: RelatorioComplementoDTO = {
+            id: relatorio.id,
+            idProjeto: inputProjetoId,
+            nomeProjeto: inputProjetoNome,
+            nomeAtividade: inputAtividade,
+            consideracoes: inputConsideracoes,
+        };
+        try {
+            setLoading(true);
+            const relatorioAtualizado = await axiosRequest.saveRevisaoRelatorio(complemento);
+            dispatch(addRevisao(relatorioAtualizado));
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `Relatório ID ${relatorio.id} atualizado.`,
+                status: 'OK'
+            }));
+        }
+        catch (error) {
+            dispatch(atualizarMensagem({ 
+                id: mensagemId, 
+                complmento: `${error}`,
+                status: 'ERROR'
+            }));
+        }
+        finally {
+            setLoading(false);
+        }
     };
 
     const gerarDet = async () => {
@@ -498,15 +673,11 @@ const RevisarRelatorio: React.FC = () => {
             console.warn("ERRO: Nenhum Relatório para Revisão selecionado!");
             return;
         }
-        //if (!podeGerarDet()) {
-        //    toastErro("É obrigatório preencher todos os campos de revisão antes de gerar o DET", []);
-        //    return;
-        //}
         if (!user) {
             console.warn("ERRO: Usuário não definido!");
             return;
         };
-
+        setLoading(true);
         const mensagemId = `Get_DET@${Date.now()}`;
         dispatch(addMensagem({ 
             id: mensagemId, 
@@ -536,6 +707,9 @@ const RevisarRelatorio: React.FC = () => {
                 status: 'ERROR'
             }));
         }
+        finally {
+            setLoading(false);
+        }
     }
 
     function abrirDet(fileBlob: Blob) {
@@ -547,77 +721,171 @@ const RevisarRelatorio: React.FC = () => {
 
     function podeGerarDet(): boolean {
         if (!relatorio) return false;
-        //const totalPronto = relatorio.evidencias.filter((item) => checkEvidenciaPronta(item)).length;
-        return IdsLocked.length === relatorio.evidencias.length;
+        const totalEvProntas = relatorio.evidencias.filter(EvidenciaInfoDTO.isEvidenciaPronta).length;
+        //const relatorioPreenchido = relatorioCompleto(relatorio);
+        return relatorio.evidencias.length === totalEvProntas && relatorioCompleto;
     }
 
     //Renderização do componente
+    if (isLoading) return <Carregando />
     return (
         <>
             {layoutGrupoBotoes([ botaoSalvar, botaoDET ])}
+            
             {/* Corpo principal */}
             <div className="container card justify-content-center bg-white px-0 pb-5">
+    
                 {/*-----[PARTE 1: CAPA]--------------------------------------------------------------*/}
-                <div className="card border border-0 mb-5 px-3 mx-3" id="capa">
-                    <img src={capaDet} id="capa-background" className="card-img opacity-25" alt="Imagem" />
-                    <div className="card-img-overlay text-center text-md-start ">
-                        <div className="row">
-                            <h1 className="card-title destaque lh-1">DET</h1>
-                            <h1 className="card-text h1 mx-3 text-primary">Documento de Evidência e Testes</h1>
-                            <h3 className="card-text h3 mx-3 text-primary">Sistema Cyber</h3>
-                            <h3 id="atividade-nome" className="card-text h3 mx-3 text-primary">{nomeAtividade}</h3>
+                <div className="card border border-0 m-0 p-0" id="capa">
+                    <img src={capaDet} className="card-img" alt="Imagem"/>
+                    <div className="row align-items-center card-img-overlay text-center">
+                        <div className='row align-items-center'>
+                            <div className="h1 mx-3 destaque text-primary">DET</div>
+                            <div className="h3 mx-3 text-primary">Documento de Evidência e Testes</div>
+                            <div className="h3 mx-3 text-primary">{inputAtividade}</div>
                         </div>
                     </div>
                 </div>
-                {/*-----[PARTE 2: IDENTIFICAÇÃO]------------------------------------------------------*/}
-                <div id="identificacao" className="text-center text-dark p-5">
-                    <div className="card">
+
+                {/*-----[PARTE 2.a: PROJETO]--------------------------------------------------*/}
+                <div id='envolvidos' className='p-5 pt-0 text-center'>
+                    <div className='card'>
                         <div className="font-weight-bold banner py-3 mt-5 mt-md-0 rounded-top">
-                            <h1 id="identificacao-titulo" className="h1">IDENTIFICAÇÃO</h1>
+                            <h1 className="h1">
+                                IDENTIFICAÇÃO
+                            </h1>
                         </div>
-                        {/* Sobre o projeto */}
-                        <h3 className="pt-2">SOBRE O PROJETO</h3>
-                        <div className="table-responsive px-3">
-                            <table className="table table-light table-striped">
+                        <div className="table-responsive m-0 p-0">
+                            <table className="table table-light table-striped text-start m-0 p-0">
                                 <tbody>
                                     <tr>
-                                        <th>PROJETO ID</th>
-                                        <th>PROJETO NOME</th>
+                                        <th>
+                                            <IonRow className='ion-align-items-center'>
+                                                <IonCol className='p-0 m-0'>Projeto</IonCol>
+                                                <IonCol className='p-0 m-0' size='auto' hidden={relatorioCompleto}>
+                                                    {
+                                                        inputProjetoId !== null && inputProjetoId.length === 0
+                                                            ? iconCampoObrigatorio(inputProjetoId)
+                                                            : iconCampoObrigatorio(inputProjetoNome)
+                                                    }
+                                                </IonCol>
+                                            </IonRow>
+                                        </th>
+                                        <td>
+                                            <IonLabel className='d-flex ion-align-items-center'>
+                                                <span className='pe-2'>ID: {idProjeto}</span>
+                                                <IonInput
+                                                    className='card py-0 my-0 lh-1'
+                                                    type='text'
+                                                    style={{ maxWidth: '92px' }}
+                                                    inputmode='text'
+                                                    maxlength={7}
+                                                    value={inputProjetoId}
+                                                    onIonChange={e => {
+                                                        const novoid = e.detail.value; 
+                                                        setInputProjetoId(novoid ? novoid : "");
+                                                    }}
+                                                    hidden={relatorioCompleto}
+                                                />
+                                                <span className='ps-4 pe-2'>Nome: {nomeProjeto}</span>
+                                                <IonInput
+                                                    className='card py-0 my-0 lh-1 '
+                                                    type='text'
+                                                    inputmode='text'
+                                                    maxlength={200}
+                                                    value={inputProjetoNome}
+                                                    onIonChange={e => {
+                                                        const novonome = e.detail.value; 
+                                                        setInputProjetoNome(novonome ? novonome : "");
+                                                    }}
+                                                    hidden={relatorioCompleto}
+                                                />
+                                            </IonLabel>
+                                        </td>
                                     </tr>
                                     <tr>
-                                        <td id="projeto-id">{idProjeto}</td>
-                                        <td id="projeto-nome">{nomeProjeto}</td>
+                                        <th>
+                                            <IonRow className='ion-align-items-center'>
+                                                <IonCol className='p-0 m-0'>Atividade</IonCol>
+                                                <IonCol className='p-0 m-0' size='auto' hidden={relatorioCompleto}>
+                                                    {iconCampoObrigatorio(inputAtividade)}
+                                                </IonCol>
+                                            </IonRow>
+                                        </th>
+                                        <td className=''>
+                                            <IonLabel className='d-flex ion-align-items-center'>
+                                                <span className='pe-2'>Nome: {nomeAtividade}</span>
+                                                <IonInput
+                                                    className='card py-0 my-0 lh-1 '
+                                                    type='text'
+                                                    inputmode='text'
+                                                    maxlength={300}
+                                                    value={inputAtividade}
+                                                    onIonChange={e => {
+                                                        const novatividade = e.detail.value; 
+                                                        setInputAtividade(novatividade ? novatividade : "");
+                                                    }}
+                                                    hidden={relatorioCompleto}
+                                                />
+                                            </IonLabel>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tipo de Teste</th>
+                                        <td className='align-middle'>Teste {testeTipo}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Ambiente</th>
+                                        <td className='align-middle'>{cliente} - {ambiente}</td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <th>
+                                            <IonRow className='ion-align-items-center'>
+                                                <IonCol className='p-0 m-0'>Considerações</IonCol>
+                                                <IonCol className='p-0 m-0' size='auto' hidden={relatorioCompleto}>
+                                                    {iconCampoFacultativo(inputConsideracoes)}
+                                                </IonCol>
+                                            </IonRow>
+                                        </th>
+                                        <td>
+                                            {consideracoes}
+                                            <IonTextarea
+                                                value={inputConsideracoes} 
+                                                inputmode='text'
+                                                maxlength={500}
+                                                className='text-dark bg-white ps-2 mb-0 rounded rounded-3 border'
+                                                onIonChange={e => {
+                                                    const texto = e.detail.value; 
+                                                    setInputConsideracoes(texto ? texto : "");
+                                                }}
+                                                hidden={relatorioCompleto}
+                                            />
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        {/* Sobre os testes */}
-                        <h3 className="pt-2">SOBRE OS TESTES</h3>
-                        <div className="table-responsive px-3">
-                            <table className="table table-light table-striped">
-                                <tbody>
-                                    <tr>
-                                        <th>TIPO DE TESTE</th>
-                                        <th>SISTEMA(S)</th>
-                                    </tr>
-                                    <tr>
-                                        <td id="teste-tipo">{testeTipo}</td>
-                                        <td id="teste-sistema">{cliente}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    </div>
+                </div>
+
+                {/*-----[PARTE 2.b: ENVOLVIDOS]--------------------------------------------------*/}
+                <div id='envolvidos' className='p-5 text-center'>
+                    <div className='card'>
+                        <div className="font-weight-bold banner py-3 mt-5 mt-md-0 rounded-top">
+                            <h1 className="h1">
+                                ENVOLVIDOS
+                            </h1>
                         </div>
-                        {/* Sobre os envolvidos */}
-                        <h3 className="pt-2">SOBRE OS ENVOLVIDOS</h3>
-                        <div className="table-responsive px-3">
-                            <table className="table table-light table-striped">
+                        <div className="table-responsive">
+                            <table className="table table-light table-striped m-0">
                                 <tbody>
-                                    <tr>
-                                        <th>NOME COMPLETO</th>
-                                        <th>PAPEL</th>
-                                        <th>EMPRESA ÁREA</th>
-                                        <th>E-MAIL</th>
-                                        <th>TELEFONE</th>
+                                    <tr className='align-middle'>
+                                        <th>Nome</th>
+                                        <th>Papel</th>
+                                        <th>Empresa</th>
+                                        <th>E-mail</th>
+                                        <th>Telefone</th>
                                     </tr>
                                     <tr>
                                         <td id="user-nome-1">{nome}</td>
@@ -632,61 +900,64 @@ const RevisarRelatorio: React.FC = () => {
                     </div>
                 </div>
 
-                {/*-----[PARTE 3: DETALHAMENTO DOS TESTES]--------------------------------------------------*/}
+                {/*-----[PARTE 3: DETALHES DO FLUXO]--------------------------------------------------*/}
                 <div id="detalhamento" className="p-5 text-center">
                     <div className="card">
                         <div className="font-weight-bold banner py-3 mt-5 mt-md-0 rounded-top">
-                            <h1 id="detalhamento-titulo" className="h1">DETALHAMENTO DOS TESTES</h1>
+                            <h1 id="detalhamento-titulo" className="h1">
+                                DETALHES DO FLUXO
+                            </h1>
                         </div>
                         {/* Conteúdo */}
-                        <div className="table-responsive my-3 px-3 ">
-                            <table className="table table-light table-striped text-start">
+                        <div className="table-responsive m-0 p-0">
+                            <table className="table table-light table-striped text-start m-0 p-0">
                                 <tbody>
                                     <tr>
-                                        <th>Nome da Pipeline</th>
-                                        <td id="modulos">{modulos}</td>
+                                        <th>Nome</th>
+                                        <td id="nome">{pipeline}</td>
                                     </tr>
                                     <tr>
-                                        <th>Descrição da Pipeline</th>
-                                        <td id="dados">{dados}</td>
+                                        <th>Descrição</th>
+                                        <td id="descricao">{descricao}</td>
                                     </tr>
                                     <tr>
-                                        <th>Sequência de Jobs Executados</th>
-                                        <td id="parametros">
+                                        <th>Ticket da Execução</th>
+                                        <td id="ticket">{ticketSolicitacao}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Acionador</th>
+                                        <td id="acionador">{usuarioAcionador}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Comandos Executados</th>
+                                        <td id="comandos">
                                             {
-                                                parametros?.split("\n").map((item, index) =>
+                                                comandoExec?.split("\n").map((item, index) =>
                                                     <p key={index} className='my-0' >{item}</p>
                                                 )
                                             }
                                         </td>
                                     </tr>
                                     <tr>
-                                        <th>Configuração</th>
-                                        <td id="configuracao">{config}</td>
+                                        <th>Erro Fatal na Execução</th>
+                                        <td id="erroFatal">{relatorio.erroFatal ? "Sim" : "Não"}</td>
                                     </tr>
                                     <tr>
-                                        <th>Ambiente</th>
-                                        <td id="ambiente">{ambiente}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Estatística</th>
-                                        <td id="estatistica">{gerarEstatisticas()}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>
-                                            <IonGrid>
-                                                <IonRow className='ion-align-items-center'>
-                                                    <IonCol className='p-0 m-0'>Considerações</IonCol>
-                                                    {/* <IonCol className='p-0 m-0' size='auto'>{iconCampoFacultativo(expectativa)}</IonCol> */}
-                                                </IonRow>
-                                            </IonGrid>
-                                        </th>
-                                        <td>
-                                            <IonTextarea inputmode='text'
-                                                maxlength={500}
-                                                className='text-dark bg-white bg-opacity-50 ps-2 mb-2 rounded rounded-3 border'
-                                            />
+                                        <th>Inconformidades nos Jobs</th>
+                                        <td id="inconformidades">
+                                            <div>{inconformidades === null ? "0" : inconformidades.length }</div>
+                                            <ol hidden={inconformidades === null || inconformidades.length === 0}>
+                                            {
+                                                inconformidades.map(
+                                                    (info, index) => <li key={index}>{info}</li> 
+                                                )
+                                            }
+                                            </ol>
                                         </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Estatística dos Jobs</th>
+                                        <td id="estatistica">{gerarEstatisticas()}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -702,7 +973,7 @@ const RevisarRelatorio: React.FC = () => {
                         </div>
                         {/* Conteúdo */}
                         <div className="table-responsive m-0 text-start">
-                            <div className=" table-light table-striped px-3">
+                            <div className=" table-light table-striped">
                                 {testcases()}
                             </div>
                         </div>

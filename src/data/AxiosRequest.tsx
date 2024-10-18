@@ -6,7 +6,7 @@ import { RelatorioHistoricoDTO } from './RelatorioHistoricoDTO';
 import { JwtDTO } from './JwtDTO';
 import { UserDTO } from './UserDTO';
 import { EvidenciaRevisadaDTO } from './EvidenciaRevisadaDTO';
-import { RelatorioRevisadoDTO } from './RelatorioRevisadoDTO';
+import { RelatorioComplementoDTO } from './RelatorioComplementoDTO';
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_PROFILE_INFO, GOOGLE_REDIRECT_URI, GOOGLE_TOKEN_URL } from '../config/OAuth2';
 import { JobInfoDTO } from './JobInfoDTO';
 import { RelatorioResumoDTO } from './RelatorioResumoDTO';
@@ -18,6 +18,7 @@ import { AmbienteInfoDTO } from './AmbienteInfoDTO';
 import { ClienteNovoDTO } from './ClienteNovoDTO';
 import { Page } from './Page';
 import { QueuePushResponseDTO } from './QueuePushResponseDTO';
+import { FilaResumoDTO } from './FilaResumoDTO';
 
 const EM_TESTE = false;
 
@@ -36,6 +37,7 @@ export const CLIENT_URL_DEV = 'localhost:3000';
 //export const CLIENT_CONTEXT_PATH = '/det-maker-client';
 export const URL_CLIENTES = `/clients`;
 export const URL_PIPELINES = `/pipelines`;
+export const URL_FILA = `/queue`;
 export const URL_RELATORIOS = `/reports`;
 export const URL_DET = `/evidence`;
 export const URL_LOGIN = `/login`;
@@ -405,14 +407,55 @@ export async function testarMassa(massa: MassaTabelaDTO, ambienteId: number): Pr
 }
 
 //Requisição para obter todos os Relatórios no banco
+export async function getAllQueues(
+    index: number,
+    ambienteId: number,
+    ticket: string,
+    nomePipeline: string,
+    dataExec: string,
+    autor: string,
+): Promise<Page<FilaResumoDTO>> {
+    const titulo = "OBTENDO RELATORIOS";
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/queue/summary/ambiente/${ambienteId}`,
+        headers: headers,
+        timeout: 30000,
+        params: {
+            page: index,
+            itens: 20,
+            ticket: ticket === "" ? null : ticket,
+            nomePipeline: nomePipeline === "" ? null : nomePipeline,
+            data: dataExec === "" ? null : dataExec,
+            autor: autor === "" ? null : autor,
+        }
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            return response.data;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para obter todos os Relatórios no banco
 export async function getAllRelatorios(
     index: number,
     ambienteId: number,
+    ticket: string,
     idProjeto: string,
     nomeProjeto: string,
     nomeAtividade: string,
     nomePipeline: string,
     dataExec: string,
+    autor: string,
 ): Promise<Page<RelatorioResumoDTO>> {
     const titulo = "OBTENDO RELATORIOS";
     requestStart(titulo);
@@ -427,11 +470,13 @@ export async function getAllRelatorios(
         params: {
             page: index,
             itens: 20,
+            ticket: ticket === "" ? null : ticket,
             idProjeto: idProjeto === "" ? null : idProjeto,
             nomeProjeto: nomeProjeto === "" ? null : nomeProjeto,
             nomeAtividade: nomeAtividade === "" ? null : nomeAtividade,
             nomePipeline: nomePipeline === "" ? null : nomePipeline,
             data: dataExec === "" ? null : dataExec,
+            autor: autor === "" ? null : autor,
         }
     };
     //Executando requisição
@@ -593,13 +638,13 @@ export async function reexecutarPilha(pipelineNome: string): Promise<Blob> {
 }
 
 //Interface retornada pela requisição
-export interface EvidenciasRevisadasDTO { 
+export interface ResumoEvidenciasRevisadasDTO { 
     saved: number[],
-    failed: number[] 
+    failed: { [key: number]: string },
 }
 
 //Requisição para salvar as revisões das Evidências
-export async function saveRevisaoEvidencia(evidencias: EvidenciaRevisadaDTO[]): Promise<EvidenciasRevisadasDTO> {
+export async function saveRevisaoEvidencia(evidencias: EvidenciaRevisadaDTO[]): Promise<ResumoEvidenciasRevisadasDTO> {
     const titulo = "SALVAR REVISÃO EVIDÊNCIA";
     requestStart(titulo);
 
@@ -646,10 +691,8 @@ export async function getUmaRevisao(id: number): Promise<RelatorioHistoricoDTO> 
 }
 
 //Requisição para salvar as revisões do Relatorio
-export async function saveRevisaoRelatorio(relatorio: RelatorioRevisadoDTO): Promise<void> {
-    const titulo = "SALVAR REVISÃO RELATÓRIO";
-    throw "FALTA IMPLEMENTAR DATA no PAYLOAD";
-    requestStart(titulo);
+export async function saveRevisaoRelatorio(relatorio: RelatorioComplementoDTO): Promise<RelatorioHistoricoDTO> {
+    const titulo = "SALVAR COMPLEMENTO DO RELATÓRIO ID " + relatorio.id;
 
     //Instanciando Axios
     let config: AxiosRequestConfig = {
@@ -657,13 +700,13 @@ export async function saveRevisaoRelatorio(relatorio: RelatorioRevisadoDTO): Pro
         maxBodyLength: Infinity,
         url: `${REQUEST_URL}/relatorio/review`,
         headers: headers,
+        data: relatorio,
         timeout: 10000,
     };
     //Executando requisiçãao
     return await axios.request(config)
         .then((response) => {
-            requestSucesso(titulo, "Sucesso");
-            return;
+            return response.data;
         })
         .catch((error: AxiosError) => {
             throw requestErro(titulo, error);

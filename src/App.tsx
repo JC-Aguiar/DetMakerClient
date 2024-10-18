@@ -9,7 +9,7 @@ import miniLogo from './resources/det-maker-logo-v3-mini.png';
 import iconUserTie from './resources/user-tie.svg';
 import './theme/variables.css';
 import { useRef, useState } from 'react';
-import { receipt, checkmarkCircle, logoGoogle, flask } from 'ionicons/icons'; 
+import { receipt, checkmarkCircle, logoGoogle, flask, rocket } from 'ionicons/icons'; 
 import Login from './pages/Login';
 import EscolherPipelines from './pages/EscolherPipelines';
 import { RootState } from './Store/ReduxStore';
@@ -18,7 +18,7 @@ import { validarJwt } from './data/JwtDTO';
 import { validarUser } from './data/UserDTO';
 import Avatar from './components/Core/Avatar';
 import DynamicPage from './components/Core/DynamicPage';
-import { URL_CLIENTES, URL_PIPELINES, URL_RELATORIOS, URL_DET, URL_LOGIN } from './data/AxiosRequest';
+import { URL_CLIENTES, URL_PIPELINES, URL_RELATORIOS, URL_DET, URL_LOGIN, URL_FILA } from './data/AxiosRequest';
 import EscolherClientes from './pages/EscolherClientes';
 import EscolherRelatorios from './pages/EscolherRelatorios';
 import Fundo from './components/Core/Fundo';
@@ -41,6 +41,7 @@ import '@ionic/react/css/text-alignment.css';
 import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
+import EscolherFila from './pages/EscolherFila';
 
 
 // Recursos de uso comum
@@ -88,7 +89,7 @@ const App = () => {
     const [boasVindas, setBoasVindas] = useState(false);
     const {jwt, user} = useSelector((state: RootState) => state.store.login);
     const mainAmbiente: string = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
-    const docParaRevisar: boolean = useSelector((state: RootState) => state.store.docRevisao.value) !== null;
+    const docParaRevisar: boolean = useSelector((state: RootState) => state.store.docRevisao.relatorio) !== null;
     const isLoadingJobs: boolean = useSelector((state: RootState) => state.store.catalogoJobs.loading);
     const isLoadingPipelines: boolean = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
     const isLoadingRelatorios: boolean = useSelector((state: RootState) => state.store.catalogoRelatorios.loading);
@@ -118,12 +119,21 @@ const App = () => {
             efeito: null, 
         },
         {
+            path: URL_FILA,
+            exact: true,
+            titulo: "Fila de Tarefas", 
+            subtitulo: "Fila das execuções a serem realizadas no ambiente", 
+            conteudo: <EscolherFila />,
+            icone: rocket,
+            desativado: mainAmbiente.length < 1,
+            efeito: null, 
+        },
+        {
             path: URL_RELATORIOS,
             exact: true,
             titulo: "Relatórios", 
             subtitulo: "Lista dos relatórios prontos ou a revisar", 
             conteudo: <EscolherRelatorios />,
-            painel: <></>,
             icone: receipt,
             desativado: mainAmbiente.length < 1 || isLoadingRelatorios,
             efeito: null, //contadorConfigJobs(),

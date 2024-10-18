@@ -1,7 +1,7 @@
-import { IonBadge, IonButton, IonIcon, IonItem, IonReorder, IonRow, useIonModal } from "@ionic/react";
+import { IonBadge, IonButton, IonIcon, IonItem, IonLabel, IonReorder, IonRow, useIonModal } from "@ionic/react";
 import React, { useEffect, useState } from "react";
 import { PipelineJobCargaDTO, JobConfig } from "../../data/JobConfig";
-import { bookmark, chatboxEllipses, cube, reorderFour, save, trash } from "ionicons/icons";
+import { bookmark, chatboxEllipses, cog, createOutline, cube, reorderFour, save, trash } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
@@ -13,6 +13,7 @@ import Uploader from "../Core/Uploader";
 import ListaRetratril, { ListaRetratrilAgrupada, ListaRetratrilProps } from "../Core/ListaRetratil";
 import GlassInput from "../Core/GlassInput";
 import { QueryInfo } from "../../data/QueryInfoDTO";
+import JobCard from "./JobCard";
 
 //Interface com os atributos do componente <ConfigJobItem>
 export interface ConfigJobItemProps {
@@ -250,6 +251,18 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
     }
 
     //Criando a Modal desse componente
+    const [modalInfoOn, modalInfoOff] = useIonModal(DynamicModal,
+        {
+            titulo: <>
+                        <span className="badge bg-white me-1 text-primary">ID {id}</span>
+                        {nome}
+                    </>,
+            elemento: <JobCard jobDto={jobInfo}/>,
+            onDismiss: () => modalInfoOff(),
+        }
+    );
+
+    //Modal contendo campos de execução
     const [modalParamOn, modalParamOff] = useIonModal(DynamicModal,
         {
             titulo: <>
@@ -270,20 +283,21 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
     //Renderização do componente
     if (!jobExec || !jobInfo) return null;
     return (
-        <IonRow className="ion-align-items-center ion-justify-content-between w-100">
-            <IonItem className="w-100 border-top m-0 p-0 d-flex" lines="none">
-                <IonReorder slot="start" className='ion-align-items-center m-0'>
-                    <IonItem lines='none' className="item-lista bg-transparent" >
-                        <IonIcon icon={reorderFour} />
-                        <span><small className="text-white p-0 m-0 h6">Nº{jobExec.ordem}</small></span>
-                        <IonIcon icon={reorderFour} />
-                    </IonItem>
+        <IonRow className="ion-justify-content-between w-100">
+            <IonItem className="w-100 border-top m-0 p-0 d-flex ion-align-items-start" lines="none">
+                <IonReorder slot="start" className='d-flex item-lista bg-transparent p-0 pt-4 m-0 mt-1'>
+                    <IonIcon icon={reorderFour} />
+                        <IonLabel className="text-white p-0 m-0 h6">
+                            Nº{jobExec.ordem}
+                        </IonLabel>
+                    <IonIcon icon={reorderFour} />
                 </IonReorder>
+                {/*
                 <IonButton fill="solid" 
                     shape="round" 
                     color="primary"
                     className="m-0 p-0 text-start text-wrap h6 w-100" 
-                    onClick={() => modalParamOn({cssClass: 'modal-job-card'})} 
+                    onClick={() => modalParamOn({ cssClass: 'modal-job-card' })}
                 >
                     <div className="m-0 p-0 ps-2 bg-transparent">
                         {jobExec.nome}
@@ -296,10 +310,27 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
                     shape="round" 
                     size='small' 
                     className="m-0 ms-1 p-0" 
+                    onClick={() => { 
+                        if(jobInfo) modalInfoOn({ cssClass: 'modal-job-card' }) 
+                    }}
+                >
+                    <IonIcon icon={cog} color='light'/>
+                </IonButton>
+                */}
+                <div className="w-100">
+                    <JobCard jobDto={jobInfo}/>
+                </div>
+
+                <IonButton fill="clear" 
+                    shape="round" 
+                    size='small' 
+                    className="position-absolute p-0 m-0" 
+                    style={{ right: '-8px', top: '22px' }}
                     onClick={() => dispatch(removeOneMainJob(index))}
                 >
                     <IonIcon icon={trash} color='light'/>
                 </IonButton>
+                
             </IonItem>
         </IonRow>
     );

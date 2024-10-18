@@ -14,6 +14,7 @@ const initialState = {
     mainIfxdate: "",
     mainMassas: [],
     jobsSelecionados: [],
+    meusTickets: [],
     mensagens: [],
 } as ReducerAtividadeProps;
 
@@ -29,6 +30,7 @@ export interface ReducerAtividadeProps {
     mainIfxdate: string,
     mainMassas: string[],
     jobsSelecionados: number[],
+    meusTickets: string[],
     mensagens: AtividadeMensagemTYPE[],
 }
 
@@ -238,6 +240,14 @@ const configAtividade = createSlice({
             state.jobsSelecionados = state.jobsSelecionados.filter((id) => id !== action.payload);
             console.log(`[ReducerAtividade]: Jobs selecionados em memória: [${state.jobsSelecionados.join(", ")}].`);
         },
+        addMeuTicket: (state, action: PayloadAction<string>) => {
+            console.log('[ReducerAtividade] Acionado controlador configAtividade.addMeuTicket!');
+            state.meusTickets.unshift(action.payload);
+            if (state.mensagens.length === 31) {
+                console.log('[ReducerAtividade] Número de tickets acima de 30. Removendo índice 0!');
+                state.mensagens.pop();
+            } 
+        },
         addMensagem: (state, action: PayloadAction<AddMensagemProps>) => {
             console.log('[ReducerAtividade] Acionado controlador configAtividade.addMensagem!');
             state.mensagens.unshift({
@@ -301,6 +311,7 @@ export const {
     setViewJobs,
     addViewJobs,
     removeViewJobs,
+    addMeuTicket,
     addMensagem, 
     atualizarMensagem, 
     removerMensagem, 

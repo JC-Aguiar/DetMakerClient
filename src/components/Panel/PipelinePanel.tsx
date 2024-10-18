@@ -260,7 +260,3 @@ const PipelinePanel: React.FC = () => {
 }
 
 export default PipelinePanel;
-
-function componentDidMount(arg0: () => void, arg1: import("../../data/JobInfoDTO").JobInfoDTO[][]) {
-    throw new Error("Function not implemented.");
-}

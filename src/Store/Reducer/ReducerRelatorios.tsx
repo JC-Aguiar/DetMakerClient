@@ -49,7 +49,7 @@ function logRelatorios(clientes: RelatorioResumoDTO[]) {
                 + ` - Atividade: ${item.nomeAtividade}`
                 + ` - Quantidade de Evidencias: ${item.evidencias}`
                 + ` - Evidências Revisadas: ${item.revisados}`
-                + ` - Sucesso: ${item.sucesso}`
+                + ` - Erro: ${item.erro}`
     ));
 }
 

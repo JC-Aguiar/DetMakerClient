@@ -1,12 +1,13 @@
 export interface RelatorioResumoDTO {
     id: number,
-    idPipeline: number,
+    ticket: string,
     nomePipeline: string,
-    idProjeto: string,
-    nomeProjeto: string,
-    nomeAtividade: string,
+    idProjeto: string | null,
+    nomeProjeto: string | null,
+    nomeAtividade: string | null,
+    autor: string,
     data: number,
-    sucesso: boolean,
+    erro: boolean,
     evidencias: number,
     revisados: number
 }

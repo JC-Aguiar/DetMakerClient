@@ -8,8 +8,7 @@ export interface InformativoProps {
     status: 'SemDados' | 'Carregando' | 'Normal' | 'Erro'
 }
 
-const Informativo: React.FC<InformativoProps> = ({icone, mensagem, status = 'Normal'}) => {
-    const loadingBar = status === 'Carregando' ? <IonProgressBar type="indeterminate" /> : <></>;
+const Informativo: React.FC<InformativoProps> = ({icone, mensagem = '', status = 'Normal'}) => {
 
     switch (status) {
         case "SemDados":
@@ -40,7 +39,7 @@ const Informativo: React.FC<InformativoProps> = ({icone, mensagem, status = 'Nor
         <IonCol className='text-info text-center ion-align-items-center h5 opacity-50 lh-base fw-normal text-wrap'>
             <IonIcon icon={icone} color='secondary' size='large' className='mb-3 opacity-75' style={{transform: 'scale(2.5)' }} />
             <div><pre>{textoFinal}</pre></div>
-            {loadingBar}
+            <IonProgressBar type="indeterminate" hidden={status !== 'Carregando'} />
         </IonCol>
     </IonRow>;
 }

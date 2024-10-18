@@ -5,6 +5,7 @@ export interface EvidenciaInfoDTO {
     ordem: number, 
     job: string,
     jobDescricao: string,
+    comandoExec: string,
     argumentos: string, 
     queries: string[],
     queriesNome: string[],
@@ -27,11 +28,13 @@ export interface EvidenciaInfoDTO {
     resultado: string, 
 }
 
-export function checkEvidenciaPronta(evidencia: EvidenciaInfoDTO): boolean {
-    return evidencia.resultado !== null
-        && evidencia.revisor !== null
-        && evidencia.resultado.trim().length > 0
-        && evidencia.revisor.trim().length > 0
-        && evidencia.resultado !== 'null'
-        && evidencia.revisor !== 'null';
+export namespace EvidenciaInfoDTO {
+    export function isEvidenciaPronta(evidencia: EvidenciaInfoDTO): boolean {
+        return evidencia.resultado !== null
+            && evidencia.revisor !== null
+            && evidencia.resultado.trim().length > 0
+            && evidencia.revisor.trim().length > 0
+            && evidencia.resultado !== 'null'
+            && evidencia.revisor !== 'null';
+    }
 }
