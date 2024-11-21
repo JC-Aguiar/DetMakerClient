@@ -1,5 +1,5 @@
 import { InputChangeEventDetail, IonButtons, IonCardContent, IonIcon, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, IonTitle, IonToolbar, ItemReorderEventDetail, useIonAlert, useIonModal } from '@ionic/react';
-import ConfigJobItem from '../Content/ConfigJobItem';
+import ConfigJobItem, { ConfigJobItemRef } from '../Content/ConfigJobItem';
 import { arrowUndo, cube, flash, options, save, trash } from 'ionicons/icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../Store/ReduxStore';
@@ -24,6 +24,7 @@ import { PipelineExecDTO } from '../../data/PipelineExecDTO';
 import { RelatorioHistoricoDTO } from '../../data/RelatorioHistoricoDTO';
 import { QueryInfo } from '../../data/QueryInfoDTO';
 import { QueuePushResponseDTO } from '../../data/QueuePushResponseDTO';
+import GlassInput from '../Core/GlassInput';
 
 //Componente <ListaConfigJobs>
 const ListaConfigJobs: React.FC = () => {
@@ -57,6 +58,7 @@ const ListaConfigJobs: React.FC = () => {
     const [alerta] = useIonAlert(); 
     const variaveisRef = useRef<ListaVariaveisPipelineRef>(null);
     const massasRef = useRef<BotaoMassasPipelineRef>(null);
+    const jobsConfigurados = useRef<ConfigJobItemRef[]>([]);
 
     //Modal para executar a Pipeline
     const [modalExecPipelineOn, modalExecPipelineOff] = useIonModal(DynamicModal,
@@ -239,10 +241,16 @@ const ListaConfigJobs: React.FC = () => {
                 massas: massasRef.current?.massas().map(m => m.nome),
                 configuracoes: {},
             };
+            jobsConfigurados.current.map((item, index) => {
+                const jobAlvo = body.jobs.find((job, jobIndex) => jobIndex === index);
+                if (!jobAlvo) return;
+                jobAlvo.cargas = item.cargas.arquivos;
+            })
             variaveisRef.current?.variaveis().forEach(
                 item => body.configuracoes[item.nome] = item.valor
             );
-            dispatch(removeRevisao());
+            //console.log(body.jobs.map((job, jobIndex) => jobIndex + ": " + JSON.stringify(job.cargas)));
+            //return;
             const solicitacao: QueuePushResponseDTO = await axiosRequest.executarPipeline(body);
             dispatch(addMeuTicket(solicitacao.ticket));
             dispatch(atualizarMensagem({ 
@@ -259,7 +267,6 @@ const ListaConfigJobs: React.FC = () => {
             }));
         }
     }
-    //TODO: REMOVER DEPOIS
 
     //Botoes contendo as opções para cada Pipeline
     const botoes: BotaoProps[] = [
@@ -324,11 +331,26 @@ const ListaConfigJobs: React.FC = () => {
                     */}
                     <IonReorderGroup disabled={false} onIonItemReorder={reordenar} className='p-0 m-0' >
                         {
-                            mainJobs.map((item, index) => <ConfigJobItem key={index} index={index} />)
+                            mainJobs.map((item, index) => { 
+                                //jobsConfigurados.current[index] = null;
+                                return <ConfigJobItem 
+                                            key={index} 
+                                            index={index} 
+                                            ref={el => el !== null ? jobsConfigurados.current[index] = el : null} 
+                                        />
+                            })
                         }
                     </IonReorderGroup>
                 </IonList>
             </IonCardContent>
+            <GlassInput text='Teste'>
+                {
+                    jobsConfigurados.current
+                        .map(item => item.cargas)
+                        .map(item => <div>JOB INDEX [{item.jobIndex}]: {item.arquivos.map(arq => arq.nome).join(", ")}</div>)
+                }
+            </GlassInput>
+            <div className='m-3'></div>
         </IonRow>
     );
 };

@@ -1,5 +1,5 @@
 {
-	"appId": "io.ionic.starter",
+	"appId": "br.com.jaguiar",
 	"appName": "det-maker-client",
 	"webDir": "build",
 	"bundledWebRuntime": false

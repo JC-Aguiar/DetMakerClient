@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { JobConfig } from '../../data/JobConfig';
+import { JobConfig, PipelineJobCargaDTO } from '../../data/JobConfig';
 import { JobInfoDTO, getIndexParametroComIfxdate } from '../../data/JobInfoDTO';
 
 //Valores iniciais do recuder
@@ -179,6 +179,14 @@ const configAtividade = createSlice({
                 state.mainJobs[novoJob.ordem] = novoJob;
             //logItemPilha(state.mainJobs);
         },
+        setMainJobCargas: (state, action: PayloadAction<{ index: number, cargas: PipelineJobCargaDTO[] }>) => {
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.setMainJobCargas!');
+            const {index, cargas} = action.payload;
+            const jobAlvo = state.mainJobs.find((job, jobIndex) => jobIndex === index);
+            if(!jobAlvo) return;
+            console.log(`[ReducerAtividade]: Definindo ${cargas.length} carga(s) ao MainJob[${index}] '${jobAlvo.nome}'!`);
+            state.mainJobs[index].cargas = cargas;
+        },
         addOneMainJob: (state, action: PayloadAction<JobInfoDTO>) => {
             console.log('[ReducerAtividade]: Acionado controlador configAtividade.addOneMainJob!'
                 + `Adicionando a lsita de MainJobs o Job: [ID ${action.payload.id}] ${action.payload.nome}.`
@@ -303,6 +311,7 @@ export const {
     setMainPipeline, 
     setMainJobs, 
     updateOneMainJob,
+    setMainJobCargas,
     updateMainJobsIfxdate, 
     reorderMainJobs,
     addOneMainJob,

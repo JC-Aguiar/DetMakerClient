@@ -18,6 +18,7 @@ import { loadingMassa, setMassas } from "../../Store/Reducer/ReducerMassas";
 import { loadingPipelines, setPipelines } from "../../Store/Reducer/ReducerPipelines";
 import { loadingQueries, setQueries } from "../../Store/Reducer/ReducerQueries";
 import Schedule from "../Content/Schedule";
+import { UserDTO } from "../../data/UserDTO";
 
 
 const PipelinePanel: React.FC = () => {
@@ -32,6 +33,7 @@ const PipelinePanel: React.FC = () => {
     const mainAmbienteId = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
     const mainAmbiente = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
     const catalogoJobs = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
+    const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
 
     //Atributos controlados pelo componente
     const isLoading = isLoadingJobs || isLoadingPipelines;
@@ -123,7 +125,7 @@ const PipelinePanel: React.FC = () => {
         const mensagemGeral = erros.length < 1 ? 
             "Todos os recursos foram botidos com sucesso. " :
             "Alguns recursos falharam. ";
-        const mensagensDeErro = erros.map(item => `{${item.recurso}: ${item.erro}`).join("\n");
+        const mensagensDeErro = erros.map(item => `${item.recurso}: ${item.erro}`).join("\n");
         dispatch(atualizarMensagem({ 
             id: id, 
             complmento: mensagemGeral + mensagensDeErro,
@@ -136,9 +138,8 @@ const PipelinePanel: React.FC = () => {
         dispatch(loadingJobs(true));
         dispatch(setViewJobs([]));
         await axiosRequest.getAllJobs(mainClienteId)
-            .then(
-                novosJobs => dispatch(setJobs(novosJobs))
-            );
+            .then(novosJobs => dispatch(setJobs(novosJobs)))
+            .finally(() => dispatch(loadingJobs(false)));
     }
 
     //Requisição para obter todas as pipelines do banco
@@ -146,27 +147,24 @@ const PipelinePanel: React.FC = () => {
         dispatch(loadingPipelines(true));
         dispatch(setMainPipeline());
         await axiosRequest.getAllPipelines(mainClienteId)
-            .then(
-                novasPipelines => dispatch(setPipelines(novasPipelines))
-            );
+            .then(novasPipelines => dispatch(setPipelines(novasPipelines)))
+            .finally(() => dispatch(loadingPipelines(false)));
     }
 
     //Requisição para obter todas as Config-Queries do banco
     async function obterQueriesBanco() {
         dispatch(loadingQueries(true));
         await axiosRequest.getAllConfigQueries(mainClienteId)
-            .then(
-                queriesBanco => dispatch(setQueries(queriesBanco))
-            );
+            .then(queriesBanco => dispatch(setQueries(queriesBanco)))
+            .finally(() => dispatch(loadingQueries(false)));
     }
 
     //Requisição para obter todas as MassaTabelaDTO's do banco
     async function obterMassasBanco() {
         dispatch(loadingMassa(true));
         await axiosRequest.getAllMassas(mainClienteId)
-            .then(
-                massasBanco => dispatch(setMassas(massasBanco))
-            );
+            .then(massasBanco => dispatch(setMassas(massasBanco)))
+            .finally(() => dispatch(loadingMassa(false)));
     }
 
 
@@ -188,7 +186,7 @@ const PipelinePanel: React.FC = () => {
                 texto: `Carregando Schedule '${selectedFile.name}'.`,
                 status: 'INFO'
             }));
-            const email = userEmail ? userEmail : "DET-MAKER";
+            const email = user ? user.email : "DET-MAKER";
             const mensagem = await axiosRequest.openSchedule(mainClienteId, selectedFile, email);
             dispatch(atualizarMensagem({ 
                 id: id, 

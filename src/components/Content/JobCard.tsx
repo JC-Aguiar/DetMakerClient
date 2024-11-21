@@ -172,7 +172,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto }) => {
                     <IonItem slot="header" color="primary" className='' >
                         <IonCardHeader className='p-0'>
                             <IonCardTitle color='dark' className='p-0'>
-                                <IonBadge color="light" style={{ transform: 'translate(0, 5px)' }}>{jobDto.id}</IonBadge>
+                                <IonBadge color="light" style={{ transform: 'translate(0, 5px)' }}>ID {jobDto.id}</IonBadge>
                                 <span className="ms-1">{jobDto.nome}</span>
                             </IonCardTitle>
                         </IonCardHeader>

@@ -20,16 +20,16 @@ import { Page } from './Page';
 import { QueuePushResponseDTO } from './QueuePushResponseDTO';
 import { FilaResumoDTO } from './FilaResumoDTO';
 
-const EM_TESTE = false;
+const EM_TESTE = false; 
 
 //URLs do servidor
-export const SERVER_URL = '127.0.0.1:1990'; //wildfly;
-export const SERVER_URL_DEV = 'localhost:1990';
-export const SERVER_CONTEXT_PATH = ''; //'/det-maker-server';
-export const SERVER_CONTEXT_PATH_DEV = '';
+export const SERVER_URL = 'http://172.19.3.150:8080'; //wildfly;
+export const SERVER_URL_DEV = 'http://127.0.0.1:8080'; //http://localhost:1990';
+export const SERVER_CONTEXT_PATH = '/det-maker-server';
+export const SERVER_CONTEXT_PATH_DEV = '/det-maker-server';
 export const REQUEST_URL = EM_TESTE ? 
-    `http://${SERVER_URL_DEV}${SERVER_CONTEXT_PATH_DEV}` : 
-    `http://${SERVER_URL}${SERVER_CONTEXT_PATH}`;
+    `${SERVER_URL_DEV}${SERVER_CONTEXT_PATH_DEV}` : 
+    `${SERVER_URL}${SERVER_CONTEXT_PATH}`;
 
 //URLs do cliente
 export const CLIENT_URL = 'localhost:8080'; //'172.31.10.17';
@@ -225,7 +225,7 @@ export async function openSchedule(clienteId: number, arquivoXlsx: File, userEma
     const titulo = "ABRIR SCHEDULE";
     requestStart(titulo);
 
-//Configurando requisição
+    //Configurando requisição
     const headersXlsx: AxiosRequestHeaders = {
         "Access-Control-Allow-Origin": `${REQUEST_URL}/*`,
         "Access-Control-Allow-Methods": "POST, GET",
@@ -245,7 +245,7 @@ export async function openSchedule(clienteId: number, arquivoXlsx: File, userEma
     let config: AxiosRequestConfig = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${REQUEST_URL}/job/read/xlsx/planilha/${planilhaNome}/cliente/${clienteId}usuario/${userEmail}`,
+        url: `${REQUEST_URL}/job/read/xlsx/planilha/${planilhaNome}/cliente/${clienteId}/usuario/${userEmail}`,
         headers: headersXlsx,
         timeout: 30000,
         data: data

@@ -1,10 +1,11 @@
 import { IonBadge } from "@ionic/react";
 import InfoTag from "./InfoTag";
+import GlassInput from "./GlassInput";
 
 export interface UploaderProps {
     key?: number | null
     titulo: string,
-    arquivosAtuais: string[],
+    arquivosAtuais?: string[],
     accept: string,
     multiple: boolean,
     trigger: (arquivos: FileList | null) => void;
@@ -30,16 +31,20 @@ const Uploader: React.FC<UploaderProps> = ({ key = null, titulo, arquivosAtuais,
         trigger(e.target.files);
     }
 
+//    <div key={key} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
     return(
-        <div key={key} className="position-relative glass mx-3 mt-2 mb-4 py-3 px-2">
-            <InfoTag texto={titulo} x={0} y={-50} />
-            <form action="/upload" method="post" encType="multipart/form-data" className="" >
+        <GlassInput key={key} text={titulo} className="">
+            <form action="/upload" method="post" encType="multipart/form-data" className="m-2 mt-0" >
                 <label htmlFor="formFile" className="form-label">
-                    <span className="px-2 bg-transparent d-flex" style={{color: `var(--ion-color-primary)`}}>
-                        {arquivosAtuais.length > 1 ? "Arquivos Atuais:" : "Arquivo Atual:"} 
+                    <span 
+                        hidden={arquivosAtuais === undefined}
+                        className="px-2 bg-transparent d-flex" 
+                        style={{color: `var(--ion-color-primary)`}}
+                    >
+                        {arquivosAtuais && arquivosAtuais.length > 1 ? "Arquivos Atuais:" : "Arquivo Atual:"} 
                         <div>
                         {
-                            arquivosAtuais.map((item, index) => {
+                            arquivosAtuais?.map((item, index) => {
                                 return <IonBadge key={index} color='dark' className="mx-1 px-2 mb-0 font-monospace">
                                     {item}
                                 </IonBadge>
@@ -56,7 +61,7 @@ const Uploader: React.FC<UploaderProps> = ({ key = null, titulo, arquivosAtuais,
                     onChange={e => selecionarArquivo(e)} 
                 />
             </form>
-        </div>
+        </GlassInput>
     );
 }
 

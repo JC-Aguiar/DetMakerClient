@@ -123,7 +123,7 @@ const ListaVariaveisPipeline = forwardRef<ListaVariaveisPipelineRef>((props, ref
                                 onIonChange={(e) => editarValor(index, e)}
                             />
                             <IonBadge color="primary" >
-                                {VariavelDinamica.tipoAlias(item)}
+                                {item.origem} {/*VariavelDinamica.tipoAlias(item)*/}
                             </IonBadge>
                         </IonItem>
                     </IonCol>

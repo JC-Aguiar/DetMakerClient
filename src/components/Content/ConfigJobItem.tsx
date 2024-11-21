@@ -1,16 +1,16 @@
 import { IonBadge, IonButton, IonIcon, IonItem, IonLabel, IonReorder, IonRow, useIonModal } from "@ionic/react";
-import React, { useEffect, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { PipelineJobCargaDTO, JobConfig } from "../../data/JobConfig";
-import { bookmark, chatboxEllipses, cog, createOutline, cube, reorderFour, save, trash } from "ionicons/icons";
+import { bookmark, chatboxEllipses, cube, reorderFour, save, trash } from "ionicons/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
 import DynamicModal from "../Core/DynamicModal";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
-import { addMensagem, atualizarMensagem, removeOneMainJob, updateOneMainJob } from "../../Store/Reducer/ReducerAtividade";
+import { addMensagem, atualizarMensagem, removeOneMainJob, setMainJobCargas, updateOneMainJob } from "../../Store/Reducer/ReducerAtividade";
 import Botao from "../Core/Botao";
 import Uploader from "../Core/Uploader";
-import ListaRetratril, { ListaRetratrilAgrupada, ListaRetratrilProps } from "../Core/ListaRetratil";
+import { ListaRetratrilAgrupada, ListaRetratrilProps } from "../Core/ListaRetratil";
 import GlassInput from "../Core/GlassInput";
 import { QueryInfo } from "../../data/QueryInfoDTO";
 import JobCard from "./JobCard";
@@ -20,11 +20,17 @@ export interface ConfigJobItemProps {
     index: number,
 }
 
+//Interface dos métodos acionáveis via referência do <ListaVariaveisPipeline>
+export interface ConfigJobItemRef {
+    cargas: { jobIndex: number, arquivos: PipelineJobCargaDTO[] }
+}
+
 //Componente <ConfigJobItem>
-const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
+const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, ref) => {
     
     //Atributos principais de controle
     const dispatch = useDispatch();
+    const index = props.index;
     const jobExec: JobConfig | undefined = useSelector((state: RootState) => state.store.configAtividade.mainJobs)[index];
     const id = jobExec != undefined ? jobExec.id : -1;
     const nome = jobExec !== undefined ? jobExec.nome : "";
@@ -37,11 +43,17 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
     const [jobConfigurado, setJobConfigurado] = useState<JobConfig>({...jobExec});
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
+    const [cargas, setCargas] = useState<PipelineJobCargaDTO[]>([]);
 
     //Acionamento sempre que o JobConfig desse componente sofre qualquer alteração
     useEffect(() => {
         setJobConfigurado(jobExec);
     }, [jobExec]);
+
+    //Disponibilizando os métodos acionáveis via referência 
+    useImperativeHandle(ref, () => ({
+        cargas: { jobIndex: index, arquivos: cargas }
+    }));
     
     //Atributos para padrões de estilização
     const textoCodigo = (texto: string, info: string) => {
@@ -79,7 +91,8 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
     }
 
     //Método de tratamento dos inputs do usuário para as Cargas
-    const preencherCarga = (files: FileList | null) => {
+    const preencherCarga = (cargaIndex: number, files: FileList | null) => {
+        if (cargaIndex < 0) return;
         const mensagemId = `Set_Cargas@${Date.now()}`;
         try {
             if (!files || files.length < 1) {
@@ -88,10 +101,16 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
                     texto: `Pipeline '${mainPipeline}' - Job '${jobInfo.nome}': Arquivos de carga removidos.`,
                     status: 'INFO'
                 }));
-                setJobConfigurado({ ...jobConfigurado, cargas: [] });
+                setCargas(atual => {
+                    const novas = atual.slice();
+                    novas.splice(cargaIndex, 1);
+                    return novas;
+                });
+                //setJobConfigurado({ ...jobConfigurado, cargas: [] });
                 return;
             }
-            const novasCargas = [...jobConfigurado.cargas];
+            //const novasCargas: PipelineJobCargaDTO[] = [];
+            //jobConfigurado.cargas.forEach(item => novasCargas.push(item));
             let sucessos = 0;
             for (let index = 0; index < files.length; index++) {
                 const file = files?.[index];
@@ -103,21 +122,26 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
                         conteudo: reader.result as string,
                         tipo: file.type,
                     };
-                    if (novasCargas.length <= index)
-                        novasCargas.push(cargaNova);
-                    else
-                        novasCargas[index] = cargaNova;
+                    //if (cargas.length <= index)
+                    //    novasCargas.push(cargaNova);
+                    //else
+                        setCargas(atual => {
+                            const novas = atual.slice();
+                            novas[cargaIndex] = cargaNova;
+                            return novas;
+                        });
                 };
                 reader.readAsText(file);
                 console.log(`[MODAL CONFIG-JOB]: Arquivo '${file.name}' anexado com sucesso.`);
                 sucessos++;
             }
-            dispatch(atualizarMensagem({ 
+            dispatch(addMensagem({ 
                 id: mensagemId, 
-                complmento: `Pipeline '${mainPipeline}' - Job '${jobInfo.nome}': Total de ${sucessos}/${files.length} de carga(s) carregadas com sucesso.`,
+                texto: `Pipeline '${mainPipeline}' - Job '${jobInfo.nome}': Total de ${sucessos}/${files.length} de carga(s) carregadas com sucesso.`,
                 status: 'INFO'
             }));
-            setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
+            //setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
+            //dispatch(setMainJobCargas({ index, cargas: novasCargas }));
         }
         catch (error) {
             dispatch(atualizarMensagem({ 
@@ -204,6 +228,7 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
     }
 
     //Exibindo campos de Cargas do Job
+    /*
     const camposInputCargas = () => {
         if (!jobInfo || !jobExec || !jobInfo.mascaraEntrada || jobInfo.mascaraEntrada.length === 0) 
             return;
@@ -224,6 +249,7 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
             </div>
         );
     }
+    */
 
     //Faz a validação da query já preenchida (tanto manual, quanto autmática)
     const validarQuery = async (query: string) => { 
@@ -263,6 +289,7 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
     );
 
     //Modal contendo campos de execução
+    /*
     const [modalParamOn, modalParamOff] = useIonModal(DynamicModal,
         {
             titulo: <>
@@ -279,6 +306,7 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
             onDismiss: () => modalParamOff(),
         }
     );
+    */
 
     //Renderização do componente
     if (!jobExec || !jobInfo) return null;
@@ -319,6 +347,32 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
                 */}
                 <div className="w-100">
                     <JobCard jobDto={jobInfo}/>
+                    {
+                    <div className="px-1 mb-2" hidden={!jobInfo.mascaraEntrada || jobInfo.mascaraEntrada.length < 1}>
+                        {labelTitulo('CARGAS DE CONSUMO', `job${id}-carga`)}
+                        {
+                            jobInfo.mascaraEntrada.map((item, cargaIndex) => <Uploader 
+                                    key={cargaIndex} 
+                                    accept=".log, .txt, .gz" 
+                                    //arquivosAtuais={jobExec.cargas.map(item => item.nome)}
+                                    multiple={true}
+                                    titulo={item}
+                                    trigger={(arquivos) => preencherCarga(cargaIndex, arquivos)} //AQUI!
+                                />
+                            )
+                            /*
+                            <div className="d-flex ion-justify-content-end me-2 pe-1">
+                                <Botao icon={save} text="Salvar" handler={salvandoItem} />
+                            </div>
+                            */
+                        }
+                        <div>
+                            {
+                                cargas.map(item => item.nome).join("\n")
+                            }
+                        </div>
+                    </div>
+                    }
                 </div>
 
                 <IonButton fill="clear" 
@@ -334,6 +388,6 @@ const ConfigJobItem: React.FC<ConfigJobItemProps> = ({ index }) => {
             </IonItem>
         </IonRow>
     );
-};
+});
 
 export default ConfigJobItem;
