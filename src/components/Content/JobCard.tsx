@@ -1,7 +1,7 @@
-import { IonCard, IonAccordionGroup, IonAccordion, IonItem, IonCardHeader, IonCardTitle, IonCardContent, IonTitle, IonBadge, IonButton, IonIcon, IonRow, useIonModal, IonChip, IonLabel } from "@ionic/react";
+import { IonCard, IonAccordionGroup, IonAccordion, IonItem, IonCardHeader, IonCardTitle, IonCardContent, IonTitle, IonBadge, IonButton, IonIcon, IonRow, useIonModal, IonLabel, useIonAlert } from "@ionic/react";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
-import { addCircle, createOutline, trash } from "ionicons/icons";
-import DynamicModal, { DynamicModalProps } from "../Core/DynamicModal";
+import { addCircle, close, createOutline, trash, trashOutline } from "ionicons/icons";
+import DynamicModal from "../Core/DynamicModal";
 import ModalConfigQuery from "../Modals/ModalConfigQuery";
 import { useState } from "react";
 import GlassInput from "../Core/GlassInput";
@@ -9,10 +9,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
 import * as AxiosRequest from "../../data/AxiosRequest";
 import Informativo from "../Core/Informativo";
-import { ComandoSQL } from "../../data/ComandoSQL";
 import { RootState } from "../../Store/ReduxStore";
 import { removeQuery } from "../../Store/Reducer/ReducerQueries";
 import { QueryInfoDTO } from "../../data/QueryInfoDTO";
+import { removerJobs as removerJobsCatalogo } from "../../Store/Reducer/ReducerJobs";
+import { removerJobs as removerJobsPiepline } from "../../Store/Reducer/ReducerPipelines";
 
 export interface JobCardProps {
     jobDto: JobInfoDTO,
@@ -28,6 +29,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto }) => {
     const queries: QueryInfoDTO[] = useSelector((state: RootState) => state.store.catalogoQueries.catalogo)
         .filter(item => item.jobId === jobDto.id);
     const [queryIndex, setQueryIndex] = useState<number>(-1);
+    const [alerta] = useIonAlert();
 
     //Atributo da modal acionada pelo componente
     const [modalQueryOn, modalQueryOff] = useIonModal(DynamicModal, 
@@ -43,14 +45,56 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto }) => {
         }
     );
 
+    //Handler para alertar ao usuário caso ele queira excluir o Jobs
+    const exibirAlerta = () => {
+        alerta({
+            header: 'Deletar Job!',
+            message: 'Tem certeza que deseja deletar esse Job da base da dados?',
+            buttons: [
+                'Não',
+                { text: 'Sim', handler: (d) => deletarJob() }
+            ],
+        });
+    };
+
     //Acionamento para abrir modal para editar as configurações da query
     const abrirModal = (index: number) => {
         setQueryIndex(index);
         modalQueryOn({ cssClass: 'modal-large' });
     }
 
+    const deletarJob = async () => {
+        const mensagemId = `Delete_Job@${Date.now()}`;
+        try {
+            setLoading(true);
+            dispatch(addMensagem({
+                id: mensagemId,
+                texto: `Deletando Job ${jobDto.nome} [${jobDto.id}].`,
+                status: 'INFO'
+            }));
+            await AxiosRequest.deleteJobs([jobDto.id]);
+            dispatch(removerJobsPiepline([jobDto.nome]));
+            dispatch(removerJobsCatalogo([jobDto.nome]));
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `Sucesso.`,
+                status: 'OK'
+            }));
+        }
+        catch (error) {
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `${error}`,
+                status: 'ERROR'
+            }));
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+
     //Requisição para deletar uma configuração de query já existente
-    const deletar = async (index: number) => {
+    const deletarQuery = async (index: number) => {
         const queryAlvo = queries[index];
         const mensagemId = `Delete_Query@${Date.now()}`;
         try {
@@ -90,7 +134,18 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto }) => {
         if (loading) return <Informativo status="Carregando" />
         return (
             <>
-                <IonTitle color='primary' className='p-0'>Dados da Schedule</IonTitle>
+                <IonTitle color='primary' className='p-0'>
+                    <IonLabel>Dados da Schedule</IonLabel>
+                    <IonButton className="position-absolute end-0" 
+                        fill="solid" 
+                        shape="round" 
+                        color="danger" 
+                        size="small"
+                        onClick={e => exibirAlerta()}
+                    >
+                        Excluir <IonIcon icon={trashOutline} size="small" style={{ transform: 'translate(0, -2px)' }} />
+                    </IonButton>
+                </IonTitle>
                     <section className="mb-4">
                         <table className="table table-stripe">
                             <tbody className='text-white fw-bold'>
@@ -140,7 +195,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto }) => {
                                     text={item.nome}
                                     textButtons={[
                                         { icon: createOutline, handler: () => abrirModal(index) },
-                                        { icon: trash, handler: () => deletar(index) }
+                                        { icon: trash, handler: () => deletarQuery(index) }
                                 ]}>
                                     <IonLabel className={`${fonteCodigo} pt-3 pb-1 fw-bold text-wrap`} >
                                         {item.sql}

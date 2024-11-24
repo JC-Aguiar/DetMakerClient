@@ -1,5 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { PipelineInfoDTO } from '../../data/PipelineInfoDTO';
+import store from '../ReduxStore';
 
 //Valores iniciais do recuder
 const initialState = { 
@@ -33,6 +34,20 @@ const catalogoPipelines = createSlice({
             );
             state.catalogo = state.catalogo.filter(item => item.id !== action.payload);
         },
+        removerJobs: (state, action: PayloadAction<string[]>) => {
+            console.log('[ReducerPipelines]: Acionado controlador catalogoPipelines.removeJobs!');
+            if (!Array.isArray(action.payload)) {
+                console.log('[ReducerPipelines] Erro: payload inválido, pois não é um array.');
+                return { ...state };
+            }
+            const nomes = new Set<string>(action.payload);
+            console.log(`[ReducerPipelines]: Removendo os Jobs ${nomes} do fluxo de cada Pipeline.`);
+            state.catalogo.forEach(
+                pipeline => pipeline.jobs = pipeline.jobs.filter(
+                    job => !nomes.has(job)
+                )
+            );
+        },
         loadingPipelines: (state, action: PayloadAction<boolean>) => {
             console.log('[ReducerPipelines]: Acionado controlador catalogoPipelines.loadingPipelines!');
             state.loading = action.payload;
@@ -55,4 +70,4 @@ function logPipeline(state: ReducerPipelineProps) {
 }
 
 export default catalogoPipelines.reducer;
-export const { setPipelines, removePipeline, loadingPipelines } = catalogoPipelines.actions;
+export const { setPipelines, removerJobs, removePipeline, loadingPipelines } = catalogoPipelines.actions;

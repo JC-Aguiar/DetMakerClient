@@ -20,16 +20,20 @@ import { Page } from './Page';
 import { QueuePushResponseDTO } from './QueuePushResponseDTO';
 import { FilaResumoDTO } from './FilaResumoDTO';
 
-const EM_TESTE = false; 
+const EM_TESTE = true; 
+const IDE = true;
 
 //URLs do servidor
 export const SERVER_URL = 'http://172.19.3.150:8080'; //wildfly;
-export const SERVER_URL_DEV = 'http://127.0.0.1:8080'; //http://localhost:1990';
+export const SERVER_URL_DEV = 'http://127.0.0.1:8080';
+export const SERVER_URL_DEV2 = 'http://localhost:1990';
 export const SERVER_CONTEXT_PATH = '/det-maker-server';
 export const SERVER_CONTEXT_PATH_DEV = '/det-maker-server';
-export const REQUEST_URL = EM_TESTE ? 
-    `${SERVER_URL_DEV}${SERVER_CONTEXT_PATH_DEV}` : 
-    `${SERVER_URL}${SERVER_CONTEXT_PATH}`;
+export const SERVER_CONTEXT_PATH_DEV2 = '';
+
+const PROD_CONTEXT = `${SERVER_URL}${SERVER_CONTEXT_PATH}`;
+const DEV_CONTEXT = IDE ? `${SERVER_URL_DEV2}${SERVER_CONTEXT_PATH_DEV2}` : `${SERVER_URL_DEV}${SERVER_CONTEXT_PATH_DEV}`; 
+export const REQUEST_URL = EM_TESTE ? DEV_CONTEXT : PROD_CONTEXT;
 
 //URLs do cliente
 export const CLIENT_URL = 'localhost:8080'; //'172.31.10.17';
@@ -723,6 +727,30 @@ export async function getAllConfigQueries(clienteId: number): Promise<QueryInfoD
         method: 'get',
         maxBodyLength: Infinity,
         url: `${REQUEST_URL}/query/cliente/${clienteId}`,
+        headers: headers,
+        timeout: 30000,
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            return response.data;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Deletando um Job com base no ID
+export async function deleteJobs(jobsId: number[]): Promise<string> {
+    const titulo = `DELETAR JOBS ID: ${jobsId}`;
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'DELETE',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/job/id/${jobsId.join(",")}`,
         headers: headers,
         timeout: 30000,
     };

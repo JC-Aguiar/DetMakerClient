@@ -27,6 +27,16 @@ const catalogoJobs = createSlice({
             state.catalogo = action.payload;
             state.loading = false;
         },
+        removerJobs: (state, action: PayloadAction<string[]>) => {
+            console.log('[ReducerJobs]: Acionado controlador catalogoJobs.removerJobs!');
+            if (!Array.isArray(action.payload)) {
+                console.log('[ReducerJobs] Erro: payload inválido, pois não é um array.');
+                return { ...state };
+            }
+            const nomes = new Set<string>(action.payload);
+            console.log(`[ReducerJobs]: Removerndo do catálogo os Jobs: ${nomes}.`);
+            state.catalogo = state.catalogo.filter(job => !nomes.has(job.nome));
+        },
         updateJob: (state, action: PayloadAction<JobInfoDTO>) => {
             console.log('[ReducerJobs]: Acionado controlador catalogoJobs.updateJob!');
             const index = state.catalogo.findIndex(job => job.id === action.payload.id);
@@ -43,4 +53,4 @@ const catalogoJobs = createSlice({
 
 
 export default catalogoJobs.reducer;
-export const { setJobs, updateJob, loadingJobs } = catalogoJobs.actions;
+export const { setJobs, removerJobs, updateJob, loadingJobs } = catalogoJobs.actions;

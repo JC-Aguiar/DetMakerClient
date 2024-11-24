@@ -1,12 +1,14 @@
-import { InputChangeEventDetail, IonInput, IonList } from "@ionic/react";
-import React, { useState } from "react";
+import { InputChangeEventDetail, IonInput, IonList, useIonAlert } from "@ionic/react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
-import { addOneMainJob, addViewJobs, removeViewJobs, setViewJobs } from "../../Store/Reducer/ReducerAtividade";
+import { addMensagem, addOneMainJob, addViewJobs, atualizarMensagem, removeViewJobs, setViewJobs } from "../../Store/Reducer/ReducerAtividade";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
-import { addCircleOutline, checkbox, checkmark, closeCircle, search, square } from "ionicons/icons";
+import { addCircleOutline, checkbox, checkmark, closeCircle, search, square, trashOutline } from "ionicons/icons";
 import { JobConfig } from "../../data/JobConfig";
 import ItemLista from "../Core/ItemLista";
+import { loadingJobs } from "../../Store/Reducer/ReducerJobs";
+import * as AxiosRequest from "../../data/AxiosRequest";
 
 
 //Componente <ListaCatalogoJobs>
@@ -19,6 +21,28 @@ const ListaCatalogoJobs: React.FC = () => {
     const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobsSelecionados);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
     const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
+    const nomeJobsSelecionados: string[] = [];
+    const [alerta] = useIonAlert();
+
+    //Acionamento sempre que o array dos Jobs ID for alterado
+    useEffect(() => {
+        catalogoJobs.filter(job => jobsSelecionados.includes(job.id))
+            .map(job => job.nome)
+            .forEach(nome => nomeJobsSelecionados.push(nome));
+    }, [jobsSelecionados]);
+
+    //Handler para alertar ao usuário caso ele queira excluir o Jobs
+    const exibirAlerta = () => {
+        alerta({
+            header: 'Deletar Jobs!',
+            message: 'Tem certeza que deseja deletar os seguintes Jobs da base da dados? ' + 
+                    `${nomeJobsSelecionados.join(", ")}.`,
+            buttons: [
+                'Não',
+                { text: 'Sim', handler: (d) => deletarJobs() }
+            ],
+        });
+    };
 
     //Atributos com estado gerenciado via React
     const [jobPesquisado, setJobPesquisado] = useState<string>("");
@@ -44,6 +68,37 @@ const ListaCatalogoJobs: React.FC = () => {
         setJobPesquisado(valor);
     }
 
+    //Requisição para deletar todos os Jobs selecionados
+    const deletarJobs = async () => {
+        const mensagemId = `Delete_Jobs@${Date.now()}`;
+        try {
+            dispatch(loadingJobs(true));
+            dispatch(addMensagem({
+                id: mensagemId,
+                texto: `Deletando Jobs ID ${jobsSelecionados.join(", ")}.`,
+                status: 'INFO'
+            }));
+            await AxiosRequest.deleteJobs(jobsSelecionados);
+            dispatch(removerJobsPiepline(nomeJobsSelecionados));
+            dispatch(removerJobsCatalogo(nomeJobsSelecionados));
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `Sucesso.`,
+                status: 'OK'
+            }));
+        }
+        catch (error) {
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `${error}`,
+                status: 'ERROR'
+            }));
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+
     //Renderizando componente
     return (
         <IonList className='m-0 p-0'>
@@ -58,6 +113,7 @@ const ListaCatalogoJobs: React.FC = () => {
                 />
             </ItemLista>
             <ItemLista text="Desselecionar Jobs" icon={closeCircle} trigger={cancelarJobsSelecionados} />
+            <ItemLista text="Deletar Selecionados" icon={trashOutline} trigger={cancelarJobsSelecionados} />
             {
                 catalogoJobs.filter(item => item.nome.includes(jobPesquisado))
                     .map((item, index) => {
@@ -85,3 +141,17 @@ const ListaCatalogoJobs: React.FC = () => {
 };
 
 export default ListaCatalogoJobs;
+
+function removerJobsPiepline(arg0: any[]): any {
+    throw new Error("Function not implemented.");
+}
+
+
+function removerJobsCatalogo(arg0: any[]): any {
+    throw new Error("Function not implemented.");
+}
+
+
+function setLoading(arg0: boolean) {
+    throw new Error("Function not implemented.");
+}
