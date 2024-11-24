@@ -418,6 +418,9 @@ ion-toast {
 
 ion-alert .alert-wrapper {
   --background: var(--ion-color-tertiary);
+  --max-width: 500px;
+  --min-width: 500px;
+  --width: 500px;
 }
 
 

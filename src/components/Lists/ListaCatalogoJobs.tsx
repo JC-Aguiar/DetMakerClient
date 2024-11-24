@@ -9,6 +9,8 @@ import { JobConfig } from "../../data/JobConfig";
 import ItemLista from "../Core/ItemLista";
 import { loadingJobs } from "../../Store/Reducer/ReducerJobs";
 import * as AxiosRequest from "../../data/AxiosRequest";
+import { removerJobs as removerJobsCatalogo } from "../../Store/Reducer/ReducerJobs";
+import { removerJobs as removerJobsPiepline } from "../../Store/Reducer/ReducerPipelines";
 
 
 //Componente <ListaCatalogoJobs>
@@ -35,12 +37,12 @@ const ListaCatalogoJobs: React.FC = () => {
     const exibirAlerta = () => {
         alerta({
             header: 'Deletar Jobs!',
-            message: 'Tem certeza que deseja deletar os seguintes Jobs da base da dados? ' + 
-                    `${nomeJobsSelecionados.join(", ")}.`,
+            message: 'Tem certeza que deseja deletar estes Jobs da base da dados?<br/>' + 
+                    `${nomeJobsSelecionados.join('<br/>')}.`,
             buttons: [
                 'Não',
                 { text: 'Sim', handler: (d) => deletarJobs() }
-            ],
+            ]
         });
     };
 
@@ -95,7 +97,7 @@ const ListaCatalogoJobs: React.FC = () => {
             }));
         }
         finally {
-            setLoading(false);
+            dispatch(loadingJobs(false));
         }
     }
 
@@ -113,7 +115,9 @@ const ListaCatalogoJobs: React.FC = () => {
                 />
             </ItemLista>
             <ItemLista text="Desselecionar Jobs" icon={closeCircle} trigger={cancelarJobsSelecionados} />
-            <ItemLista text="Deletar Selecionados" icon={trashOutline} trigger={cancelarJobsSelecionados} />
+            <ItemLista text="Deletar Selecionados" icon={trashOutline} trigger={
+                () => jobsSelecionados.length > 0 ? exibirAlerta() : null
+            }/>
             {
                 catalogoJobs.filter(item => item.nome.includes(jobPesquisado))
                     .map((item, index) => {
@@ -141,17 +145,3 @@ const ListaCatalogoJobs: React.FC = () => {
 };
 
 export default ListaCatalogoJobs;
-
-function removerJobsPiepline(arg0: any[]): any {
-    throw new Error("Function not implemented.");
-}
-
-
-function removerJobsCatalogo(arg0: any[]): any {
-    throw new Error("Function not implemented.");
-}
-
-
-function setLoading(arg0: boolean) {
-    throw new Error("Function not implemented.");
-}
