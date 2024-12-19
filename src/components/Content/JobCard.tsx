@@ -148,41 +148,69 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto }) => {
                 </IonTitle>
                     <section className="mb-4">
                         <table className="table table-stripe">
-                            <tbody className='text-white fw-bold'>
+                            <tbody className='text-white h6'>
                                 <tr className='p-0 m-0'>
-                                    <td className='text-end' style={{ width: '0%' }}>Descrição:</td>
-                                    <td className='' colSpan={3}>
+                                    <td className='text-end' style={{ width: '0%' }}>Descrição</td>
+                                    <td className='border-start' colSpan={3}>
                                         <span className={fonteCodigo}>{jobDto.descricao}</span>
                                     </td>
                                 </tr>
                                 <tr className='p-0 m-0'>
-                                    <td className='text-end'>Fase:</td>
-                                    <td colSpan={3}>
-                                        <span className={fonteCodigo}>{jobDto.fase}</span>
+                                    <td className='text-end'>Programas</td>
+                                    <td className='border-start' colSpan={3}>
+                                        <span className={fonteCodigo}>
+                                            {jobDto.programa.map((item, index) => <li key={index}>{item}</li>)}
+                                        </span>
                                     </td>
                                 </tr>
                                 <tr className='p-0 m-0'>
-                                    <td className='text-end'>Programas:</td>
-                                    <td colSpan={3}>
-                                        <span className={fonteCodigo}>{jobDto.programa.join(", ")}</span>
+                                    <td className='text-end'>Tabelas</td>
+                                    <td className='border-start' colSpan={3}>
+                                        <span className={fonteCodigo}>
+                                            {jobDto.tabelas.map((item, index) => <li key={index}>{item}</li>)}
+                                        </span>
                                     </td>
                                 </tr>
                                 <tr className='p-0 m-0'>
-                                    <td className='text-end'>Tabelas:</td>
-                                    <td colSpan={3}>
-                                        <span className={fonteCodigo}>{jobDto.tabelas.join(", ")}</span>
+                                    <td className='text-end'>Logs</td>
+                                    <td className='border-start' colSpan={3}>
+                                        <span className={fonteCodigo}>
+                                            {
+                                                jobDto.mascaraLog.map((item, index) => 
+                                                    <li key={index}>
+                                                        {jobDto.diretorioLog}/{item.trim()}
+                                                    </li>
+                                                )
+                                            }
+                                        </span>
                                     </td>
                                 </tr>
                                 <tr className='p-0 m-0'>
-                                    <td className='text-end'>Máscara Carga:</td>
-                                    <td colSpan={3}>
-                                        <span className={fonteCodigo}>{jobDto.mascaraEntrada.join(", ")}</span>
+                                    <td className='text-end'>Cargas</td>
+                                    <td className='border-start' colSpan={3}>
+                                        <span className={fonteCodigo}>
+                                            {
+                                                jobDto.mascaraLog.map((item, index) => 
+                                                    <li key={index}>
+                                                        {jobDto.diretorioEntrada}/{item.trim()}
+                                                    </li>
+                                                )
+                                            }
+                                        </span>
                                     </td>
                                 </tr>
                                 <tr className='p-0 m-0'>
-                                    <td className='text-end'>Máscara Produto:</td>
-                                    <td colSpan={3}>
-                                        <span className={fonteCodigo}>{jobDto.mascaraSaida.join(", ")}</span>
+                                    <td className='text-end'>Remessas</td>
+                                    <td className='border-start' colSpan={3}>
+                                        <span className={fonteCodigo}>
+                                            {
+                                                jobDto.mascaraLog.map((item, index) => 
+                                                    <li key={index}>
+                                                        {jobDto.diretorioSaida}/{item.trim()}
+                                                    </li>
+                                                )
+                                            }
+                                        </span>
                                     </td>
                                 </tr>
                             </tbody>

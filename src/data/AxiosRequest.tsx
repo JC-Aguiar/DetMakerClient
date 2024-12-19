@@ -20,31 +20,29 @@ import { Page } from './Page';
 import { QueuePushResponseDTO } from './QueuePushResponseDTO';
 import { FilaResumoDTO } from './FilaResumoDTO';
 
-const EM_TESTE = true; 
-const IDE = true;
+//Configurações gerais
+export const LOCAL_SERVER = false; 
+export const LOCAL_CLIENT = false;
 
 //URLs do servidor
-export const SERVER_URL = 'http://172.19.3.150:8080'; //wildfly;
-export const SERVER_URL_DEV = 'http://127.0.0.1:8080';
-export const SERVER_URL_DEV2 = 'http://localhost:1990';
-export const SERVER_CONTEXT_PATH = '/det-maker-server';
-export const SERVER_CONTEXT_PATH_DEV = '/det-maker-server';
-export const SERVER_CONTEXT_PATH_DEV2 = '';
-
-const PROD_CONTEXT = `${SERVER_URL}${SERVER_CONTEXT_PATH}`;
-const DEV_CONTEXT = IDE ? `${SERVER_URL_DEV2}${SERVER_CONTEXT_PATH_DEV2}` : `${SERVER_URL_DEV}${SERVER_CONTEXT_PATH_DEV}`; 
-export const REQUEST_URL = EM_TESTE ? DEV_CONTEXT : PROD_CONTEXT;
+export const SERVER_URL = 'https://detmaker.toppen.com.br'; //http://172.19.3.150:8080
+export const SERVER_URL_DEV = 'http://localhost:1990'; //http://127.0.0.1:8080
+export const SERVER_CONTEXT_PATH = '/api'; //det-maker-server
 
 //URLs do cliente
-export const CLIENT_URL = 'localhost:8080'; //'172.31.10.17';
+export const CLIENT_URL = 'detmaker.toppen.com.br'; //'172.31.10.17';
 export const CLIENT_URL_DEV = 'localhost:3000';
-//export const CLIENT_CONTEXT_PATH = '/det-maker-client';
 export const URL_CLIENTES = `/clients`;
 export const URL_PIPELINES = `/pipelines`;
 export const URL_FILA = `/queue`;
 export const URL_RELATORIOS = `/reports`;
 export const URL_DET = `/evidence`;
 export const URL_LOGIN = `/login`;
+
+//const DEV_CONTEXT = IDE ? `${SERVER_URL_DEV2}${SERVER_CONTEXT_PATH_DEV2}` : `${SERVER_URL_DEV}${SERVER_CONTEXT_PATH_DEV}`; 
+const REQUEST_URL_PROD = `${SERVER_URL}${SERVER_CONTEXT_PATH}`;
+const REQUEST_URL_DEV = `${SERVER_URL_DEV}`; 
+export const REQUEST_URL = LOCAL_SERVER ? REQUEST_URL_DEV : REQUEST_URL_PROD;
 
 //Headers para requisições ao backend do Det-Maker
 export const headers: AxiosRequestHeaders = {
@@ -325,6 +323,31 @@ export async function getAllJobs(clienteId: number): Promise<JobInfoDTO[]> {
         url: `${REQUEST_URL}/job/cliente/${clienteId}`,
         headers: headers,
         timeout: 30000,
+    };
+    //Executando requisição
+    return await axios
+        .request(config)
+        .then((response) => {
+            return response.data;
+        })
+        .catch((error: AxiosError) => {
+            throw requestErro(titulo, error);
+        });
+}
+
+//Requisição para salvar Job no banco
+export async function saveJob(clienteId: number, dto: JobInfoDTO): Promise<JobInfoDTO> {
+    const titulo = `SALVAR JOB ${dto.nome} PARA CLIENTE ID ${clienteId}`;
+    requestStart(titulo);
+
+    //Preparando requisição
+    let config: AxiosRequestConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${REQUEST_URL}/job/cliente/${clienteId}`,
+        headers: headers,
+        data: dto,
+        timeout: 10000,
     };
     //Executando requisição
     return await axios
@@ -648,7 +671,7 @@ export interface ResumoEvidenciasRevisadasDTO {
 }
 
 //Requisição para salvar as revisões das Evidências
-export async function saveRevisaoEvidencia(evidencias: EvidenciaRevisadaDTO[]): Promise<ResumoEvidenciasRevisadasDTO> {
+export async function saveRevisaoEvidencia(evidencias: EvidenciaRevisadaDTO[]): Promise<string> {
     const titulo = "SALVAR REVISÃO EVIDÊNCIA";
     requestStart(titulo);
 

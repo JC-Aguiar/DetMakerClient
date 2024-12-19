@@ -87,9 +87,8 @@ const EscolherClientes: React.FC = () => {
                         >
                             <IonIcon icon={checked} 
                                 color="primary" 
-                                size='large'
-                                className='btn border-0 p-0 pe-1' 
-                                style={{ transform: 'scale(1.2) translate(0.25px, 1.75px)' }}
+                                className='btn border-0 m-0 p-0 pe-1' 
+                                style={{ transform: 'scale(1.5) translate(1.75px, 1.75px)' }}
                                 onClick={(e) => setClienteAmbiente(cliente, ambiente)}
                             />
                             <IonLabel className='px-1 py-2 m-0 rounded rounded-3'>
@@ -98,7 +97,7 @@ const EscolherClientes: React.FC = () => {
                                 </p>
                                 <p className='lh-1 p-0 m-0'>
                                     <span className='text-white p-0 mx-1'>
-                                        <span>STP: </span> 
+                                        <span>SFTP: </span> 
                                         <span className='font-monospace'>{ambiente.ftp.conexao}</span>
                                     </span>
                                 </p>
@@ -135,8 +134,8 @@ const EscolherClientes: React.FC = () => {
                 {
                     catalogoClientes.map((cliente, indexCliente) =>
                         <SwiperSlide key={indexCliente} className=''>
-                                <IonRow key={indexCliente} id="card-filme" className='ion-justify-content-center mb-4'>
-                                <IonCol size='12' sizeMd='6' id="filme-texto" className="glass m-2">
+                            <IonRow key={indexCliente} id="card-filme" className='ion-justify-content-center mb-4'>
+                                <IonCol size='12' sizeMd='5' id="filme-texto" className="glass m-2">
                                     <IonThumbnail>
                                         <IonImg 
                                             id="filme-capa" 
@@ -146,7 +145,7 @@ const EscolherClientes: React.FC = () => {
                                         />
                                     </IonThumbnail> 
                                 </IonCol>
-                                <IonCol size='12' sizeMd='4' className='glass m-2'>
+                                <IonCol size='12' sizeMd='5' className='glass m-2'>
                                     <IonContent className='ion-justify-content-center p-0 m-0'>
                                         <IonTitle color='#' className='text-white m-0 py-3 text-center w-100'>
                                             <span id="filme-title" className='h3 align-middle'>{cliente.nome}</span>

@@ -83,6 +83,7 @@ const Login = (props: any) => {
                 <h4 className="h4 text-white text-center">
                     Acesse sua conta Google para se logar na aplicação
                 </h4>
+                <p hidden>{GOOGLE_REDIRECT_URI}</p>
                 {conteudo()}
             </div>
         </div>

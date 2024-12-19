@@ -40,7 +40,7 @@ const BotaoMassasPipeline = forwardRef<BotaoMassasPipelineRef>((props, ref) => {
     //Renderização visual do componente
     return (
         <IonList className="glass mx-2">
-            <IonItem>
+            <IonItem disabled={massasBanco.length < 1}>
                 <IonIcon icon={library} className='mx-2' />
                 <IonSelect 
                     multiple={true}

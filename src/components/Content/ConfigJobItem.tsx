@@ -366,11 +366,6 @@ const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, r
                             </div>
                             */
                         }
-                        <div>
-                            {
-                                cargas.map(item => item.nome).join("\n")
-                            }
-                        </div>
                     </div>
                     }
                 </div>

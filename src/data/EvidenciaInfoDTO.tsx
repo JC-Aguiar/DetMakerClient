@@ -1,4 +1,5 @@
 import { AnexoInfoDTO } from "./AnexoInfoDTO";
+import { ExecQueryDTO } from "./ExecQueryDTO";
 
 export interface EvidenciaInfoDTO {
     id: number,
@@ -7,14 +8,14 @@ export interface EvidenciaInfoDTO {
     jobDescricao: string,
     comandoExec: string,
     argumentos: string, 
-    queries: string[],
-    queriesNome: string[],
-    tabelasPreJob: string[],
-    tabelasPosJob: string[],
-    queriesInconformidade: string[],
+    queries: ExecQueryDTO[],
+    //queriesNome: string[],
+    //tabelasPreJob: string[],
+    //tabelasPosJob: string[],
+    //queriesInconformidade: string[],
     cargas: AnexoInfoDTO[],
     logs: AnexoInfoDTO[],
-    saidas: AnexoInfoDTO[],
+    remessas: AnexoInfoDTO[],
     exitCode: number;
     sha256: string;
     erroFatal: string;
@@ -22,7 +23,7 @@ export interface EvidenciaInfoDTO {
     dataFim: number, 
     duracao: number, 
     revisor: string, 
-    dataRevisao: Date,
+    dataRevisao: number,
     requisitos: string, 
     comentario: string, 
     resultado: string, 

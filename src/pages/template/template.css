@@ -2,6 +2,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lugrasimo&family=Play:wght@700&display=swap');
 
+body {
+    font-family: "Lato", sans-serif;
+    font-weight: 100;
+    font-style: normal;
+}
+
 nav {
   border-bottom: 2px solid yellow;
   background-clip: padding-box;
@@ -51,8 +57,8 @@ teste-1-anexos
 
 #capa-background {
     margin-top: -2%;
-    scale: 80%;
-    opacity: 50%;
+    scale: 100%;
+    /*opacity: 50%;*/
 }
 
 .banner {

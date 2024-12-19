@@ -304,7 +304,10 @@ const ListaConfigJobs: React.FC = () => {
                 <BotaoMassasPipeline ref={massasRef}/>
 
                 {/* Variáeis Globais (Configurações) */}
-                <ListaRetratrilAgrupada listas={listasRefateis} />
+                <ListaRetratrilAgrupada 
+                    listas={listasRefateis} 
+                    disable={listasRefateis.length < 1}
+                />
 
                 {/* Jobs */}
                 <IonList className='glass mx-2'>
@@ -343,13 +346,6 @@ const ListaConfigJobs: React.FC = () => {
                     </IonReorderGroup>
                 </IonList>
             </IonCardContent>
-            <GlassInput text='Teste'>
-                {
-                    jobsConfigurados.current
-                        .map(item => item.cargas)
-                        .map(item => <div>JOB INDEX [{item.jobIndex}]: {item.arquivos.map(arq => arq.nome).join(", ")}</div>)
-                }
-            </GlassInput>
             <div className='m-3'></div>
         </IonRow>
     );

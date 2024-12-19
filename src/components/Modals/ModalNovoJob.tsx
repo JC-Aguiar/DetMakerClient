@@ -1,10 +1,13 @@
 import { IonIcon, IonRow, IonBadge, IonCol, IonInput, IonItem } from "@ionic/react";
 import { alertCircle, reorderThree, save, } from "ionicons/icons";
 import { useRef } from "react";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Botao from "../Core/Botao";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
 import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
+import * as axiosRequest from '../../data/AxiosRequest';
+import { RootState } from "../../Store/ReduxStore";
+import { setJobs } from "../../Store/Reducer/ReducerJobs";
 
 export interface ModalNovoJobProps {
     onSave?: () => void;
@@ -14,32 +17,10 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
     //Atrbiutos para usar recursos Redux e React
     const dispatch = useDispatch();
 
-    //Atributos de referência
-    /*
-    const nomeRef = useRef<HTMLIonInputElement>(null);
-    const executarAposJobRef = useRef<HTMLIonInputElement>(null);
-    const grupoConcorrenciaRef = useRef<HTMLIonInputElement>(null);
-    const faseRef = useRef<HTMLIonInputElement>(null);
-    const descricaoRef = useRef<HTMLIonInputElement>(null);
-    const grupoUdaRef = useRef<HTMLIonInputElement>(null);
-    const programaRef = useRef<HTMLIonInputElement>(null);
-    const tabelasRef = useRef<HTMLIonInputElement>(null);
-    const servidorRef = useRef<HTMLIonInputElement>(null);
-    const caminhoExecRef = useRef<HTMLIonInputElement>(null);
-    const parametrosRef = useRef<HTMLIonInputElement>(null);
-    const descricaoParametrosRef = useRef<HTMLIonInputElement>(null);
-    const diretorioEntradaRef = useRef<HTMLIonInputElement>(null);
-    const mascaraEntradaRef = useRef<HTMLIonInputElement>(null);
-    const diretorioSaidaRef = useRef<HTMLIonInputElement>(null);
-    const mascaraSaidaRef = useRef<HTMLIonInputElement>(null);
-    const diretorioLogRef = useRef<HTMLIonInputElement>(null);
-    const mascaraLogRef = useRef<HTMLIonInputElement>(null);
-    const tratamentoRef = useRef<HTMLIonInputElement>(null);
-    const escalationRef = useRef<HTMLIonInputElement>(null);
-    const dataAtualizacaoRef = useRef<HTMLIonInputElement>(null);
-    const atualizadoPorRef = useRef<HTMLIonInputElement>(null);
-    const queriesRef = useRef<HTMLIonInputElement>(null);
-    */
+    //Atributos com estado gerenciado via Redex
+    const mainClienteId = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
+    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
+
     const dividirTexto = (valor: string) => valor.replace(/, /g, ";").split(";");
 
     //Defiindo atributos para gerar os campos de input, com base no JobInfoDTO
@@ -66,6 +47,7 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
             obrigatorio: true,
             ref: useRef<HTMLIonInputElement>(null)
         },
+        /*
         { 
             nome: "Executar após Job", 
             atributo: "executarAposJob", 
@@ -86,14 +68,6 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
             atributo: "fase", 
             tamanho: 25,
             colunas: 4,
-            ref: useRef<HTMLIonInputElement>(null)
-        },
-        { 
-            nome: "Descrição", 
-            atributo: "descricao", 
-            tamanho: 500,
-            tipo: "textArea",
-            obrigatorio: true,
             ref: useRef<HTMLIonInputElement>(null)
         },
         { 
@@ -120,6 +94,16 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
             lista: true,
             ref: useRef<HTMLIonInputElement>(null)
         },
+        */
+        { 
+            nome: "Descrição", 
+            atributo: "descricao", 
+            tamanho: 500,
+            tipo: "textArea",
+            obrigatorio: true,
+            ref: useRef<HTMLIonInputElement>(null)
+        },
+        /*
         { 
             nome: "Servidor", 
             atributo: "servidor", 
@@ -127,6 +111,7 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
             colunas: 2,
             ref: useRef<HTMLIonInputElement>(null)
         },
+        */
         { 
             nome: "Caminho Execução", 
             atributo: "caminhoExec", 
@@ -151,26 +136,26 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
             ref: useRef<HTMLIonInputElement>(null)
         },
         { 
-            nome: "Diretório das Entradas", 
+            nome: "Diretório das Cargas", 
             atributo: "diretorioEntrada", 
             tamanho: 100,
             ref: useRef<HTMLIonInputElement>(null)
         },
         { 
-            nome: "Máscara das Entradas", 
+            nome: "Máscara das Cargas", 
             atributo: "mascaraEntrada", 
             tamanho: 350,
             lista: true,
             ref: useRef<HTMLIonInputElement>(null)
         },
         { 
-            nome: "Diretório dos Produtos", 
+            nome: "Diretório das Remessas", 
             atributo: "diretorioSaida", 
             tamanho: 100,
             ref: useRef<HTMLIonInputElement>(null)
         },
         { 
-            nome: "Máscara dos Produtos", 
+            nome: "Máscara das Remessas", 
             atributo: "mascaraSaida", 
             tamanho: 150,
             lista: true,
@@ -190,7 +175,8 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
             lista: true,
             obrigatorio: true,
             ref: useRef<HTMLIonInputElement>(null)
-        },
+        }
+        /*
         { 
             nome: "Tratamento", 
             atributo: "tratamento", 
@@ -205,10 +191,11 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
             colunas: 6,
             ref: useRef<HTMLIonInputElement>(null)
         }
+        */
     ];
     
     //Requisição para criar novo mapa de Job para este Cliente
-    function criarNovoJob() {
+    async function criarNovoJob() {
         const mensagemId = `New_Job@${Date.now()}`;
         dispatch(addMensagem({ 
             id: mensagemId, 
@@ -222,8 +209,14 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
                 throw `Campo obrigatório '${pendente.ref.current!.placeholder}' não preenchido!`;
             }
             const novoJob = instanciarInterfaceJob();
-            throw "Método não implementado ainda!";
-            //onSave();
+            const jobBanco: JobInfoDTO = await axiosRequest.saveJob(mainClienteId, novoJob);
+            onSave();
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `Novo Job '${jobBanco.nome}' salvo com sucesso.`,
+                status: "OK",
+            }));
+            dispatch(setJobs([...catalogoJobs, jobBanco]));
         }
         catch (error) {
             dispatch(atualizarMensagem({
@@ -361,7 +354,7 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
                         <Botao icon={save}
                             text="Salvar no Banco"
                             //disabled={nome.trim().length < 2 || ambienteSftpConexao.trim().length < 2} 
-                            handler={() => criarNovoJob()} 
+                            handler={criarNovoJob} 
                         />
                     </div>
                 </div>

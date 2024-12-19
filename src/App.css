@@ -123,6 +123,29 @@ ion-tab-bar {
   z-index: 50;
 }
 
+.modal-backdrop {
+  display: none; /* Oculta o backdrop */
+}
+
+.modal-small {
+  --width: 40%;
+  --max-width: 40%;
+  --min-width: 40%;
+}
+
+.banner {
+  /*120px*/
+  width: 100%;
+  background: linear-gradient(135deg, #0051c2, #87cefa, #dbe9f1, #1e90ff, #0f71d3);
+  background-size: 400% 400%;
+  animation: gradient 20s ease-in infinite;
+}
+
+.banner>h1 {
+  opacity: 50%;
+  color: #072651;
+}
+
 .banner-gold:hover {
   background: linear-gradient(135deg, #e7cb2f, #f1ff58, #f0fa87, #eef1db, #f1ff58, #e7cb2f, #eef1db);
   background-size: 300% 500%;

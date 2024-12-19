@@ -47,7 +47,7 @@ const PipelinePanel: React.FC = () => {
     });
     const [modalNovoJobOn, modalNovoJobOff] = useIonModal(DynamicModal, {
         titulo: "Criar Novo Job",
-        elemento: <ModalNovoJob />,
+        elemento: <ModalNovoJob onSave={() => modalNovoJobOff()} />,
         onDismiss: () => modalNovoJobOff(),
     });
     

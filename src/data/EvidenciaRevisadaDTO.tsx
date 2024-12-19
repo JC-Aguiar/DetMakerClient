@@ -1,7 +1,7 @@
 export interface EvidenciaRevisadaDTO {
     evidenciaId: number,
     resivor: string,
-    dataRevisao: Date,
+    dataRevisao: number,
     comentario: string,
     resultado: string,
 }
