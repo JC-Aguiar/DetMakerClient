@@ -8,13 +8,7 @@ export interface BotaoProps extends HTMLAttributes<HTMLIonButtonElement> {
     handler: () => void,
 }
 
-const Botao: React.FC<BotaoProps> = ({ icon=null, text, disabled=false, handler, color = 'light', ...props }) => {
-
-    const renderizarIcone = () => {
-        if (!icon) return <></>;
-        return <IonIcon icon={icon} size='large' style={{transform: 'translate(-5px, -1px) scale(1.0)'}} />
-    }
-
+const Botao: React.FC<BotaoProps> = ({ icon, text, disabled=false, handler, color = 'light', ...props }) => {
     return (
         <IonButton fill="clear" 
             {...props}
@@ -24,7 +18,7 @@ const Botao: React.FC<BotaoProps> = ({ icon=null, text, disabled=false, handler,
             disabled={disabled}
             style={{ borderWidth: '2px', borderColor: `var(--ion-color-${color})` }}
         >
-            {renderizarIcone()}
+            <IonIcon icon={icon} size='large' style={{transform: 'translate(-5px, -1px) scale(1.0)'}} hidden={!icon} />
             <div >{text}</div> 
         </IonButton>
     );

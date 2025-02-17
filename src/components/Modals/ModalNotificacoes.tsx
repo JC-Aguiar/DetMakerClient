@@ -59,6 +59,11 @@ const ModalNotificacoes: React.FC = () => {
                                             left: '8px',
                                             transform: 'translate(0, -50%)'
                                     }} />
+                                    <IonBadge color="primary" 
+                                        onClick={(e) => {
+                                            const value = 
+                                        }}>
+                                    </IonBadge>
                                     <IonCardContent className="p-0 m-0 small ion-justify-content-beetwen">
                                         {dataParaString(data)} - {nome} - {item.alvo}
                                     </IonCardContent>

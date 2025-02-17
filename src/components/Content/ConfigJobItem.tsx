@@ -31,7 +31,7 @@ const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, r
     //Atributos principais de controle
     const dispatch = useDispatch();
     const index = props.index;
-    const jobExec: JobConfig | undefined = useSelector((state: RootState) => state.store.configAtividade.mainJobs)[index];
+    const jobExec: JobConfig | undefined = useSelector((state: RootState) => state.store.configAtividade.mainPipelineJobs)[index];
     const id = jobExec != undefined ? jobExec.id : -1;
     const nome = jobExec !== undefined ? jobExec.nome : "";
     const jobInfo: JobInfoDTO | undefined = useSelector(
@@ -106,11 +106,8 @@ const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, r
                     novas.splice(cargaIndex, 1);
                     return novas;
                 });
-                //setJobConfigurado({ ...jobConfigurado, cargas: [] });
                 return;
             }
-            //const novasCargas: PipelineJobCargaDTO[] = [];
-            //jobConfigurado.cargas.forEach(item => novasCargas.push(item));
             let sucessos = 0;
             for (let index = 0; index < files.length; index++) {
                 const file = files?.[index];
@@ -122,14 +119,11 @@ const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, r
                         conteudo: reader.result as string,
                         tipo: file.type,
                     };
-                    //if (cargas.length <= index)
-                    //    novasCargas.push(cargaNova);
-                    //else
-                        setCargas(atual => {
-                            const novas = atual.slice();
-                            novas[cargaIndex] = cargaNova;
-                            return novas;
-                        });
+                    setCargas(atual => {
+                        const novas = atual.slice();
+                        novas[cargaIndex] = cargaNova;
+                        return novas;
+                    });
                 };
                 reader.readAsText(file);
                 console.log(`[MODAL CONFIG-JOB]: Arquivo '${file.name}' anexado com sucesso.`);
@@ -140,8 +134,6 @@ const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, r
                 texto: `Pipeline '${mainPipeline}' - Job '${jobInfo.nome}': Total de ${sucessos}/${files.length} de carga(s) carregadas com sucesso.`,
                 status: 'INFO'
             }));
-            //setJobConfigurado( {...jobConfigurado, cargas: novasCargas} );
-            //dispatch(setMainJobCargas({ index, cargas: novasCargas }));
         }
         catch (error) {
             dispatch(atualizarMensagem({ 
@@ -158,8 +150,6 @@ const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, r
         
         const sessoes: {icon: string, content: JSX.Element}[] = [];
         
-        //if (jobInfo.executarAposJob.length > 0)
-        //    sessoes.push(textoCodigo("Executar após IDs:", jobInfo.executarAposJob.join(", ")));
         if (jobInfo.programa.length > 0) {
             sessoes.push({
                 icon: cube,
@@ -176,12 +166,6 @@ const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, r
             icon: chatboxEllipses,
             content: textoCodigo(`Descrição: `, jobInfo.descricao)
         });
-
-        //if (jobInfo.mascaraLog.length > 0)
-        //    sessoes.push(textoLista(`Logs: `, jobInfo.mascaraLog));
-
-        //if (jobInfo.queries.length > 0)
-        //    sessoes.push(textoLista(`Queries: `, jobInfo.queries.map(item => item.sql)));
         
         const listaJobDados: ListaRetratrilProps[] = [];
         if (jobInfo.mascaraLog.length > 0) {
@@ -227,30 +211,6 @@ const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, r
         );
     }
 
-    //Exibindo campos de Cargas do Job
-    /*
-    const camposInputCargas = () => {
-        if (!jobInfo || !jobExec || !jobInfo.mascaraEntrada || jobInfo.mascaraEntrada.length === 0) 
-            return;
-        return (
-            <div className="px-1 mb-2">
-                {labelTitulo('CARGAS DE CONSUMO', `job${id}-carga`)}
-                {
-                    jobInfo.mascaraEntrada.map((item, index) => <Uploader 
-                            key={index} 
-                            accept=".log, .txt, .gz" 
-                            arquivosAtuais={jobExec.cargas.map(item => item.nome)}
-                            multiple={true}
-                            titulo={item}
-                            trigger={(arquivos) => preencherCarga(arquivos)}
-                        />
-                    )
-                }
-            </div>
-        );
-    }
-    */
-
     //Faz a validação da query já preenchida (tanto manual, quanto autmática)
     const validarQuery = async (query: string) => { 
         const mensagemId = `Check_Query@${Date.now()}`;
@@ -288,26 +248,6 @@ const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, r
         }
     );
 
-    //Modal contendo campos de execução
-    /*
-    const [modalParamOn, modalParamOff] = useIonModal(DynamicModal,
-        {
-            titulo: <>
-                        <span className="badge bg-white me-1 text-primary">ID {id}</span>
-                        {nome}
-                    </>,
-            elemento: <div className="p-2">
-                        {informacoes()}
-                        {camposInputCargas()}
-                        <div className="d-flex ion-justify-content-end me-2 pe-1">
-                            <Botao icon={save} text="Salvar" handler={salvandoItem} />
-                        </div>
-                    </div>,
-            onDismiss: () => modalParamOff(),
-        }
-    );
-    */
-
     //Renderização do componente
     if (!jobExec || !jobInfo) return null;
     return (
@@ -320,31 +260,6 @@ const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, r
                         </IonLabel>
                     <IonIcon icon={reorderFour} />
                 </IonReorder>
-                {/*
-                <IonButton fill="solid" 
-                    shape="round" 
-                    color="primary"
-                    className="m-0 p-0 text-start text-wrap h6 w-100" 
-                    onClick={() => modalParamOn({ cssClass: 'modal-job-card' })}
-                >
-                    <div className="m-0 p-0 ps-2 bg-transparent">
-                        {jobExec.nome}
-                    </div>
-                    <IonBadge className="m-0 ms-3 p-0 px-2 h6 rounded" color="light">
-                        ID {id}
-                    </IonBadge>
-                </IonButton>
-                <IonButton fill="clear" 
-                    shape="round" 
-                    size='small' 
-                    className="m-0 ms-1 p-0" 
-                    onClick={() => { 
-                        if(jobInfo) modalInfoOn({ cssClass: 'modal-job-card' }) 
-                    }}
-                >
-                    <IonIcon icon={cog} color='light'/>
-                </IonButton>
-                */}
                 <div className="w-100">
                     <JobCard jobDto={jobInfo}/>
                     {
@@ -360,11 +275,6 @@ const ConfigJobItem = forwardRef<ConfigJobItemRef, ConfigJobItemProps>((props, r
                                     trigger={(arquivos) => preencherCarga(cargaIndex, arquivos)} //AQUI!
                                 />
                             )
-                            /*
-                            <div className="d-flex ion-justify-content-end me-2 pe-1">
-                                <Botao icon={save} text="Salvar" handler={salvandoItem} />
-                            </div>
-                            */
                         }
                     </div>
                     }

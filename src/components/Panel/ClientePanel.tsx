@@ -1,7 +1,7 @@
 import { checkmark, personAdd, refresh } from "ionicons/icons";
 import ButtonLayout, { ButtonLayoutProps } from "../Core/ButtonLayout";
 import { useDispatch, useSelector } from "react-redux";
-import { addMensagem, atualizarMensagem, setMainAmbiente, setMainJobs, setMainMassas, setMainPipeline, setViewJobs } from "../../Store/Reducer/ReducerAtividade";
+import { addMensagem, atualizarMensagem, setMainAmbiente, setMainJobs, setMainMassas, setMainPipeline, setViewJob } from "../../Store/Reducer/ReducerAtividade";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
 import { useState, forwardRef, useImperativeHandle } from "react";
@@ -109,7 +109,7 @@ const ClientePanel: React.FC = () => {
         dispatch(setMainPipeline());
         dispatch(setMainJobs([]));
         dispatch(setMainMassas({}));
-        dispatch(setViewJobs([]));
+        dispatch(setViewJob([]));
     }
 
     return(

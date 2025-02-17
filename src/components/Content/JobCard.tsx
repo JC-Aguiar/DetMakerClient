@@ -1,9 +1,9 @@
-import { IonCard, IonAccordionGroup, IonAccordion, IonItem, IonCardHeader, IonCardTitle, IonCardContent, IonTitle, IonBadge, IonButton, IonIcon, IonRow, useIonModal, IonLabel, useIonAlert } from "@ionic/react";
+import { IonCard, IonAccordionGroup, IonAccordion, IonItem, IonCardHeader, IonCardTitle, IonCardContent, IonTitle, IonBadge, IonButton, IonIcon, IonRow, useIonModal, IonLabel, useIonAlert, IonButtons, IonToolbar, IonInput, IonChip, IonCol, IonTextarea, IonSegment, IonSegmentButton } from "@ionic/react";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
-import { addCircle, close, createOutline, trash, trashOutline } from "ionicons/icons";
+import { addCircle, arrowUndo, close, closeCircle, createOutline, save, server, settings, trash, trashOutline } from "ionicons/icons";
 import DynamicModal from "../Core/DynamicModal";
 import ModalConfigQuery from "../Modals/ModalConfigQuery";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import GlassInput from "../Core/GlassInput";
 import { useDispatch, useSelector } from "react-redux";
 import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
@@ -14,6 +14,8 @@ import { removeQuery } from "../../Store/Reducer/ReducerQueries";
 import { QueryInfoDTO } from "../../data/QueryInfoDTO";
 import { removerJobs as removerJobsCatalogo } from "../../Store/Reducer/ReducerJobs";
 import { removerJobs as removerJobsPiepline } from "../../Store/Reducer/ReducerPipelines";
+import Botao from "../Core/Botao";
+import { format, FormatOptionsWithLanguage } from "sql-formatter";
 
 export interface JobCardProps {
     jobDto: JobInfoDTO,
@@ -26,11 +28,58 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto }) => {
     const dispatch = useDispatch();
     const fonteCodigo = 'font-monospace text-white fw-bold'
     const [loading, setLoading] = useState<boolean>(false);
-    const queries: QueryInfoDTO[] = useSelector((state: RootState) => state.store.catalogoQueries.catalogo)
-        .filter(item => item.jobId === jobDto.id);
     const [queryIndex, setQueryIndex] = useState<number>(-1);
     const [alerta] = useIonAlert();
+    const queries: QueryInfoDTO[] = useSelector(
+        (state: RootState) => state.store.catalogoQueries.catalogo.filter(item => item.jobId === jobDto.id)
+    );
+    const [jobNome, setJobNome] = useState<string>(
+        jobDto.nome
+    );
+    const [jobDescricao, setJobDescricao] = useState<string>(
+        jobDto.descricao
+    );
+    const [jobDiretorioExec, setJobDiretorioExec] = useState<string>(
+        jobDto.caminhoExec
+    );
+    const [jobParametrosExec, setJobParametrosExec] = useState<string>(
+        jobDto.parametros.join("\n")
+    );
+    const [jobParametrosDescricao, setJobParametrosDescricao] = useState<string>(
+        jobDto.descricaoParametros.join("\n")
+    );
+    const [jobDiretorioCarga, setJobDiretorioCarga] = useState<string>(
+        jobDto.diretorioEntrada
+    );
+    const [jobMascarasCarga, setJobMascarasCarga] = useState<string>(
+        jobDto.mascaraEntrada.join("\n")
+    );
+    const [jobDiretorioLog, setJobDiretorioLog] = useState<string>(
+        jobDto.diretorioLog
+    );
+    const [jobMascarasLog, setJobMascarasLog] = useState<string>(
+        jobDto.mascaraLog.join("\n")
+    );
+    const [jobDiretorioRemessa, setJobDiretorioRemessa] = useState<string>(
+        jobDto.diretorioSaida
+    );
+    const [jobMascarasRemessa, setJobMascarasRemessa] = useState<string>(
+        jobDto.mascaraSaida.join("\n")
+    );
 
+    const configSqlFormatter: FormatOptionsWithLanguage = {
+        tabWidth: 2,
+        useTabs: true,
+        language: 'plsql',
+        keywordCase: 'upper',
+        dataTypeCase: 'upper',
+        functionCase: 'upper',
+        identifierCase: 'upper',
+        indentStyle: "tabularLeft",
+        logicalOperatorNewline: "before",
+        linesBetweenQueries: 2,
+      };
+    
     //Atributo da modal acionada pelo componente
     const [modalQueryOn, modalQueryOff] = useIonModal(DynamicModal, 
         {
@@ -129,129 +178,268 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto }) => {
         }
     }
 
+    //Botões de cada card de Job
+    const botoesPorJob = [
+        {
+            text: "Salvar",
+            color: "tertiary", 
+            onClick: () => null,
+            icon: save,
+        },
+        {
+            text: "Reverter",
+            color: "tertiary", 
+            onClick: () => null,
+            icon: arrowUndo,
+        },
+        {
+            text: "Excluir",
+            color: "danger", 
+            onClick: () => exibirAlerta(),
+            icon: trashOutline,
+        },
+    ];
+
+    //Separando os tipos de campos em comum, que pertencem ao mesmo grupo/contexto de informação 
+    type JobGruposDeCamposType = "Artefato" | "Cargas" | "Logs" | "Remessas" | "Queries"; 
+    const listaGruposDosCampo: JobGruposDeCamposType[] = ["Artefato", "Cargas", "Logs", "Remessas", "Queries"];
+
+    //Interface das propriedades gerais dos campos dos Jobs
+    interface JobCampoProps<T> {
+        nome: string,
+        colunas: number,
+        lista: boolean,
+        valor: T,
+        aoDigitar: (texto: T) => void,
+        reverer: () => void,
+        multiline?: boolean
+    }
+
+    //Interface que organiza os campos do Job em grupos 
+    interface JobGrupoDeCampoProps<T> {
+        grupo: JobGruposDeCamposType,
+        campos: JobCampoProps<T>[]
+    }
+
+    const adaptarStringEmLista = (texto: string) => texto.replaceAll(",", "\n");
+
+    const valoresDosGrupoDeCampos: JobGrupoDeCampoProps<string>[] = [
+        {
+            grupo: "Artefato",
+            campos: [
+                {
+                    nome: "Diretório",
+                    colunas: 4,
+                    lista: false,
+                    valor: jobDiretorioExec,
+                    aoDigitar: setJobDiretorioExec, 
+                    reverer: () => setJobDiretorioExec(jobDto.caminhoExec)
+                }, {
+                    nome: "Nome Completo",
+                    colunas: 8,
+                    lista: false,
+                    valor: jobNome,
+                    aoDigitar: setJobNome, 
+                    reverer: () => setJobNome(jobDto.nome)
+                }, {
+                    nome: "Lista dos Parâmetros",
+                    colunas: 4,
+                    lista: true,
+                    multiline: true,
+                    valor: jobParametrosExec,
+                    aoDigitar: (texto) => setJobParametrosExec(adaptarStringEmLista(texto)), 
+                    reverer: () => setJobParametrosExec(jobDto.parametros.join("\n"))
+                }, {
+                    nome: "Descrição dos Parâmetros",
+                    colunas: 8,
+                    lista: true,
+                    multiline: true,
+                    valor: jobParametrosDescricao,
+                    aoDigitar: (texto) => setJobParametrosDescricao(adaptarStringEmLista(texto)), 
+                    reverer: () => setJobParametrosDescricao(jobDto.descricaoParametros.join("\n"))
+                }, {
+                    nome: "Descrição do Artefto",
+                    colunas: 12,
+                    lista: false,
+                    multiline: true,
+                    valor: jobDescricao,
+                    aoDigitar: setJobDescricao, 
+                    reverer: () => setJobDescricao(jobDto.descricao)
+                }
+            ]
+        }, {
+            grupo: "Cargas",
+            campos: [
+                {
+                    nome: "Diretório",
+                    colunas: 5,
+                    lista: false,
+                    valor: jobDiretorioCarga,
+                    aoDigitar: setJobDiretorioCarga, 
+                    reverer: () => setJobDiretorioCarga(jobDto.diretorioEntrada)
+                }, {
+                    nome: "Lista das Máscaras",
+                    colunas: 7,
+                    lista: true,
+                    multiline: true,
+                    valor: jobMascarasCarga,
+                    aoDigitar: (texto) => setJobMascarasCarga(adaptarStringEmLista(texto)), 
+                    reverer: () => setJobMascarasCarga(jobDto.mascaraEntrada.join("\n"))
+                },
+            ]
+        }, {
+            grupo: "Logs",
+            campos: [
+                {
+                    nome: "Diretório",
+                    colunas: 5,
+                    lista: false,
+                    valor: jobDiretorioLog,
+                    aoDigitar: setJobDiretorioLog, 
+                    reverer: () => setJobDiretorioLog(jobDto.diretorioLog)
+                }, {
+                    nome: "Lista das Máscaras",
+                    colunas: 7,
+                    lista: true,
+                    multiline: true,
+                    valor: jobMascarasLog,
+                    aoDigitar: (texto) => setJobMascarasLog(texto.replaceAll(",", "\n")), 
+                    reverer: () => setJobMascarasLog(jobDto.mascaraLog.join("\n"))
+                },
+            ]
+        }, {
+            grupo: "Remessas",
+            campos: [
+                {
+                    nome: "Diretório",
+                    colunas: 5,
+                    lista: false,
+                    valor: jobDiretorioRemessa,
+                    aoDigitar: setJobDiretorioRemessa, 
+                    reverer: () => setJobDiretorioRemessa(jobDto.diretorioSaida)
+                }, {
+                    nome: "Lista das Máscaras",
+                    colunas: 7,
+                    lista: true,
+                    multiline: true,
+                    valor: jobMascarasRemessa,
+                    aoDigitar: (texto) => setJobMascarasRemessa(adaptarStringEmLista(texto)), 
+                    reverer: () => setJobMascarasRemessa(jobDto.mascaraSaida.join("\n"))
+                },
+            ]
+        }
+    ];
+    
+    const [segment, setSegment] = useState<JobGruposDeCamposType>("Artefato");
+
     //Exibe o conteúdo principal dentro do card (loading ou dados)
     const conteudo = () => {
         if (loading) return <Informativo status="Carregando" />
         return (
             <>
-                <IonTitle color='primary' className='p-0'>
-                    <IonLabel>Dados da Schedule</IonLabel>
-                    <IonButton className="position-absolute end-0" 
-                        fill="solid" 
-                        shape="round" 
-                        color="danger" 
-                        size="small"
-                        onClick={e => exibirAlerta()}
-                    >
-                        Excluir <IonIcon icon={trashOutline} size="small" style={{ transform: 'translate(0, -2px)' }} />
-                    </IonButton>
-                </IonTitle>
-                    <section className="mb-4">
-                        <table className="table table-stripe">
-                            <tbody className='text-white h6'>
-                                <tr className='p-0 m-0'>
-                                    <td className='text-end' style={{ width: '0%' }}>Descrição</td>
-                                    <td className='border-start' colSpan={3}>
-                                        <span className={fonteCodigo}>{jobDto.descricao}</span>
-                                    </td>
-                                </tr>
-                                <tr className='p-0 m-0'>
-                                    <td className='text-end'>Programas</td>
-                                    <td className='border-start' colSpan={3}>
-                                        <span className={fonteCodigo}>
-                                            {jobDto.programa.map((item, index) => <li key={index}>{item}</li>)}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr className='p-0 m-0'>
-                                    <td className='text-end'>Tabelas</td>
-                                    <td className='border-start' colSpan={3}>
-                                        <span className={fonteCodigo}>
-                                            {jobDto.tabelas.map((item, index) => <li key={index}>{item}</li>)}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr className='p-0 m-0'>
-                                    <td className='text-end'>Logs</td>
-                                    <td className='border-start' colSpan={3}>
-                                        <span className={fonteCodigo}>
-                                            {
-                                                jobDto.mascaraLog.map((item, index) => 
-                                                    <li key={index}>
-                                                        {jobDto.diretorioLog}/{item.trim()}
-                                                    </li>
-                                                )
-                                            }
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr className='p-0 m-0'>
-                                    <td className='text-end'>Cargas</td>
-                                    <td className='border-start' colSpan={3}>
-                                        <span className={fonteCodigo}>
-                                            {
-                                                jobDto.mascaraLog.map((item, index) => 
-                                                    <li key={index}>
-                                                        {jobDto.diretorioEntrada}/{item.trim()}
-                                                    </li>
-                                                )
-                                            }
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr className='p-0 m-0'>
-                                    <td className='text-end'>Remessas</td>
-                                    <td className='border-start' colSpan={3}>
-                                        <span className={fonteCodigo}>
-                                            {
-                                                jobDto.mascaraLog.map((item, index) => 
-                                                    <li key={index}>
-                                                        {jobDto.diretorioSaida}/{item.trim()}
-                                                    </li>
-                                                )
-                                            }
-                                        </span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <IonTitle color='primary' className='p-0'>Queries Configuradas</IonTitle>
-                        {
-                            queries.map((item, index) =>
-                                <GlassInput
-                                    key={index}
-                                    text={item.nome}
-                                    textButtons={[
-                                        { icon: createOutline, handler: () => abrirModal(index) },
-                                        { icon: trash, handler: () => deletarQuery(index) }
-                                ]}>
-                                    <IonLabel className={`${fonteCodigo} pt-3 pb-1 fw-bold text-wrap`} >
-                                        {item.sql}
-                                    </IonLabel>
-                                </GlassInput>
+                <IonToolbar color="light" className="p-0 px-2 m-0">
+                    <IonRow className="d-flex ion-justify-content-between">
+                        <IonSegment scrollable={true} value={segment} onIonChange={e => {
+                            const tipo = listaGruposDosCampo.find(tipo => tipo === e.detail.value)
+                            setSegment(tipo ? tipo : "Artefato");
+                        }}>
+                            {
+                                listaGruposDosCampo.map((grupo, index) =>
+                                    <>
+                                        <IonSegmentButton value={grupo} key={index}>
+                                            {grupo}
+                                        </IonSegmentButton>
+                                    </>
+                                )
+                            }
+                        </IonSegment>
+                        <IonButtons className="ion-justify-content-end p-0 m-0">
+                            {
+                                botoesPorJob.map((obj, index) =>
+                                    <IonButton
+                                        key={index}
+                                        fill="outline"
+                                        shape="round"
+                                        size="small"
+                                        className="me-2 p-0"
+                                        color={obj.color}
+                                        onClick={e => obj.onClick()}
+                                    >
+                                        <IonIcon icon={obj.icon} size="small" style={{ transform: 'translate(0, -2px)' }} />
+                                        <small>{obj.text}</small>
+                                    </IonButton>
+                                )
+                            }
+                        </IonButtons>
+                    </IonRow>
+                </IonToolbar>
+                <IonRow className="my-2" hidden={segment === "Queries"}>
+                    {
+                        valoresDosGrupoDeCampos
+                            .find(grupo => grupo.grupo === segment)?.campos
+                            .map((item, itemIndex) =>
+                                <IonCol key={itemIndex} size={`${item.colunas}`} className="p-0 m-0">
+                                    <GlassInput text={item.nome}>
+                                        <IonInput
+                                            type="text"
+                                            className="font-monospace glass m-0 px-2 pt-1"
+                                            value={item.valor}
+                                            onIonChange={(e) => {
+                                                if(!e.detail.value) return;
+                                                item.aoDigitar(e.detail.value);
+                                            }}
+                                            color="light"
+                                            hidden={item.multiline}
+                                        />
+                                        <IonTextarea
+                                            className="font-monospace glass m-0 px-2 pt-1"
+                                            value={item.valor}
+                                            onIonChange={(e) => {
+                                                if(!e.detail.value) return;
+                                                item.aoDigitar(e.detail.value);
+                                            }}
+                                            color="light"
+                                            hidden={!item.multiline}
+                                        />
+                                    </GlassInput>
+                                </IonCol>
                             )
-                        }
-                        <IonRow className="m-0 p-0 ion-justify-content-start text-center">
-                            <IonButton color='primary'
-                                fill="clear"
-                                className="m-0 w-100 opacity-50"
-                                style={{ backgroundColor: `transparent` }}
-                                onClick={() => abrirModal(-1)}
-                            >
-                                <IonIcon icon={addCircle} size="large" />
-                                Adicionar nova query
-                            </IonButton>
-                        </IonRow>
-                    </section>
+                    }
+                </IonRow>
+                <IonRow className="w-100 m-0 mt-2 px-3 ion-justify-content-around" hidden={segment !== "Queries"}>
+                    {
+                        queries.map((item, index) =>
+                            <IonLabel key={index} className={`font-monospace p-0 pb-2`} >
+                                <Botao text={item.nome} handler={() => abrirModal(index)} icon={server} />
+                                <IonBadge className="stick rounded rounded-circle m-0 p-0" 
+                                    onClick={() => deletarQuery(index)}
+                                    style={{ transform: 'translate(-16px, 0)' }}
+                                >
+                                    <IonIcon icon={trash} color="danger" className="btn btn-light p-1 m-0" />
+                                </IonBadge>
+                            </IonLabel>
+                        )
+                    }
+                    <IonRow className="w-100 m-0 p-0 py-2 ion-justify-content-center text-center">
+                        <IonButton color='secondary'
+                            fill="clear"
+                            className="m-0 w-100 opacity-75"
+                            onClick={() => abrirModal(-1)}
+                        >
+                            <IonIcon icon={addCircle} size="large" />
+                            Adicionar nova query
+                        </IonButton>
+                    </IonRow>
+                </IonRow>
             </>
         );
     }
 
     //Renderização do componente
     return (
-        <IonCard>
-            <IonAccordionGroup>
-                <IonAccordion value="first">
+        <IonCard >
+            <IonAccordionGroup >
+                <IonAccordion value="first" className='bg-transparent'>
                     <IonItem slot="header" color="primary" className='' >
                         <IonCardHeader className='p-0'>
                             <IonCardTitle color='dark' className='p-0'>
@@ -261,7 +449,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto }) => {
                         </IonCardHeader>
                     </IonItem>
                     <div className='glass rounded-0 rounded-bottom' slot="content">
-                        <IonCardContent className='glass-content rounded-0 rounded-bottom small'>
+                        <IonCardContent color='#' className='m-0 p-0 rounded-0 rounded-bottom small'>
                             {conteudo()}
                         </IonCardContent>
                     </div>

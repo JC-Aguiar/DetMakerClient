@@ -78,8 +78,7 @@ const ButtonLayout: React.FC<ButtonLayoutProps> = ({ title, icon, disabled, trig
             id={id}
             color="#" 
             disabled={disabled}
-            className="btn btn-primary glass w-100"
-            style={{ maxHeight: '64px', minHeight: '64px'}}
+            className="btn btn-primary glass p-0 m-0"
             onMouseLeave={(e) => setMouseLeaveButton(true)}
             onMouseEnter={(e) => setMouseLeaveButton(false)}
         >

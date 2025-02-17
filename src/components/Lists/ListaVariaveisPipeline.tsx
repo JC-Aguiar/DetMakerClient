@@ -25,7 +25,7 @@ const ListaVariaveisPipeline = forwardRef<ListaVariaveisPipelineRef>((props, ref
 
     //Atributos do componente
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
-    const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
+    const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainPipelineJobs);
     const queries = useSelector((state: RootState) => state.store.catalogoQueries.catalogo)
         .filter(query => mainJobs.some(job => job.id === query.jobId));
     const [variaveisGlobais, setVariaveisGlobais] = useState<VariavelDinamica[]>(

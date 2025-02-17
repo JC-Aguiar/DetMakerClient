@@ -5,7 +5,7 @@ import ListaCatalogoMassas from "../Lists/ListaCatalogoMassas";
 import ListaCatalogoPipelines from "../Lists/ListaCatalogoPipelines";
 import ButtonLayout, { ButtonLayoutProps } from "../Core/ButtonLayout";
 import { useDispatch, useSelector } from "react-redux";
-import { addMensagem, atualizarMensagem, setMainPipeline, setViewJobs } from "../../Store/Reducer/ReducerAtividade";
+import { addMensagem, atualizarMensagem, setMainPipeline, setViewJob } from "../../Store/Reducer/ReducerAtividade";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
 import { useState, useRef, useEffect } from "react";
@@ -70,25 +70,25 @@ const PipelinePanel: React.FC = () => {
     //Botões renderizados por esse componente
     const butoes: ButtonLayoutProps[] = [ 
         {
-            title: 'Atualizar',
+            title: 'Atualizar Recursos',
             icon: refresh,
             trigger: () => coletarRecursos(),
             disabled: isLoading,
         }, 
         {
-            title: 'Novo Job',
+            title: 'Criar Novo Job',
             icon: cube,
             trigger: () =>  modalNovoJobOn(),
             disabled: isLoading,
         },
         {
-            title: 'Nova Pipeline',
+            title: 'Criar Nova Pipeline',
             icon: layers,
             trigger: () =>  modalNovaPipelineOn(),
             disabled: isLoading || catalogoJobs.length < 1,
         },
         {
-            title: 'Nova Schedule',
+            title: 'Upload de Schedule',
             icon: cloudUpload,
             trigger: () => novaScheduleRef.current!.click(),
             disabled: isLoading,
@@ -103,7 +103,7 @@ const PipelinePanel: React.FC = () => {
                 console.log(`Ativando modal Shedule (var: ${verModalSchedule})`);
             },
             disabled: isLoading || catalogoJobs.length < 1,
-        },
+        }   
     ];
 
     //Conjunto de Requisições para atualizar todos os recursos da página 
@@ -136,7 +136,7 @@ const PipelinePanel: React.FC = () => {
     //Requisição para obter os jobs diretamente do banco
     async function obterJobsBanco() {
         dispatch(loadingJobs(true));
-        dispatch(setViewJobs([]));
+        dispatch(setViewJob([]));
         await axiosRequest.getAllJobs(mainClienteId)
             .then(novosJobs => dispatch(setJobs(novosJobs)))
             .finally(() => dispatch(loadingJobs(false)));

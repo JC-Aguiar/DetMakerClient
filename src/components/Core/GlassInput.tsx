@@ -33,24 +33,27 @@ const GlassInput: React.FC<GlassInputProps> = ({ text, icon, children, ...props 
     return(
         <IonRow className={`d-flex w-100 p-0 py-2 m-0`}>
             <IonItem className='w-100 m-0 p-0' lines="none" hidden={!children}>
-                <span onFocus={focus} onBlur={blur} className="glass w-100 ">
+                <span onFocus={focus} onBlur={blur} className="glass w-100">
                     {children}
                 </span>
             </IonItem>
             <IonChip  
                 hidden={!text}
-                className="stick p-0 pe-2 m-0 ms-2 lh-1"
-                style={{ backgroundColor: `var(--ion-color-${color})`, color: `var(--ion-color-${color}-contrast)` }}
+                className="stick p-0 pe-2 m-0 ms-3"
+                style={{ 
+                    backgroundColor: `var(--ion-color-${color})`, 
+                    color: `var(--ion-color-${color}-contrast)`,
+                }}
             >
                 <IonIcon icon={icon} color='dark' hidden={!icon} size="small" className="m-0 p-0 ms-1" />
-                <IonLabel hidden={!text} style={{ '--color': `var(--ion-color-${color}-contrast)` }} className="ms-1" >
+                <IonLabel hidden={!text} style={{ '--color': `var(--ion-color-${color}-contrast)` }} className="mx-1" >
                     {text}
                 </IonLabel>
                 {
                     props.textButtons?.map((item, index) => 
                         <IonIcon icon={item.icon} 
                             key={index}
-                            className={`btn p-0 m-0 ${item.className ? item.className : ""}`}
+                            className={`btn p-0 ps-1 m-0 ${item.className ? item.className : ""}`}
                             onClick={() => item.handler()}
                         />
                     )

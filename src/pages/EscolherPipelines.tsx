@@ -1,10 +1,11 @@
 import { RootState } from '../Store/ReduxStore';
 import { useDispatch, useSelector } from 'react-redux';
-import ListaConfigJobs from '../components/Lists/ListaConfigJobs';
+import ModalPipelineRunner from '../components/Modals/ModalPipelineRunner';
 import { JobInfoDTO } from '../data/JobInfoDTO';
 import Informativo from '../components/Core/Informativo';
 import Carregando from '../components/Core/Carregando';
 import JobCard from '../components/Content/JobCard';
+import ListaJobs from '../components/Lists/ListaJobs';
 
 //Componente <EscolherPipelines>
 const EscolherPipelines: React.FC = () => {
@@ -15,7 +16,7 @@ const EscolherPipelines: React.FC = () => {
     const isLoadingJobs = useSelector((state: RootState) => state.store.catalogoJobs.loading);
     const isLoadingPipelines = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
     const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
-    const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobsSelecionados);
+    const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobSelecionado);
     const catalogoJobsSelecionados: JobInfoDTO[] = catalogoJobs.filter(
         (item) => jobsSelecionados.findIndex((id) => id === item.id) !== -1);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
@@ -34,12 +35,10 @@ const EscolherPipelines: React.FC = () => {
     //Conteúdo principal caso existam dados na base
     function conteudo() {
         if (jobsSelecionados.length > 0) {
-            return catalogoJobsSelecionados.map(
-                (jobDto, index) => <JobCard key={index} jobDto={jobDto}/> 
-            );
+            return <ListaJobs />;
         }
         if (mainPipeline !== "") {
-            return <ListaConfigJobs />;
+            return <ModalPipelineRunner />;
         }
         const mensagem = 'Use o painel lateral para vizualizar {Jobs} e {Pipelines}\n'
             + 'Selecione um {Job}, fora da {Pipeline}, para analisá-lo\n'

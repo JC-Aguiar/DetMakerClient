@@ -35,7 +35,7 @@ const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
 
     //Atributos com estado gerenciado via Redux
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
-    const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
+    const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainPipelineJobs);
     const mainAmbienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);  
     const mainPipelineId: number = useSelector((state: RootState) => state.store.configAtividade.mainPipelineId);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);  

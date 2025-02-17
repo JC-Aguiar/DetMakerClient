@@ -1,4 +1,4 @@
-import { IonIcon, IonRow, IonBadge, IonCol, IonInput, IonItem } from "@ionic/react";
+import { IonIcon, IonRow, IonBadge, IonCol, IonInput, IonItem, IonMenu, IonToolbar } from "@ionic/react";
 import { alertCircle, reorderThree, save, } from "ionicons/icons";
 import { useRef } from "react";
 import { useDispatch, useSelector } from 'react-redux';
@@ -320,6 +320,15 @@ const ModalNovoJob: React.FC<ModalNovoJobProps> = ({ onSave = () => null }) => {
                     </IonBadge> ou <IonBadge className="font-monospace" style={{ transform: "translate(0, 2px)" }}>
                         ;
                     </IonBadge>.
+                    <IonBadge>
+                        <IonMenu>
+                            <IonToolbar>
+                                {
+                                    catalogoJobs.map(item => item.caminhoExec)
+                                }
+                            </IonToolbar>
+                        </IonMenu>
+                    </IonBadge>
                 </div>
                 <div>
                     O ícone <IonIcon icon={alertCircle} style={{ transform: "translate(0, 2px)" }}/> indica que o campo é obrigatório.

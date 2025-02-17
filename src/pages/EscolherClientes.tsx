@@ -2,7 +2,7 @@ import { IonCol, IonContent, IonIcon, IonImg, IonItem, IonLabel, IonList, IonRow
 import { useRef, useState } from 'react';
 import { addCircle, radioButtonOff, radioButtonOn } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { setMainAmbiente, setMainJobs, setMainMassas, setMainPipeline, setViewJobs } from '../Store/Reducer/ReducerAtividade';
+import { setMainAmbiente, setMainJobs, setMainMassas, setMainPipeline, setViewJob } from '../Store/Reducer/ReducerAtividade';
 import { RootState } from '../Store/ReduxStore';
 import { Navigation } from 'swiper/modules';
 import { ClienteInfoDTO } from '../data/ClienteInfoDTO';
@@ -58,7 +58,7 @@ const EscolherClientes: React.FC = () => {
         dispatch(setMainPipeline());
         dispatch(setMainJobs([]));
         dispatch(setMainMassas({}));
-        dispatch(setViewJobs([]));
+        dispatch(setViewJob([]));
         /*
         dispatch(setRelatorios(
             Page.empty<RelatorioResumoDTO>()

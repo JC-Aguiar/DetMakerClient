@@ -3,7 +3,7 @@ import { closeCircle, save } from "ionicons/icons";
 import { useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { atualizarMensagem, setMainPipeline } from "../../Store/Reducer/ReducerAtividade";
-import { setViewJobs } from "../../Store/Reducer/ReducerAtividade";
+import { setViewJob } from "../../Store/Reducer/ReducerAtividade";
 import { loadingPipelines, setPipelines } from "../../Store/Reducer/ReducerPipelines";
 import { JobConfig } from "../../data/JobConfig";
 import { PipelineInfoDTO } from "../../data/PipelineInfoDTO";
@@ -29,7 +29,7 @@ const ModalNovaPipeline: React.FC<ModalNovaPipelineProps> = ({ onSave = () => nu
     const catalagoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
     const mainPipelineId: number = useSelector((state: RootState) => state.store.configAtividade.mainPipelineId);
 
-    const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobsSelecionados);
+    const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobSelecionado);
     const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
 
     //Atibutos de estado gerenciados via Redux
@@ -79,7 +79,7 @@ const ModalNovaPipeline: React.FC<ModalNovaPipelineProps> = ({ onSave = () => nu
         }));
         setLoading(true);
         dispatch(loadingPipelines(true));
-        dispatch(setViewJobs([]));
+        dispatch(setViewJob([]));
         try {
             const novaPipeline: PipelineInfoDTO = {
                 id: -1,

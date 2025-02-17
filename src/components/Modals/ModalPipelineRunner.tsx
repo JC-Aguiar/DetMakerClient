@@ -7,27 +7,24 @@ import { JobConfig, } from '../../data/JobConfig';
 import { useDispatch } from 'react-redux';
 import { UpdateMainJobsIfxdateProps, addMensagem, addMeuTicket, atualizarMensagem, reorderMainJobs, setMainPipeline, updateMainJobsIfxdate } from '../../Store/Reducer/ReducerAtividade';
 import DynamicModal from '../Core/DynamicModal';
-import ModalExecPipeline from '../Modals/ModalExecPipeline';
+import ModalExecPipeline from './ModalExecPipeline';
 import { BotaoProps, Botoes } from '../Core/Botao';
 import { PipelineInfoDTO } from '../../data/PipelineInfoDTO';
 import { removePipeline, setPipelines } from '../../Store/Reducer/ReducerPipelines';
 import * as axiosRequest from "../../data/AxiosRequest";
 import { JobInfoDTO, getIndexParametroComIfxdate } from '../../data/JobInfoDTO';
 import { ListaRetratrilAgrupada, ListaRetratrilProps } from '../Core/ListaRetratil';
-import ListaVariaveisPipeline, { ListaVariaveisPipelineRef } from './ListaVariaveisPipeline';
+import ListaVariaveisPipeline, { ListaVariaveisPipelineRef } from '../Lists/ListaVariaveisPipeline';
 import { useRef } from 'react';
 import BotaoMassasPipeline, { BotaoMassasPipelineRef } from '../Content/BotaoMassasPipeline';
 import { UserDTO } from '../../data/UserDTO';
-import { removeRevisao, addRevisao } from '../../Store/Reducer/ReducerRevisao';
 import { PipelineJobInputDTO } from '../../data/PipelineJobInputDTO';
 import { PipelineExecDTO } from '../../data/PipelineExecDTO';
-import { RelatorioHistoricoDTO } from '../../data/RelatorioHistoricoDTO';
 import { QueryInfo } from '../../data/QueryInfoDTO';
 import { QueuePushResponseDTO } from '../../data/QueuePushResponseDTO';
-import GlassInput from '../Core/GlassInput';
 
-//Componente <ListaConfigJobs>
-const ListaConfigJobs: React.FC = () => {
+//Componente <ModalPipelineRunner>
+const ModalPipelineRunner: React.FC = () => {
 
     //Atributo para acionamento do Redux
     const dispatch = useDispatch();
@@ -38,7 +35,7 @@ const ListaConfigJobs: React.FC = () => {
     const catalogoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
     const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
     //  2. Registros selecionados e sendo modificados pelo usuário:
-    const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainJobs);
+    const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainPipelineJobs);
     const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
     const mainPipelineId: number = useSelector((state: RootState) => state.store.configAtividade.mainPipelineId);
     const mainPipelineDescricao: string | undefined = useSelector(
@@ -179,32 +176,6 @@ const ListaConfigJobs: React.FC = () => {
                 }
             ],
         });
-    }   
-
-    //Handler para definir a Data do Ciclo Globalmente para todos os Jobs
-    const preencherIfxdate = (event: CustomEvent<InputChangeEventDetail>) => {
-        const ifxdate = (event.target as HTMLInputElement).value
-            .trim()
-            .replace(/-/g, '');
-        if (ifxdate.length !== 8) return;
-        
-        const dados: UpdateMainJobsIfxdateProps = {
-            ifxdate: ifxdate,
-            jobs: [],
-        };
-        catalogoJobs.filter(item => mainJobs.some(mainJob => mainJob.id === item.id))
-            .forEach((item, index) => {
-                const paramIndex = getIndexParametroComIfxdate(item);
-                if (paramIndex !== -1)
-                    dados.jobs.push({ id: item.id , parametro: paramIndex });
-            });
-        console.log("JOBS: " + dados.jobs.map(job => JSON.stringify(job)).join("\n"));
-        dispatch(updateMainJobsIfxdate(dados));
-        dispatch(addMensagem({ 
-            id: `Set_Ifxdate@${Date.now()}`, 
-            texto: `Definindo Ifxdate ${ifxdate} na Pipeline '${mainPipeline}'. Total de Jobs atualizados: ${dados.jobs.length}.`,
-            status: 'INFO'
-        }));
     }
 
     //Faz o processo de reordenação visual se alinhar com a reordenação dos dados no Redux
@@ -219,7 +190,6 @@ const ListaConfigJobs: React.FC = () => {
         dispatch(reorderMainJobs({ ordemAntiga: indiceAtual, ordemNova: indiceNovo }));
     }
 
-    //TODO: REMOVER DEPOIS
     //Requisição para executar a Pipeline
     async function executarPipeline() {
         const mensagemId = `Run_Pipeline@${Date.now()}`;
@@ -249,8 +219,6 @@ const ListaConfigJobs: React.FC = () => {
             variaveisRef.current?.variaveis().forEach(
                 item => body.configuracoes[item.nome] = item.valor
             );
-            //console.log(body.jobs.map((job, jobIndex) => jobIndex + ": " + JSON.stringify(job.cargas)));
-            //return;
             const solicitacao: QueuePushResponseDTO = await axiosRequest.executarPipeline(body);
             dispatch(addMeuTicket(solicitacao.ticket));
             dispatch(atualizarMensagem({ 
@@ -287,8 +255,6 @@ const ListaConfigJobs: React.FC = () => {
     ];
 
     //Renderização do componente
-    //IonItem className='position-fixed 
-    //<div className='py-4'></div>
     return (
         <IonRow className='container ion-justify-content-center'>
             <IonItem className='w-100 mx-3' lines='none' style={{ zIndex: '50' }} >
@@ -317,25 +283,9 @@ const ListaConfigJobs: React.FC = () => {
                             Fluxo de Execução: {mainJobs.length} Job{mainJobs.length === 1 ? "" : "s"}
                         </IonLabel>
                     </IonItem>
-                    {/* 
-                        ref={reorderGroupRef}
-                        <IonRow className='m-0 p-0 pb-2 ion-justify-content-end ion-align-items-center border-bottom'> 
-                            <span className='me-2'>Data do Ciclo Global</span>
-                            <IonItem className='glass m-0 me-2 p-0'>
-                                <IonInput inputmode='text'
-                                    type='date'
-                                    maxlength={500}
-                                    className='text-white mx-2'
-                                    //ref={inputIfxdateRef}
-                                    onIonChange={(e) => preencherIfxdate(e)}
-                                />
-                            </IonItem>
-                        </IonRow>  
-                    */}
                     <IonReorderGroup disabled={false} onIonItemReorder={reordenar} className='p-0 m-0' >
                         {
                             mainJobs.map((item, index) => { 
-                                //jobsConfigurados.current[index] = null;
                                 return <ConfigJobItem 
                                             key={index} 
                                             index={index} 
@@ -351,5 +301,5 @@ const ListaConfigJobs: React.FC = () => {
     );
 };
 
-export default ListaConfigJobs;
+export default ModalPipelineRunner;
 

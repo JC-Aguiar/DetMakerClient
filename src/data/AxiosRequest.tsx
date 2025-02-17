@@ -22,7 +22,7 @@ import { FilaResumoDTO } from './FilaResumoDTO';
 
 //Configurações gerais
 export const LOCAL_SERVER = false; 
-export const LOCAL_CLIENT = false;
+export const LOCAL_CLIENT = true;
 
 //URLs do servidor
 export const SERVER_URL = 'https://detmaker.toppen.com.br'; //http://172.19.3.150:8080

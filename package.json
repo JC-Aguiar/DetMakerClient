@@ -40,7 +40,7 @@
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
     "react-virtuoso": "^4.4.2",
-    "sql-formatter": "^15.4.7",
+    "sql-formatter": "^15.4.10",
     "swiper": "^10.0.4",
     "typescript": "^5.1.6",
     "web-vitals": "^0.2.4",
