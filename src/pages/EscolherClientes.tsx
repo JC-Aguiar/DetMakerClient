@@ -58,7 +58,7 @@ const EscolherClientes: React.FC = () => {
         dispatch(setMainPipeline());
         dispatch(setMainJobs([]));
         dispatch(setMainMassas({}));
-        dispatch(setViewJob([]));
+        dispatch(setViewJob(-1));
         /*
         dispatch(setRelatorios(
             Page.empty<RelatorioResumoDTO>()

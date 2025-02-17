@@ -26,14 +26,21 @@ const PipelinePanel: React.FC = () => {
     const dispatch = useDispatch();
 
     //Atributos com estado gerenciado via Redux
-    const isLoadingJobs = useSelector((state: RootState) => state.store.catalogoJobs.loading);
-    const isLoadingPipelines = useSelector((state: RootState) => state.store.catalogoPipelines.loading);
-    const mainClienteId = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
-    const mainCliente = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
-    const mainAmbienteId = useSelector((state: RootState) => state.store.configAtividade.mainAmbienteId);
-    const mainAmbiente = useSelector((state: RootState) => state.store.configAtividade.mainAmbiente);
-    const catalogoJobs = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
-    const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
+    const isLoadingJobs = useSelector(
+        (state: RootState) => state.store.catalogoJobs.loading
+    );
+    const isLoadingPipelines = useSelector(
+        (state: RootState) => state.store.catalogoPipelines.loading
+    );
+    const mainClienteId = useSelector(
+        (state: RootState) => state.store.configAtividade.mainClienteId
+    );
+    const catalogoJobs = useSelector(
+        (state: RootState) => state.store.catalogoJobs.catalogo
+    );
+    const user: UserDTO | null = useSelector(
+        (state: RootState) => state.store.login.user
+    );
 
     //Atributos controlados pelo componente
     const isLoading = isLoadingJobs || isLoadingPipelines;
@@ -136,7 +143,7 @@ const PipelinePanel: React.FC = () => {
     //Requisição para obter os jobs diretamente do banco
     async function obterJobsBanco() {
         dispatch(loadingJobs(true));
-        dispatch(setViewJob([]));
+        dispatch(setViewJob(-1));
         await axiosRequest.getAllJobs(mainClienteId)
             .then(novosJobs => dispatch(setJobs(novosJobs)))
             .finally(() => dispatch(loadingJobs(false)));

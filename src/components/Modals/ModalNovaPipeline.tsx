@@ -25,12 +25,21 @@ const ModalNovaPipeline: React.FC<ModalNovaPipelineProps> = ({ onSave = () => nu
     const dispatch = useDispatch();
 
     //Atributos de estado gerenciados via React
-    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
-    const catalagoPipelines: PipelineInfoDTO[] = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo);
-    const mainPipelineId: number = useSelector((state: RootState) => state.store.configAtividade.mainPipelineId);
-
-    const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobSelecionado);
-    const mainClienteId: number = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
+    const catalogoJobs: JobInfoDTO[] = useSelector(
+        (state: RootState) => state.store.catalogoJobs.catalogo
+    );
+    const catalagoPipelines: PipelineInfoDTO[] = useSelector(
+        (state: RootState) => state.store.catalogoPipelines.catalogo
+    );
+    const mainPipelineId: number = useSelector(
+        (state: RootState) => state.store.configAtividade.mainPipelineId
+    );
+    const jobIdSelecionado: number = useSelector(
+        (state: RootState) => state.store.configAtividade.jobSelecionado
+    );
+    const mainClienteId: number = useSelector(
+        (state: RootState) => state.store.configAtividade.mainClienteId
+    );
 
     //Atibutos de estado gerenciados via Redux
     const [loading, setLoading] = useState<boolean>(false);
@@ -40,8 +49,8 @@ const ModalNovaPipeline: React.FC<ModalNovaPipelineProps> = ({ onSave = () => nu
 
     //Método para preencher a quantidade de Jobs na variável jobsParaUso 
     function jobsParaUsoInicial(): JobInfoDTO[] {
-        if (jobsSelecionados.length > 0)
-            return catalogoJobs.filter(item => jobsSelecionados.findIndex(id => id === item.id) !== -1);
+        if (jobIdSelecionado !== -1)
+            return catalogoJobs.filter(job => job.id === jobIdSelecionado);
         if (mainPipelineId !== -1) {
             const pipeline = catalagoPipelines.find(pipe => pipe.id === mainPipelineId);
             const jobsDto: JobInfoDTO[] = [];
@@ -79,7 +88,7 @@ const ModalNovaPipeline: React.FC<ModalNovaPipelineProps> = ({ onSave = () => nu
         }));
         setLoading(true);
         dispatch(loadingPipelines(true));
-        dispatch(setViewJob([]));
+        dispatch(setViewJob(-1));
         try {
             const novaPipeline: PipelineInfoDTO = {
                 id: -1,

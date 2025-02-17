@@ -109,7 +109,7 @@ const ClientePanel: React.FC = () => {
         dispatch(setMainPipeline());
         dispatch(setMainJobs([]));
         dispatch(setMainMassas({}));
-        dispatch(setViewJob([]));
+        dispatch(setViewJob(-1));
     }
 
     return(

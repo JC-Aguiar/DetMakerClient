@@ -2,15 +2,12 @@ import { InputChangeEventDetail, IonIcon, IonInput, IonList, IonRadio, IonRadioG
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
-import { addMensagem, addOneMainJob, addViewJobs, atualizarMensagem, removeViewJobs, setViewJob } from "../../Store/Reducer/ReducerAtividade";
+import { addOneMainJob, setViewJob } from "../../Store/Reducer/ReducerAtividade";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
 import { addCircleOutline, checkbox, checkmark, closeCircle, search, square, trashOutline } from "ionicons/icons";
 import { JobConfig } from "../../data/JobConfig";
 import ItemLista from "../Core/ItemLista";
-import { loadingJobs } from "../../Store/Reducer/ReducerJobs";
 import * as AxiosRequest from "../../data/AxiosRequest";
-import { removerJobs as removerJobsCatalogo } from "../../Store/Reducer/ReducerJobs";
-import { removerJobs as removerJobsPiepline } from "../../Store/Reducer/ReducerPipelines";
 
 
 //Interface dos métodos acionáveis via referência do <ListaCatalogoJobs>
@@ -25,25 +22,31 @@ const ListaCatalogoJobs = forwardRef<ListaCatalogoRef>((props, ref) => {
     const dispatch = useDispatch();
 
     //Atributos com estado gerenciado via Redux
-    const catalogoJobs: JobInfoDTO[] = useSelector((state: RootState) => state.store.catalogoJobs.catalogo);
-    const jobsSelecionados: number[] = useSelector((state: RootState) => state.store.configAtividade.jobSelecionado);
-    const mainPipeline: string = useSelector((state: RootState) => state.store.configAtividade.mainPipeline);
-    const mainJobs: JobConfig[] = useSelector((state: RootState) => state.store.configAtividade.mainPipelineJobs);
+    const catalogoJobs: JobInfoDTO[] = useSelector(
+        (state: RootState) => state.store.catalogoJobs.catalogo
+    );
+    const jobIdSelecionado: number = useSelector(
+        (state: RootState) => state.store.configAtividade.jobSelecionado
+    );
+    const mainPipeline: string = useSelector(
+        (state: RootState) => state.store.configAtividade.mainPipeline
+    );
+    const mainPipelineJobs: JobConfig[] = useSelector(
+        (state: RootState) => state.store.configAtividade.mainPipelineJobs
+    );
+    const jobSelecionado: JobInfoDTO | undefined = useSelector(
+        (state: RootState) => state.store.catalogoJobs.catalogo.find(job => job.id === jobIdSelecionado)
+    );
 
     //Atributos com estado gerenciado via React
     const [jobPesquisado, setJobPesquisado] = useState<string>("");
     const [mainJob, setMainJob]  = useState<JobInfoDTO | undefined>(undefined);
-    const [alerta] = useIonAlert();
-
-    //Atributos sem estado gerenciado
-    const nomeJobsSelecionados: string[] = [];
+    //const [alerta] = useIonAlert();
 
     //Acionamento sempre que o array dos Jobs ID for alterado
     useEffect(() => {
-        catalogoJobs.filter(job => jobsSelecionados.includes(job.id))
-            .map(job => job.nome)
-            .forEach(nome => nomeJobsSelecionados.push(nome));
-    }, [jobsSelecionados]);
+        if (jobIdSelecionado === -1) setMainJob(undefined);
+    }, [jobIdSelecionado]);
 
     //Disponibilizando os métodos acionáveis via referência 
     useImperativeHandle(ref, () => ({
@@ -51,36 +54,27 @@ const ListaCatalogoJobs = forwardRef<ListaCatalogoRef>((props, ref) => {
     }));
 
     //Handler para alertar ao usuário caso ele queira excluir o Jobs
+    /*
     const exibirAlerta = () => {
         alerta({
             header: 'Deletar Jobs!',
             message: 'Tem certeza que deseja deletar estes Jobs da base da dados?<br/>' +
-                `${nomeJobsSelecionados.join('<br/>')}.`,
+                `${jobSelecionado.join('<br/>')}.`,
             buttons: [
                 'Não',
                 { text: 'Sim', handler: (d) => deletarJobs() }
             ]
         });
     };
+    */
 
     //Valida se está no modo de exibição "Pipeline"
     const pipelineMode = () => mainPipeline === "";
 
-    //Valida se Job consta selecionado
-    function isOn(jobId: number): boolean | undefined {
-        return jobsSelecionados.findIndex((id) => id === jobId) !== -1;
-    }
-
-    //Identifica tipo de botão na lista
-    const identificarTipoBotao = (item: JobInfoDTO) => {
-        if (mainPipeline !== "") return addCircleOutline;
-        return isOn(item.id) ? checkbox : square;
-    }
-
     //Desseleciona todos os Jobs
     const cancelarJobsSelecionados = () => {
         setMainJob(undefined);
-        dispatch(setViewJob([]));
+        dispatch(setViewJob(-1));
     }
 
     //Tenta encontrar possíveis Jobs para determinada máscara de pesquisa
@@ -89,6 +83,7 @@ const ListaCatalogoJobs = forwardRef<ListaCatalogoRef>((props, ref) => {
         setJobPesquisado(valor);
     }
 
+    /*
     //Requisição para deletar todos os Jobs selecionados
     const deletarJobs = async () => {
         const mensagemId = `Delete_Jobs@${Date.now()}`;
@@ -96,12 +91,12 @@ const ListaCatalogoJobs = forwardRef<ListaCatalogoRef>((props, ref) => {
             dispatch(loadingJobs(true));
             dispatch(addMensagem({
                 id: mensagemId,
-                texto: `Deletando Jobs ID ${jobsSelecionados.join(", ")}.`,
+                texto: `Deletando Jobs ID ${jobIdSelecionado.join(", ")}.`,
                 status: 'INFO'
             }));
-            await AxiosRequest.deleteJobs(jobsSelecionados);
-            dispatch(removerJobsPiepline(nomeJobsSelecionados));
-            dispatch(removerJobsCatalogo(nomeJobsSelecionados));
+            await AxiosRequest.deleteJobs([jobIdSelecionado]);
+            dispatch(removerJobsPiepline([jobSelecionado]));
+            dispatch(removerJobsCatalogo(jobSelecionado));
             dispatch(atualizarMensagem({
                 id: mensagemId,
                 complmento: `Sucesso.`,
@@ -119,6 +114,7 @@ const ListaCatalogoJobs = forwardRef<ListaCatalogoRef>((props, ref) => {
             dispatch(loadingJobs(false));
         }
     }
+    */
 
     //Acionamento ao selecionar uma opção de Job e não estando no modo "Pipeline"
     const selecionarMainJob = (e: CustomEvent<RadioGroupChangeEventDetail<number>>): void => {
@@ -173,6 +169,7 @@ const ListaCatalogoJobs = forwardRef<ListaCatalogoRef>((props, ref) => {
                                             dispatch(addOneMainJob(item));
                                             return;
                                         }
+                                        dispatch(setViewJob(item.id));
                                     }}
                                 >
                                     <IonRadio

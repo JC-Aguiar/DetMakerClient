@@ -43,14 +43,6 @@ export interface AtividadeMensagemTYPE {
     url?: string;
 }
 
-//Interface das propriedades do controlador setMainAmbiente
-export interface SetMainAmbienteProps {
-    cliente: string,
-    clienteId: number, 
-    ambiente: string,
-    ambienteId: number,
-}
-
 //Interface do Reducer 'addMensagem'  
 export interface AddMensagemProps {
     id: string,
@@ -66,11 +58,12 @@ export interface AtualizarMensagemStatusProps {
     status: "INFO" | "OK" | "ERROR"
 }
 
-const setMainAmbientePropsDefault: SetMainAmbienteProps = {
-    cliente: "",
-    clienteId: -1, 
-    ambiente: "",
-    ambienteId: -1
+//Interface das propriedades do controlador setMainAmbiente
+export interface SetMainAmbienteProps {
+    cliente: string,
+    clienteId: number, 
+    ambiente: string,
+    ambienteId: number,
 }
 
 //Interface do Reducer 'setMainPipelineProps'
@@ -231,22 +224,10 @@ const configAtividade = createSlice({
             state.mainMassas = action.payload.massas;
         },
         setViewJob: (state, action: PayloadAction<number>) => {
-            console.log('[ReducerAtividade]: Acionado controlador configAtividade.setViewJob!');
-            console.log(`[ReducerAtividade]: Usuário informou Job ID: [${action.payload}].`);
+            console.log('[ReducerAtividade]: Acionado controlador configAtividade.setViewJobs!');
+            console.log(`[ReducerAtividade]: Usuário informou Jobs IDs: [${action.payload}].`);
             state.jobSelecionado = action.payload;
-            console.log(`[ReducerAtividade]: Jobs selecionados em memória: [${state.jobSelecionado.join(", ")}].`);
-        },
-        addViewJobs: (state, action: PayloadAction<number>) => {
-            console.log('[ReducerAtividade]: Acionado controlador configAtividade.addViewJobs!');
-            console.log(`[ReducerAtividade]: Usuário informou Job ID: [${action.payload}].`);
-            state.jobSelecionado.push(action.payload);
-            console.log(`[ReducerAtividade]: Jobs selecionados em memória: [${state.jobSelecionado.join(", ")}].`);
-        },
-        removeViewJobs: (state, action: PayloadAction<number>) => {
-            console.log('[ReducerAtividade]: Acionado controlador configAtividade.removeViewJobs!');
-            console.log(`[ReducerAtividade]: Usuário informou Job ID: [${action.payload}].`);
-            state.jobSelecionado = state.jobSelecionado.filter((id) => id !== action.payload);
-            console.log(`[ReducerAtividade]: Jobs selecionados em memória: [${state.jobSelecionado.join(", ")}].`);
+            console.log(`[ReducerAtividade]: Jobs selecionados em memória: [${state.jobSelecionado}].`);
         },
         addMeuTicket: (state, action: PayloadAction<string>) => {
             console.log('[ReducerAtividade] Acionado controlador configAtividade.addMeuTicket!');
@@ -317,9 +298,7 @@ export const {
     addOneMainJob,
     removeOneMainJob,
     setMainMassas,
-    setViewJob: setViewJobs,
-    addViewJobs,
-    removeViewJobs,
+    setViewJob,
     addMeuTicket,
     addMensagem, 
     atualizarMensagem, 
