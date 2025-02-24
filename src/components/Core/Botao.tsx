@@ -13,7 +13,7 @@ const Botao: React.FC<BotaoProps> = ({ icon, text, disabled=false, handler, colo
         <IonButton fill="clear" 
             {...props}
             color={color}
-            className={`glass mx-2'${props.className}`}  
+            className={`glass mx-2 ${props.className}`}  
             onClick={handler} 
             disabled={disabled}
             style={{ borderWidth: '2px', borderColor: `var(--ion-color-${color})` }}

@@ -11,7 +11,7 @@ import { EvidenciaRevisadaDTO } from '../data/EvidenciaRevisadaDTO';
 import * as axiosRequest from '../data/AxiosRequest';
 import { offsetDateTimeParaString } from '../App';
 import { useHistory } from 'react-router';
-import { layoutGrupoBotoes, ButtonLayoutProps } from '../components/Core/ButtonLayout';
+import { layoutBotoesFlutuantes, ButtonLayoutProps } from '../components/Core/ButtonLayout';
 import { addMensagem, atualizarMensagem } from '../Store/Reducer/ReducerAtividade';
 import { useEffect, useRef, useState } from 'react';
 import Carregando from '../components/Core/Carregando';
@@ -88,32 +88,38 @@ const RevisarRelatorio: React.FC = () => {
     const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
     const relatorio: RelatorioHistoricoDTO | null = useSelector((state: RootState) => state.store.docRevisao.relatorio);
     const [alerta] = useIonAlert();
+    const [contextoValido, setContextoValido] = useState<boolean>(validarContextoRelatorio(relatorio));
     const [inputRevisao, setInputRevisao] = useState<UserRevisaoProps[]>([]);
     const [modalContextoOn, modalContextoOff] = useIonModal(DynamicModal, {
         titulo: "Definindo Contexto para Revisão",
         elemento:   <ModalContextoRevisao 
                         relatorioId={relatorio ? relatorio.id : null} 
-                        apply={async (e) => await definirContexto(e)} 
+                        apply={async (e) => {
+                            modalContextoOff();
+                            await definirContexto(e).then(result => result ? null : modalContextoOn())
+                        }}
                     />,
         onDismiss: () => modalContextoOff(),
     });
 
     //Handler para alertar ao usuário caso ele queira excluir o Jobs
-    const exibirAlerta = () => {
-        alerta({
-            header: 'Revisão sem Contexto',
-            message: 'É preciso definir o Projeto e a Atividade para dar sequência na revisão.',
-            onDidDismiss: () => modalContextoOn({ cssClass: 'modal-small' })
-        });
-    };
+    //const exibirAlerta = () => {
+    //    alerta({
+    //        header: 'Revisão sem Contexto',
+    //        message: 'É preciso definir o Projeto e a Atividade para dar sequência na revisão.',
+    //        onDidDismiss: () => modalContextoOn({ cssClass: 'modal-small' }),
+    //    });
+    //};
 
-    const relatorioCompleto = relatorio !== null
+    function validarContextoRelatorio(relatorio: RelatorioHistoricoDTO | null) {
+        return relatorio !== null
             && relatorio.idProjeto !== null
             && relatorio.nomeProjeto !== null
             && relatorio.nomeAtividade !== null
             && relatorio.idProjeto.trim().length > 0
             && relatorio.nomeProjeto.trim().length > 0
-            && relatorio.nomeAtividade.trim().length > 0;
+            && relatorio.nomeAtividade.trim().length > 0
+    }
 
     const validarInputsRevisao = (userRevisao: UserRevisaoProps) => {
         return userRevisao.resultado !== null
@@ -126,7 +132,7 @@ const RevisarRelatorio: React.FC = () => {
 
     //Atributos de botões
     const botaoSalvar: ButtonLayoutProps = {
-        title: 'Salvar Revisão',
+        title: contextoValido ? 'Salvar Revisão' : 'Definir Contexto',
         icon: save,
         trigger: () => validarRevisao(),
         disabled: false,
@@ -172,6 +178,10 @@ const RevisarRelatorio: React.FC = () => {
         }));
         setInputRevisao(evidenciasInput);
     }, [relatorio?.evidencias]);
+
+    useEffect(() => {
+        setContextoValido(validarContextoRelatorio(relatorio));
+    }, [relatorio]);
 
     const resultadoStatus: DetStatusTYPE[] = ["Aprovado", "Reprovado", "Parcial"];
 
@@ -573,13 +583,8 @@ const RevisarRelatorio: React.FC = () => {
             console.warn("Nenhum Relatório disponível para revisão!");
             return;
         };
-        const semContexto = !relatorio.idProjeto 
-            || relatorio.idProjeto.length < 1 
-            || !relatorio.nomeProjeto 
-            || relatorio.nomeProjeto.length < 1;
-        if (semContexto) exibirAlerta();
+        if (!contextoValido) modalContextoOn();
         else salvarRevisao();
-        //await definirContexto();
     }
     
     const salvarRevisao = async () => {
@@ -642,8 +647,8 @@ const RevisarRelatorio: React.FC = () => {
         }    
     };
 
-    async function definirContexto(contexto: RelatorioComplementoDTO) {
-        if (relatorioCompleto) return;
+    async function definirContexto(contexto: RelatorioComplementoDTO): Promise<boolean> {
+        if (contextoValido) return false;
         const mensagemId = `Save_Review@${Date.now()}`;
         try {
             setLoading(true);
@@ -654,6 +659,7 @@ const RevisarRelatorio: React.FC = () => {
                 complmento: `Relatório ID ${relatorio?.id} atualizado.`,
                 status: 'OK'
             }));
+            return true;
         }
         catch (error) {
             dispatch(atualizarMensagem({ 
@@ -661,11 +667,11 @@ const RevisarRelatorio: React.FC = () => {
                 complmento: `${error}`,
                 status: 'ERROR'
             }));
+            return false;
         }
         finally {
             setLoading(false);
         }
-        salvarRevisao();
     };
 
     const gerarDet = async () => {
@@ -751,7 +757,7 @@ const RevisarRelatorio: React.FC = () => {
     function podeGerarDet(): boolean {
         if (!relatorio) return false;
         const totalEvProntas = relatorio.evidencias.filter(EvidenciaInfoDTO.isEvidenciaPronta).length;
-        return relatorio.evidencias.length === totalEvProntas && relatorioCompleto;
+        return relatorio.evidencias.length === totalEvProntas && contextoValido;
     }
 
     //Renderização do componente
@@ -938,7 +944,7 @@ const RevisarRelatorio: React.FC = () => {
 
     return (
         <>
-            {layoutGrupoBotoes([ botaoSalvar, botaoDET ])}
+            {layoutBotoesFlutuantes([ botaoSalvar, botaoDET ])}
             {conteudo()}
         </>
     );

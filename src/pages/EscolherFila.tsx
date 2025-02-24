@@ -1,10 +1,10 @@
-import { IonCard, IonCardContent, IonCol, IonContent, IonIcon, IonInput, IonItem, IonList, IonRow, } from "@ionic/react";
+import { IonButton, IonCard, IonCardContent, IonCol, IonContent, IonFabButton, IonIcon, IonInput, IonItem, IonList, IonRow, } from "@ionic/react";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from "../Store/ReduxStore";
 import { loadingRelatorios } from "../Store/Reducer/ReducerRelatorios";
-import { calendar, caretBack, caretForward, closeCircle, filter, layers, personCircle, search, ticketOutline } from "ionicons/icons";
+import { calendar, caretBack, caretForward, close, closeCircle, closeCircleOutline, filter, handRight, layers, personCircle, search, ticketOutline, trash } from "ionicons/icons";
 import Carregando from "../components/Core/Carregando";
 import Informativo from "../components/Core/Informativo";
 import { addMensagem, atualizarMensagem } from "../Store/Reducer/ReducerAtividade";
@@ -29,12 +29,13 @@ const EscolherFila: React.FC = () => {
     const mainCliente = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
     const meusTickets = useSelector((state: RootState) => state.store.configAtividade.meusTickets);
     const usuario = useSelector((state: RootState) => state.store.login.user);
+    const catalogoPipeline = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo); 
 
     //Atributos com estado gerenciado pelo React 
     const [isLoading, setLoading] = useState<boolean>(false);
     const [filaSucesso, setFilaSucesso] = useState<boolean | null>(null);
     const [catalogoFila, setCatalogoFila] = useState<Page<FilaResumoDTO>>(Page.empty());
-    const [pageIndex, setPageIndex] = useState<number>(catalogoFila.number +1);
+    const [pageIndex, setPageIndex] = useState<number>(catalogoFila.number + 1);
     const [filtroAplicado, setFiltroAplicado] = useState<boolean>(false);
     const [ticket, setTicket] = useState<string>("");
     const [nomePipeline, setNomePipeline] = useState<string>("");
@@ -55,7 +56,7 @@ const EscolherFila: React.FC = () => {
         valor: T,
         handler: React.Dispatch<React.SetStateAction<T>>,
         reset: () => void,
-        autofill?: string[], 
+        autofill?: string[],
     }
 
     //Declaração de cada filtro de consulta para renderização automática
@@ -65,8 +66,8 @@ const EscolherFila: React.FC = () => {
             icon: ticketOutline,
             tamanho: 100,
             valor: ticket,
-            handler: setTicket, 
-            reset: () => setTicket(""), 
+            handler: setTicket,
+            reset: () => setTicket(""),
             autofill: meusTickets,
         },
         {
@@ -76,6 +77,7 @@ const EscolherFila: React.FC = () => {
             valor: nomePipeline,
             handler: setNomePipeline,
             reset: () => setNomePipeline(""),
+            autofill: catalogoPipeline.map(pipe => pipe.nome),
         },
         {
             nome: "Autor",
@@ -97,15 +99,6 @@ const EscolherFila: React.FC = () => {
         },
     ];
 
-
-    //Propeidades para definir se o botão 'Aplicar Filtro' estará ON ou OFF
-    const botaoAplicarFIltros: BotaoProps = {
-        text: filtroAplicado ? "Remover" : "Aplicar", 
-        icon: filtroAplicado ? closeCircle : filter,
-        color: filtroAplicado ? "warning" : "light",
-        handler: () => aplicarFiltros(),
-    }
-
     //Acionamento para componentes específicos
     useEffect(() => {
         setCatalogoFila(Page.empty());
@@ -113,7 +106,7 @@ const EscolherFila: React.FC = () => {
 
     //Acionamento para componentes específicos
     useEffect(() => {
-        setPageIndex(catalogoFila.number +1);
+        setPageIndex(catalogoFila.number + 1);
     }, [catalogoFila.number]);
 
     //Define se o atual catálogo de Filas em memória deve ou não ser filtrado 
@@ -126,10 +119,10 @@ const EscolherFila: React.FC = () => {
         if (!filtroAplicado) return true;
         const compararDatas = (data: number): boolean => {
             const novaData = dayjs.unix(data).format('YYYY-MM-DD');
-            return novaData === `${dataSolic}`; 
+            return novaData === `${dataSolic}`;
         };
         return true
-            && (ticket === "" ? true : item.ticket !== null && item.ticket.includes(ticket))  
+            && (ticket === "" ? true : item.ticket !== null && item.ticket.includes(ticket))
             && (nomePipeline === "" ? true : item.nomePipeline !== null && item.nomePipeline.includes(nomePipeline))
             && (autor === "" ? true : item.autor !== null && item.autor.includes(autor))
             && (dataSolic === null ? true : item.data !== null && compararDatas(item.data));
@@ -144,11 +137,11 @@ const EscolherFila: React.FC = () => {
     async function obterFilasBanco(index: number) {
         const mensagemId = `Get_Queue@${Date.now()}`;
         const mensagemFiltros: string[] = [];
-        if (ticket !== "")  mensagemFiltros.push(`Ticket: '${ticket}'`);
+        if (ticket !== "") mensagemFiltros.push(`Ticket: '${ticket}'`);
         if (dataSolic !== null) mensagemFiltros.push(`Data Execução: ${dataSolic}`);
-        if (autor !== "")  mensagemFiltros.push(`Autor: '${autor}'`);
-        const mensagemComplemento = mensagemFiltros.length > 0 ? 
-            ('\n' + mensagemFiltros.join(", ") + '\n') : 
+        if (autor !== "") mensagemFiltros.push(`Autor: '${autor}'`);
+        const mensagemComplemento = mensagemFiltros.length > 0 ?
+            ('\n' + mensagemFiltros.join(", ") + '\n') :
             "Nenhum";
 
         dispatch(addMensagem({
@@ -203,7 +196,7 @@ const EscolherFila: React.FC = () => {
             {
                 catalogoFila.content
                     .filter(item => filtrar(item))
-                    .map((item, index) => 
+                    .map((item, index) =>
                         <ListaFilas key={index} index={index} fila={item} />
                     )
             }
@@ -212,13 +205,13 @@ const EscolherFila: React.FC = () => {
 
     //Verifica se a página atual possui algum conteúdo a ser listado e navegado
     const paginaVazia = () => {
-        return catalogoFila.size < 1; 
+        return catalogoFila.size < 1;
     }
 
     //Acionamento para nova consulta ao banco com base no ídice da página minupulada pelo usuário
     const novaConsultaPageIndex = () => {
         if (pageIndex <= totalPages())
-            obterFilasBanco(pageIndex-1);
+            obterFilasBanco(pageIndex - 1);
     }
 
     //Renderizando componente
@@ -233,7 +226,7 @@ const EscolherFila: React.FC = () => {
                             {
                                 opcoesConsulta.map((opcao, opcaoIndex) => {
                                     return (
-                                        <GlassInput key={opcaoIndex} text={opcao.nome} icon={opcao.icon} >
+                                        <GlassInput key={opcaoIndex} text={opcao.nome} icon={opcao.icon}>
                                             <IonItem detail={false} lines="none" shape="round" >
                                                 <input type={!opcao.type ? "text" : opcao.type}
                                                     maxLength={opcao.tamanho}
@@ -244,45 +237,70 @@ const EscolherFila: React.FC = () => {
                                                 />
                                                 <datalist id={`txtautocompletelist-${opcao.nome}`}>
                                                     {
-                                                        opcao.autofill?.map((autofill, autofillIndex) => 
+                                                        opcao.autofill?.map((autofill, autofillIndex) =>
                                                             <option key={opcaoIndex * 10 + autofillIndex}>
                                                                 {autofill}
                                                             </option>
                                                         )
                                                     }
                                                 </datalist>
-                                                <IonIcon
-                                                    icon={closeCircle}
-                                                    size='small'
-                                                    className="glass btn position-fixed m-0 p-0"
-                                                    style={{ top: '0.8em', right: '5px', zIndex: '500' }}
-                                                    onClick={() => opcao.reset()}
-                                                />
+                                                {/* Botão para resetar campo */}
+                                                <div className="position-absolute m-0 p-0" style={{ right: '-4px' }}>
+                                                    <IonFabButton
+                                                        color="tertiary"
+                                                        size="small"
+                                                        className="p-0 m-0 mt-1"
+                                                        onClick={() => opcao.reset()}
+                                                        style={{ transform: 'scale(0.6)' }}
+                                                    >
+                                                        <IonIcon icon={close}
+                                                            color="light"
+                                                            size="large"
+                                                        />
+                                                    </IonFabButton>
+                                                </div>
                                             </IonItem>
                                         </GlassInput>
                                     );
                                 })
                             }
                             <IonRow className="w-100 ion-justify-content-center p-1">
-                                <Botao {...botaoAplicarFIltros} />
-                                <span className="mx-1" />
-                                <Botao text="Nova Consulta" icon={search} handler={() => obterFilasBanco(0)} />
+                                <Botao
+                                    text={filtroAplicado ? "Remover" : "Aplicar"}
+                                    icon={filtroAplicado ? closeCircle : filter}
+                                    color={filtroAplicado ? "warning" : "light"}
+                                    className="small me-1"
+                                    handler={() => aplicarFiltros()}
+                                />
+                                <Botao
+                                    text="Nova Consulta"
+                                    className="small"
+                                    icon={search}
+                                    handler={() => obterFilasBanco(0)}
+                                />
                             </IonRow>
                         </IonCardContent>
                     </IonCard>
-                    <IonCard className="p-0 m-0 ms-2 shadow shadow-0" disabled={paginaVazia()}>
+                    <IonCard className="p-0 m-0 ms-2 mt-1 shadow shadow-0" disabled={paginaVazia()}>
                         <IonRow className="p-0 m-0 my-2 w-100 ion-align-items-center ion-justify-content-center">
-                            <IonIcon icon={caretBack}
+                            {/* Botão seta de voltar página */}
+                            <IonFabButton
+                                size="small"
                                 color="primary"
-                                size="large"
-                                className="btn m-0 p-0"
-                                onClick={(e) => {
-                                    if (catalogoFila.first) return;
-                                    obterFilasBanco(catalogoFila.number - 1);
-                                }}
-                            />
-                            <IonRow className="glass d-flex ion-align-items-center pe-1" >
-                                <span className="ms-1">Página </span> 
+                                className="p-0 m-0"
+                                disabled={catalogoFila.first}
+                                onClick={() => obterFilasBanco(catalogoFila.number - 1)}
+                            >
+                                <IonIcon icon={caretBack}
+                                    color="dark"
+                                    size="large"
+                                    className="m-0 p-0 pe-1"
+                                />
+                            </IonFabButton>
+                            
+                            {/* Navegador de páginas */}
+                            <IonRow className="glass d-flex ion-align-items-center mx-1 pe-1" >
+                                <span className="ms-1">Página </span>
                                 <IonInput value={pageIndex}
                                     type='number'
                                     inputMode="numeric"
@@ -299,26 +317,38 @@ const EscolherFila: React.FC = () => {
                                             novaConsultaPageIndex();
                                     }}
                                     className="m-0 p-0 text-end lh-0 w-100"
-                                    style={{ height: '32px'}}
+                                    style={{ height: '32px' }}
                                     disabled={paginaVazia()}
                                 />
                                 <span>/{totalPages()}</span>
-                                <IonIcon icon={search}
-                                    color="light"
-                                    className="glass btn item-lista ms-1 my-1 p-2"
-                                    style={{ height: '16px' }}
+                                <IonButton
+                                    size="small"
+                                    color="primary"
+                                    shape="round"
+                                    fill="outline"
+                                    className="m-0 p-0 ms-1"
+                                    disabled={paginaVazia()}
                                     onClick={(e) => novaConsultaPageIndex()}
-                                />
+                                    style={{ transform: 'scale(0.8)' }}
+                                >
+                                    <IonIcon icon={search} color="light"/>
+                                </IonButton>
                             </IonRow>
-                            <IonIcon icon={caretForward}
+
+                            {/* Botão seta de avançar página */}
+                            <IonFabButton
+                                size="small"
                                 color="primary"
-                                size="large"
-                                className="btn m-0 p-0"
-                                onClick={(e) => {
-                                    if (catalogoFila.last) return;
-                                    obterFilasBanco(catalogoFila.number + 1);
-                                }}
-                            />
+                                className="p-0 m-0"
+                                disabled={catalogoFila.last}
+                                onClick={() => obterFilasBanco(catalogoFila.number + 1)}
+                            >
+                                <IonIcon icon={caretForward}
+                                    color="dark"
+                                    size="large"
+                                    className="m-0 p-0 ps-1"
+                                />
+                            </IonFabButton>
                         </IonRow>
                     </IonCard>
                 </IonContent>

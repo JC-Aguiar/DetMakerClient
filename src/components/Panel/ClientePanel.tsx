@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addMensagem, atualizarMensagem, setMainAmbiente, setMainJobs, setMainMassas, setMainPipeline, setViewJob } from "../../Store/Reducer/ReducerAtividade";
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
-import { useState, forwardRef, useImperativeHandle } from "react";
+import { useState } from "react";
 import { IonCol, IonIcon, IonList, IonRow, useIonModal, useIonViewWillEnter } from "@ionic/react";
 import DynamicModal from "../Core/DynamicModal";
 import { ClienteInfoDTO } from "../../data/ClienteInfoDTO";
@@ -17,7 +17,6 @@ import { setMassas } from "../../Store/Reducer/ReducerMassas";
 import { setPipelines } from "../../Store/Reducer/ReducerPipelines";
 import { setJobs } from "../../Store/Reducer/ReducerJobs";
 import { setQueries } from "../../Store/Reducer/ReducerQueries";
-import { setRelatorios } from "../../Store/Reducer/ReducerRelatorios";
 
 
 const ClientePanel: React.FC = () => {
@@ -78,18 +77,20 @@ const ClientePanel: React.FC = () => {
     }
     
     //Botões renderizados por esse componente
-    const butoes: ButtonLayoutProps[] = [ 
+    const botoes: ButtonLayoutProps[] = [ 
         {
-            title: 'Atualizar',
+            title: 'Recarregar',
             icon: refresh,
             trigger: () =>  coletarRecursos(),
             disabled: isLoading,
+            //popover: { text: "Para recarregar os Clientes do banco" }
         },
         {
-            title: 'Novo Cliente',
+            title: 'Criar Cliente',
             icon: personAdd,
             trigger: () =>  modalNovoClienteOn(),
             disabled: isLoading,
+            //popover: { text: "Crie um novo registro Cliente para reslizar testes" }
         }
     ];
 
@@ -114,9 +115,9 @@ const ClientePanel: React.FC = () => {
 
     return(
         <div className="p-0 m-0">
-            <IonRow className="m-0 p-0 mb-2 ion-justify-content-around ">
+            <IonRow className="m-0 p-0 mb-2 ion-justify-content-around">
                 {
-                    butoes.map((item, index) => <IonCol className="w-100">
+                    botoes.map((item, index) => <IonCol className="w-100">
                             <ButtonLayout key={index} {...item} />
                         </IonCol>
                     )

@@ -1,4 +1,4 @@
-import { InputChangeEventDetail, IonButtons, IonCardContent, IonIcon, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, IonTitle, IonToolbar, ItemReorderEventDetail, useIonAlert, useIonModal } from '@ionic/react';
+import { InputChangeEventDetail, IonBadge, IonButtons, IonCardContent, IonIcon, IonItem, IonLabel, IonList, IonReorderGroup, IonRow, IonTitle, IonToolbar, ItemReorderEventDetail, useIonAlert, useIonModal } from '@ionic/react';
 import ConfigJobItem, { ConfigJobItemRef } from '../Content/ConfigJobItem';
 import { arrowUndo, cube, flash, options, save, trash } from 'ionicons/icons';
 import { useSelector } from 'react-redux';
@@ -14,7 +14,7 @@ import { removePipeline, setPipelines } from '../../Store/Reducer/ReducerPipelin
 import * as axiosRequest from "../../data/AxiosRequest";
 import { JobInfoDTO, getIndexParametroComIfxdate } from '../../data/JobInfoDTO';
 import { ListaRetratrilAgrupada, ListaRetratrilProps } from '../Core/ListaRetratil';
-import ListaVariaveisPipeline, { ListaVariaveisPipelineRef } from '../Lists/ListaVariaveisPipeline';
+import ListaParametrosGlobais, { ListaParametrosGlobaisRef } from '../Lists/ListaParametrosGlobais';
 import { useRef } from 'react';
 import BotaoMassasPipeline, { BotaoMassasPipelineRef } from '../Content/BotaoMassasPipeline';
 import { UserDTO } from '../../data/UserDTO';
@@ -53,7 +53,7 @@ const ModalPipelineRunner: React.FC = () => {
 
     //Atributos com estado gerenciado via React
     const [alerta] = useIonAlert(); 
-    const variaveisRef = useRef<ListaVariaveisPipelineRef>(null);
+    const variaveisRef = useRef<ListaParametrosGlobaisRef>(null);
     const massasRef = useRef<BotaoMassasPipelineRef>(null);
     const jobsConfigurados = useRef<ConfigJobItemRef[]>([]);
 
@@ -141,7 +141,7 @@ const ModalPipelineRunner: React.FC = () => {
     //Handler que avisa e reseta todas as configurações dos Jobs
     const resetarJobsPipeline = () => {
         alerta({
-            header: 'RESETAR JOBS',
+            header: 'REVERTER JOBS',
             message: 'Todas as configurações dos Jobs serão desfeitas. Deseja continuar?',
             buttons: [
                 'Não',
@@ -238,19 +238,19 @@ const ModalPipelineRunner: React.FC = () => {
 
     //Botoes contendo as opções para cada Pipeline
     const botoes: BotaoProps[] = [
-        {icon: flash, text: "Executar",  handler: () => executarPipeline()}, //modalExecPipelineOn()},
-        {icon: save, text: "Salvar",    handler: () => atualizarPipeline()},
-        {icon: arrowUndo, text: "Resetar",  handler: () => resetarJobsPipeline()},
-        {icon: trash, text: "Apagar",    handler: () => deletarMainPipeline()},
+        { icon: flash,       text: "Executar",  handler: () => executarPipeline(),    color: "warning" }, //modalExecPipelineOn()},
+        { icon: save,        text: "Salvar",    handler: () => atualizarPipeline(),   color: "light"   },
+        { icon: arrowUndo,   text: "Reverter",  handler: () => resetarJobsPipeline(), color: "light"   },
+        { icon: trash,       text: "Excluir",   handler: () => deletarMainPipeline(), color: "danger"  },
     ];
 
     //Listas
     const listasRefateis: ListaRetratrilProps[] = [
         { 
-            title: `Variáveis Globais`,
+            title: `Parâmetros Globais`,
             arrow: false,
             icon: options,
-            content: <ListaVariaveisPipeline ref={variaveisRef}/> 
+            content: <ListaParametrosGlobais ref={variaveisRef}/> 
         }
     ];
 
@@ -259,7 +259,11 @@ const ModalPipelineRunner: React.FC = () => {
         <IonRow className='container ion-justify-content-center'>
             <IonItem className='w-100 mx-3' lines='none' style={{ zIndex: '50' }} >
                 <IonToolbar color='tertiary' className='glass'>
-                    <IonTitle>{mainPipeline}</IonTitle>
+                    <IonTitle>
+                        <IonLabel>
+                            Pipeline: {mainPipeline} <IonBadge color="light">{mainPipelineId}</IonBadge>
+                        </IonLabel>
+                    </IonTitle>
                     <IonButtons slot='end'>
                         <Botoes botoes={botoes} />
                     </IonButtons>
@@ -268,8 +272,9 @@ const ModalPipelineRunner: React.FC = () => {
             <IonCardContent className='w-100 mx-4 my-3 p-0 px-1'>
                 {/* Massas */}
                 <BotaoMassasPipeline ref={massasRef}/>
+                <div className='mt-1'/>
 
-                {/* Variáeis Globais (Configurações) */}
+                {/* Parâmetros Globais */}
                 <ListaRetratrilAgrupada 
                     listas={listasRefateis} 
                     disable={listasRefateis.length < 1}

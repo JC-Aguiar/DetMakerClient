@@ -1,15 +1,16 @@
-import { IonInput, IonLabel, IonItem, IonTextarea, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent } from "@ionic/react";
+import { IonInput, IonLabel, IonItem, IonTextarea, IonRow, IonCol, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonCardSubtitle } from "@ionic/react";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { addMensagem, atualizarMensagem } from "../../Store/Reducer/ReducerAtividade";
 import { RelatorioComplementoDTO } from "../../data/RelatorioComplementoDTO";
 import Botao from "../Core/Botao";
+import { alarm, save } from "ionicons/icons";
 
 
 //Interface das propriedades do componente <ModalContextoRevisao>
 export interface ModalContextoRevisaoProps {
     relatorioId: number | null,
-    apply: (contexto: RelatorioComplementoDTO) => void;
+    apply: (contexto: RelatorioComplementoDTO) => void,
 }
 
 //Componente <ModalContextoRevisao>
@@ -61,6 +62,9 @@ const ModalContextoRevisao: React.FC<ModalContextoRevisaoProps> = (props) => {
         <IonCard className="shadow-none p-0 m-0 my-2">
             <IonCardHeader className="py-1">
                 <IonCardTitle>PROJETO</IonCardTitle>
+                <IonCardSubtitle>
+                    Revisão sem contexto. Defina o Projeto e a Atividade para poder salvar suas revisões.
+                </IonCardSubtitle>
             </IonCardHeader>
             <IonCardContent className="p-0 m-0">
                 <IonItem lines="none" className="ion-align-items-center">
@@ -137,7 +141,7 @@ const ModalContextoRevisao: React.FC<ModalContextoRevisaoProps> = (props) => {
             </IonCardContent>
         </IonCard>
         <IonRow className="ion-justify-content-end">
-            <Botao text="Definir" handler={definirContexto} />
+            <Botao icon={save} text="Definir" handler={definirContexto} />
         </IonRow>
     </div>;
 };

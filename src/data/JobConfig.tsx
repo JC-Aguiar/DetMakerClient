@@ -1,5 +1,4 @@
 import { JobInfoDTO } from "./JobInfoDTO";
-import { QueryInfo } from "./QueryInfoDTO";
 import { VariavelDinamica } from "./VariavelDinamica";
 
 export interface JobConfig {

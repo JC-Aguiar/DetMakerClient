@@ -16,7 +16,7 @@ import Botao from "../components/Core/Botao";
 import ListaCatalogoJobs from "../components/Lists/ListaCatalogoJobs";
 import ListaCatalogoMassas from "../components/Lists/ListaCatalogoMassas";
 import ListaCatalogoPipelines from "../components/Lists/ListaCatalogoPipelines";
-import { ButtonLayoutProps, layoutGrupoBotoes } from "../components/Core/ButtonLayout";
+import { ButtonLayoutProps, layoutBotoesFlutuantes } from "../components/Core/ButtonLayout";
 import Informativo from "../components/Core/Informativo";
 
 export interface GitlabGroup {
@@ -346,13 +346,13 @@ const PaginaGit: React.FC = () => {
     if (loading) return <Carregando />;
     else if (gitRepos.length < 1) return (
         <div className='p-0 m-0'> 
-            {layoutGrupoBotoes(butoes)}
+            {layoutBotoesFlutuantes(butoes)}
             <Informativo status='SemDados' />
         </div>
     );
     return ( 
         <div className='p-0 m-0'> 
-            {layoutGrupoBotoes(butoes)}
+            {layoutBotoesFlutuantes(butoes)}
             <IonSplitPane when="xs" contentId="gitContent" className='ps-5 ms-5 '>
                 <IonMenu contentId="gitContent" className='glass' color='#'>
                     <IonContent className='glass-content p-0 m-0 mx-5'>

@@ -1,5 +1,5 @@
-import { TextareaChangeEventDetail, IonTextarea, IonRow, IonCol, IonItem, IonBadge, IonInput, InputChangeEventDetail } from "@ionic/react";
-import { save } from "ionicons/icons";
+import { TextareaChangeEventDetail, IonTextarea, IonRow, IonCol, IonItem, IonBadge, IonInput, InputChangeEventDetail, IonLabel } from "@ionic/react";
+import { eye, save } from "ionicons/icons";
 import { useState } from "react";
 import Botao from "../Core/Botao";
 import * as AxiosRequest from "../../data/AxiosRequest";
@@ -141,29 +141,29 @@ const ModalConfigQuery: React.FC<ModalConfigQueryProps> = ({onSave = () => null,
     //Renderização visual do componente
     if (loading) return <Informativo status="Carregando" mensagem="Obtendo dados da Query no banco" />;
     return (
-        <div className='position-relative mx-3 px-2'>
-            <IonRow className="d-flex m-0 p-0 ms-1 mt-2 ion-align-items-center">
-                <IonCol>
-                    <IonItem lines="none" color="primary" className="word-wrap lh-1 glass">
-                        Job <span className="font-monospace ms-1 me-3">{props.jobNome}</span>
-                        ID <span className="font-monospace mx-1">{props.jobId}</span>
-                        <Botao text="Salvar" icon={save} disabled={!configValida()} handler={salvar} /> 
-                    </IonItem>
-                </IonCol>
-                <IonCol>
-                    <GlassInput text="Nome">
-                        <IonInput className='text-start font-monospace small m-0 p-2'
-                            inputmode='text'
-                            type="text"
-                            maxlength={25}
-                            value={infos.nome}
-                            onIonChange={preencherNome}
-                        />
-                    </GlassInput>
-                </IonCol>
-            </IonRow>
+        <div className='position-relative m-0 p-0'>
+                <IonRow className="m-0 p-0">
+                    <IonCol size="5">
+                        <GlassInput text="Nome">
+                            <IonInput className='text-start font-monospace small m-0 p-2 pb-1'
+                                inputmode='text'
+                                type="text"
+                                maxlength={25}
+                                value={infos.nome}
+                                onIonChange={preencherNome}
+                            />
+                            <IonBadge color='#' className="position-fixed end-0 text-end" style={{ transform: 'translate(0%, -100%)' }}>
+                                {infos.nome.length}/25
+                            </IonBadge>
+                        </GlassInput>
+                    </IonCol>
+                    <IonCol size="7" className="d-flex ion-align-items-center">
+                        <Botao text="Salvar Query" icon={save} className="w-100" disabled={!configValida()} handler={salvar} />
+                        <Botao text="Formatar SQL" icon={eye} className="w-100" handler={() => setInfos(thisInfo => ({ ...thisInfo, sql: format(infos.sql, configSqlFormatter) }))} />
+                    </IonCol>
+                </IonRow>
             <GlassInput text="Descrição">
-                <IonTextarea className='text-start font-monospace small m-0 p-2'
+                <IonTextarea className='text-start font-monospace small m-0 p-2 pb-1'
                     inputmode='text'
                     rows={1}
                     maxlength={500}
@@ -175,21 +175,18 @@ const ModalConfigQuery: React.FC<ModalConfigQueryProps> = ({onSave = () => null,
                 </IonBadge>
             </GlassInput>
             <GlassInput text="Query">
-                <IonTextarea className='text-start font-monospace small m-0 p-2'
+                <IonTextarea className='text-start font-monospace small m-0 p-2 pb-1'
                     inputmode='text'
-                    rows={16}
+                    rows={14}
                     //ref={sqlInputRef}
                     maxlength={900}
-                    value={format(infos.sql, configSqlFormatter)}
+                    value={infos.sql}
                     onIonChange={preencherSql}
                 />
                 <IonBadge color='#' className="position-fixed end-0 text-end" style={{ transform: 'translate(0%, -100%)' }}>
                     {infos.sql.length}/900
                 </IonBadge>
             </GlassInput>
-            <IonRow className='ion-justify-content-end mt-5'>
-                <Botao text="Salvar" icon={save} disabled={!configValida()} handler={salvar} /> 
-            </IonRow>
         </div>
     );
 }

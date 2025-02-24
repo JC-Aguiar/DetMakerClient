@@ -1,13 +1,14 @@
-import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonIcon, IonInput, IonLabel, IonPopover, IonRow } from "@ionic/react";
+import { InputChangeEventDetail, IonBadge, IonButton, IonCard, IonCol, IonContent, IonFab, IonFabButton, IonGrid, IonIcon, IonInput, IonItem, IonLabel, IonPopover, IonRow } from "@ionic/react";
 import { HTMLAttributes, ReactNode, useEffect, useRef, useState } from "react";
 
-export interface ButtonLayoutProps {
+export interface ButtonLayoutProps extends HTMLAttributes<HTMLIonButtonElement> {
     title: string,
     icon: string,
-    disabled: boolean,
-    trigger: () => void,
+    disabled?: boolean,
+    trigger?: () => void,
     popover?: PopoverProps,
     id?: string,
+    size?: "small" | "large" | "default",
 }
 
 export interface PopoverProps {
@@ -23,7 +24,7 @@ export interface PopoverInputProps {
 }
 
 //export namespace PopoverProps
-export const layoutGrupoBotoes = (grupo: ButtonLayoutProps[]) => {
+export const layoutBotoesFlutuantes = (grupo: ButtonLayoutProps[]) => {
     return (
         <IonFab slot="fixed" 
             vertical="top" 
@@ -34,8 +35,8 @@ export const layoutGrupoBotoes = (grupo: ButtonLayoutProps[]) => {
             <div className="glass-content" >
                 {
                     grupo.map((item, index) => 
-                        <IonRow key={index} className="m-0 p-1 ion-justify-content-center ion-align-items-center">
-                            <ButtonLayout {...item} />
+                        <IonRow key={index} className="m-0 p-1 w-100 ion-justify-content-center ion-align-items-center">
+                            <ButtonLayout {...item}  className={`${item.className} w-100`}/>
                         </IonRow>
                     )
                 }
@@ -44,7 +45,7 @@ export const layoutGrupoBotoes = (grupo: ButtonLayoutProps[]) => {
     );
 };
 
-const ButtonLayout: React.FC<ButtonLayoutProps> = ({ title, icon, disabled, trigger, id, popover = null }) => {
+const ButtonLayout: React.FC<ButtonLayoutProps> = ({ disabled = false, trigger = () => null, popover = null, ...props }) => {
     //props.children = null;
     const popRef = useRef<HTMLIonCardElement>(null);
     const [mouseLeaveButton, setMouseLeaveButton] = useState<boolean>(true);
@@ -63,38 +64,40 @@ const ButtonLayout: React.FC<ButtonLayoutProps> = ({ title, icon, disabled, trig
                 onMouseLeave={(e) => setMouseLeavePopover(true)}
                 onMouseEnter={(e) => setMouseLeavePopover(false)}
             >
-                <IonRow className="glass simples-popover-content ion-align-items-center">
-                    <IonLabel className="p-0 m-0 small" color="#" hidden={!popover.text}>
+                <IonItem className="banner ion-align-items-center p-0 m-0" lines="none">
+                    <IonLabel className="p-0 m-0 small" color="dark" hidden={!popover.text}>
                         {popover.text}
                     </IonLabel>  
                     {popover.input ? popover.input : null}
-                </IonRow>
+                </IonItem>
             </IonCard>;
     }
 
     return (
         <>
-        <button onClick={trigger} 
-            id={id}
-            color="#" 
-            disabled={disabled}
-            className="btn btn-primary glass p-0 m-0"
-            onMouseLeave={(e) => setMouseLeaveButton(true)}
-            onMouseEnter={(e) => setMouseLeaveButton(false)}
-        >
-            <IonRow className="m-0 p-0 ion-justify-content-center ion-align-items-center">
-                <IonCol size='12' className="m-0 p-0">
-                    <IonIcon icon={icon} color='light' style={{transform: 'translate(0px, 8px)'}} />
-                </IonCol>
-                <IonCol size='12' className="m-0 p-0">
-                    <IonBadge color='#' className="bg-transparent text-center lh-1" >
-                        <small className="text-white text-wrap fw-normal">
-                            {title}
-                        </small>
-                    </IonBadge>
-                </IonCol>
-            </IonRow>
-        </button>
+            <IonButton 
+                id={props.id} 
+                color="#" 
+                expand="block" 
+                size={props.size ? props.size : "large"} 
+                className={`glass ${props.className ? props.className : "" }`} 
+                disabled={disabled} 
+                onClick={trigger}
+                onMouseLeave={(e) => setMouseLeaveButton(true)}
+                onMouseEnter={(e) => setMouseLeaveButton(false)}
+
+            >
+                <IonRow className="m-0 p-0 ion-justify-content-center ion-align-items-center">
+                    <IonCol size='12' className="m-0 p-0">
+                        <IonIcon icon={props.icon} color='light' style={{transform: 'translate(0px, 8px)'}} />
+                    </IonCol>
+                    <IonCol size='12' className="m-0 p-0">
+                        <IonBadge className="bg-transparent text-center text-white text-wrap fw-normal">
+                            <span style={{ fontSize: '0.6em'  }}>{props.title}</span>
+                        </IonBadge>
+                    </IonCol>
+                </IonRow>
+            </IonButton>
         {showPopover()}
         </>
     );

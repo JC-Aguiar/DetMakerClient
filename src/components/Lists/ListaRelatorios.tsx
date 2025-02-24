@@ -30,7 +30,6 @@ const ListaRelatorios: React.FC<ListaRelatoriosProps> = ({ relatorio, index }) =
         (state: RootState) => state.store.catalogoRelatorios.catalogo);
     const tagSucesso = !relatorio.erro ? undefined : tag(alertCircleOutline, null, true);
     const jaRevisado = relatorio.revisados === relatorio.evidencias;
-    const buttonClass = `btn btn-outline-dark border-0 my-1 p-0 w-100`;
 
     //Botões renderizados por esse componente
     const butoes: ButtonLayoutProps[] = [ 
@@ -46,12 +45,12 @@ const ListaRelatorios: React.FC<ListaRelatoriosProps> = ({ relatorio, index }) =
             trigger: () =>  obterUmaRevisao(),
             disabled: false,
         },
-        {
-            title: 'Gerar DET',
-            icon: document,
-            trigger: () =>  obterDet(),
-            disabled: false,
-        }
+        //{
+        //    title: 'Gerar DET',
+        //    icon: document,
+        //    trigger: () =>  obterDet(),
+        //    disabled: false,
+        //}
     ];
 
     //Permite configurar diferentes tipos de tag, para renderizar diferentes símbolos
@@ -62,21 +61,6 @@ const ListaRelatorios: React.FC<ListaRelatoriosProps> = ({ relatorio, index }) =
         return <IonBadge className={`mb-0 ${padding} h6`} color={corFundo}>
             <IonIcon icon={icone} color={corTexto} className="pe-1" style={{transform: 'translate(0px, 3px)'}} />
             {conteudo}
-        </IonBadge>
-    }
-
-    //Contêm o padrão de renderização dos botões 
-    function layoutButao(texto: string, icon: string, trigger: () => void) {
-        return <IonBadge color="#" className={buttonClass}>
-            <IonButton size="small" 
-                expand="block"
-                fill="outline"
-                className='m-0'
-                onClick={trigger}
-            >
-            <IonIcon icon={icon} className="pe-1" style={{transform: 'translate(0px, -1px)'}} />
-                {texto}
-            </IonButton>
         </IonBadge>
     }
 

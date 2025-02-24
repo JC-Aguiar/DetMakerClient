@@ -1,4 +1,4 @@
-import { cloudUpload, cube, layers, library, listOutline, refresh } from "ionicons/icons";
+import { addCircle, close, cloudUpload, cube, flask, layers, library, listOutline, refresh } from "ionicons/icons";
 import { ListaRetratrilAgrupada } from "../Core/ListaRetratil";
 import ListaCatalogoJobs from "../Lists/ListaCatalogoJobs";
 import ListaCatalogoMassas from "../Lists/ListaCatalogoMassas";
@@ -9,7 +9,7 @@ import { addMensagem, atualizarMensagem, setMainPipeline, setViewJob } from "../
 import { RootState } from "../../Store/ReduxStore";
 import * as axiosRequest from "../../data/AxiosRequest";
 import { useState, useRef, useEffect } from "react";
-import { IonCol, IonModal, IonRow, useIonModal, useIonViewWillEnter } from "@ionic/react";
+import { IonCard, IonCol, IonHeader, IonIcon, IonLabel, IonModal, IonRow, IonTitle, IonToolbar, useIonModal, useIonViewWillEnter } from "@ionic/react";
 import DynamicModal from "../Core/DynamicModal";
 import ModalNovaPipeline from "../Modals/ModalNovaPipeline";
 import ModalNovoJob from "../Modals/ModalNovoJob";
@@ -57,10 +57,10 @@ const PipelinePanel: React.FC = () => {
         elemento: <ModalNovoJob onSave={() => modalNovoJobOff()} />,
         onDismiss: () => modalNovoJobOff(),
     });
-    
+
     //Ações ao carregar esta página
     useIonViewWillEnter(() => {
-        if (catalogoJobs.length < 1) 
+        if (catalogoJobs.length < 1)
             coletarRecursos();
     }, [catalogoJobs.length]);
 
@@ -75,32 +75,20 @@ const PipelinePanel: React.FC = () => {
     */
 
     //Botões renderizados por esse componente
-    const butoes: ButtonLayoutProps[] = [ 
+    const butoes: ButtonLayoutProps[] = [
         {
-            title: 'Atualizar Recursos',
+            title: 'Recarregar',
             icon: refresh,
             trigger: () => coletarRecursos(),
             disabled: isLoading,
-        }, 
-        {
-            title: 'Criar Novo Job',
-            icon: cube,
-            trigger: () =>  modalNovoJobOn(),
-            disabled: isLoading,
-        },
-        {
-            title: 'Criar Nova Pipeline',
-            icon: layers,
-            trigger: () =>  modalNovaPipelineOn(),
-            disabled: isLoading || catalogoJobs.length < 1,
-        },
-        {
+            //popover: { text: "Para recarregar os Jobs, Pipelines, Queries e Massas do banco" }
+        }, {
             title: 'Upload de Schedule',
             icon: cloudUpload,
             trigger: () => novaScheduleRef.current!.click(),
             disabled: isLoading,
-        }, 
-        {
+            //popover: { text: "Informe uma planilha Schedule XLSX para salvar os Jobs no banco em massa" }
+        }, {
             title: 'Ver Schedule',
             icon: listOutline,
             trigger: () => {
@@ -110,31 +98,32 @@ const PipelinePanel: React.FC = () => {
                 console.log(`Ativando modal Shedule (var: ${verModalSchedule})`);
             },
             disabled: isLoading || catalogoJobs.length < 1,
-        }   
+            //popover: { text: "Veja a tabela de Jobs do banco no formato de planilha" }
+        }
     ];
 
     //Conjunto de Requisições para atualizar todos os recursos da página 
     async function coletarRecursos() {
         const id = `Get_Resources@${Date.now()}`;
-        dispatch(addMensagem({ 
-            id: id, 
+        dispatch(addMensagem({
+            id: id,
             texto: 'Obtendo catálogo de Recusos.',
             status: 'INFO'
         }));
-        const erros: {recurso: string, erro: string}[] = [];
-        const addErro = (recurso: string, erro: string) => erros.push({recurso, erro});
+        const erros: { recurso: string, erro: string }[] = [];
+        const addErro = (recurso: string, erro: string) => erros.push({ recurso, erro });
         await Promise.all([
             obterJobsBanco().catch(error => addErro('Jobs', error)),
             obterPipelinesBanco().catch(error => addErro('Pipelines', error)),
             obterQueriesBanco().catch(error => addErro('Queries', error)),
             obterMassasBanco().catch(error => addErro('Massas', error)),
         ]);
-        const mensagemGeral = erros.length < 1 ? 
+        const mensagemGeral = erros.length < 1 ?
             "Todos os recursos foram botidos com sucesso. " :
             "Alguns recursos falharam. ";
         const mensagensDeErro = erros.map(item => `${item.recurso}: ${item.erro}`).join("\n");
-        dispatch(atualizarMensagem({ 
-            id: id, 
+        dispatch(atualizarMensagem({
+            id: id,
             complmento: mensagemGeral + mensagensDeErro,
             status: (erros.length > 0 ? 'ERROR' : 'OK')
         }));
@@ -180,31 +169,31 @@ const PipelinePanel: React.FC = () => {
         const selectedFile = event.target.files?.[0];
         const id = `Upload_File@${Date.now()}`;
         if (!selectedFile) {
-            dispatch(addMensagem({ 
-                id: id, 
+            dispatch(addMensagem({
+                id: id,
                 texto: 'Nenhum arquivo selecionado para upload da Schedule.',
                 status: 'INFO'
             }));
             return;
         }
         try {
-            dispatch(addMensagem({ 
-                id: id, 
+            dispatch(addMensagem({
+                id: id,
                 texto: `Carregando Schedule '${selectedFile.name}'.`,
                 status: 'INFO'
             }));
             const email = user ? user.email : "DET-MAKER";
             const mensagem = await axiosRequest.openSchedule(mainClienteId, selectedFile, email);
-            dispatch(atualizarMensagem({ 
-                id: id, 
+            dispatch(atualizarMensagem({
+                id: id,
                 complmento: `${mensagem}.`,
                 status: 'OK'
             }));
             coletarRecursos();
         }
         catch (error) {
-            dispatch(atualizarMensagem({ 
-                id: id, 
+            dispatch(atualizarMensagem({
+                id: id,
                 complmento: `${error}`,
                 status: 'ERROR'
             }));
@@ -212,42 +201,56 @@ const PipelinePanel: React.FC = () => {
         novaScheduleRef.current!.files = null;
     }
 
-    return(
+    return (
         <div className="p-0 m-0">
-            {/*layoutGrupoBotoes(butoes)*/}
-                <IonRow className="p-0 m-0 ion-justify-content-around d-flex">
-                    {
-                        butoes.map((item, index) => <IonCol key={index} className="w-100">
-                                <ButtonLayout {...item} />
-                            </IonCol>
-                        )
-                    }
-                </IonRow>
-            <ListaRetratrilAgrupada 
+            <IonRow className="p-0 m-0 ion-justify-content-around">
+                {
+                    butoes.map((item, index) => <IonCol key={index} className="w-100">
+                        <ButtonLayout {...item} />
+                    </IonCol>
+                    )
+                }
+            </IonRow>
+            <ListaRetratrilAgrupada
                 listas={[
-                    {title: 'Jobs', icon: cube, content: <ListaCatalogoJobs />},
-                    {title: 'Pipelines', icon: layers, content: <ListaCatalogoPipelines />},
-                    {title: 'Gerador de Massa', icon: library, content: <ListaCatalogoMassas />},
+                    {
+                        title: 'Catálogo Jobs',
+                        icon: cube,
+                        arrow: false,
+                        buttons: [{ text: "CRIAR", className: "glass", icon: addCircle, handler: () => modalNovoJobOn(), disabled: isLoading }],
+                        content: <ListaCatalogoJobs />
+                    }, {
+                        title: 'Catálogo Pipelines',
+                        icon: layers,
+                        arrow: false,
+                        buttons: [{ text: "CRIAR", className: "glass", icon: addCircle, handler: modalNovaPipelineOn, disabled: (isLoading || catalogoJobs.length < 1) }],
+                        content: <ListaCatalogoPipelines />
+                    }, {
+                        title: 'Catálogo Massas',
+                        icon: library,
+                        arrow: false,
+                        content: <ListaCatalogoMassas />
+                    },
                 ]}
                 disable={isLoading}
             />
-            
+
             {/* Input invisível, para coletar Schedule dos Jobs a carregar no banco */}
             <form action="/upload" method="post" encType="multipart/form-data" hidden>
-                <label htmlFor="formFile" className="form-label" hidden/>
-                <input className="form-control" 
-                    type="file" 
-                    id="formFile" 
+                <label htmlFor="formFile" className="form-label" hidden />
+                <input className="form-control"
+                    type="file"
+                    id="formFile"
                     accept=".xlsx"
                     multiple={false}
                     ref={novaScheduleRef}
-                    onChange={async e => await uploadSchedule(e)} 
+                    onChange={async e => await uploadSchedule(e)}
                     hidden
                 />
             </form>
-            
+
             {/* Modal personalizada da Schedule */}
-            <IonModal style={{'--min-width': '94%', '--min-height': '90%'}} isOpen={verModalSchedule} ref={modalScheduleRef}>
+            <IonModal style={{ '--min-width': '94%', '--min-height': '90%' }} isOpen={verModalSchedule} ref={modalScheduleRef}>
                 <DynamicModal
                     titulo="Schedule Completa"
                     elemento={<Schedule />}

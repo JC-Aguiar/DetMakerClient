@@ -1,6 +1,6 @@
-import { IonCard, IonAccordionGroup, IonAccordion, IonItem, IonCardHeader, IonCardTitle, IonCardContent, IonTitle, IonBadge, IonButton, IonIcon, IonRow, useIonModal, IonLabel, useIonAlert, IonButtons, IonToolbar, IonInput, IonChip, IonCol, IonTextarea, IonSegment, IonSegmentButton } from "@ionic/react";
+import { IonCard, IonAccordionGroup, IonAccordion, IonItem, IonCardHeader, IonCardTitle, IonCardContent, IonTitle, IonBadge, IonButton, IonIcon, IonRow, useIonModal, IonLabel, useIonAlert, IonButtons, IonToolbar, IonInput, IonChip, IonCol, IonTextarea, IonSegment, IonSegmentButton, IonFab, IonFabButton } from "@ionic/react";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
-import { addCircle, arrowUndo, close, closeCircle, createOutline, save, server, settings, trash, trashOutline } from "ionicons/icons";
+import { addCircle, arrowUndo, chevronForwardCircle, close, closeCircle, createOutline, save, server, settings, trash, trashOutline } from "ionicons/icons";
 import DynamicModal from "../Core/DynamicModal";
 import ModalConfigQuery from "../Modals/ModalConfigQuery";
 import { useEffect, useRef, useState } from "react";
@@ -12,7 +12,7 @@ import Informativo from "../Core/Informativo";
 import { RootState } from "../../Store/ReduxStore";
 import { removeQuery } from "../../Store/Reducer/ReducerQueries";
 import { QueryInfoDTO } from "../../data/QueryInfoDTO";
-import { removerJobs as removerJobsCatalogo } from "../../Store/Reducer/ReducerJobs";
+import { removerJobs as removerJobsCatalogo, updateJob } from "../../Store/Reducer/ReducerJobs";
 import { removerJobs as removerJobsPiepline } from "../../Store/Reducer/ReducerPipelines";
 import Botao from "../Core/Botao";
 import { format, FormatOptionsWithLanguage } from "sql-formatter";
@@ -27,13 +27,13 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
 
     //Atributos do componente
     const dispatch = useDispatch();
-    const fonteCodigo = 'font-monospace text-white fw-bold'
     const [loading, setLoading] = useState<boolean>(false);
     const [queryIndex, setQueryIndex] = useState<number>(-1);
     const [alerta] = useIonAlert();
     const queries: QueryInfoDTO[] = useSelector(
         (state: RootState) => state.store.catalogoQueries.catalogo.filter(item => item.jobId === jobDto.id)
     );
+    const clienteId = useSelector((state: RootState) => state.store.configAtividade.mainClienteId);
     const [jobNome, setJobNome] = useState<string>(
         jobDto.nome
     );
@@ -98,7 +98,11 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
     //Atributo da modal acionada pelo componente
     const [modalQueryOn, modalQueryOff] = useIonModal(DynamicModal,
         {
-            titulo: "Editar Configuração de Query",
+            titulo: <>
+                <div>Editar Query</div>
+                <IonBadge color="tertiary" className="">{jobDto.nome}</IonBadge>
+                <IonBadge color="light" className="ms-1">ID {jobDto.id}</IonBadge>
+            </>,
             elemento: <ModalConfigQuery
                 jobId={jobDto.id}
                 jobNome={jobDto.nome}
@@ -127,6 +131,51 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
         modalQueryOn({ cssClass: 'modal-large' });
     }
 
+    //Handler para gerar requisição que deleta Job no banco de dados
+    const atualizarJob = async () => {
+        const mensagemId = `Update_Job@${Date.now()}`;
+        try {
+            setLoading(true);
+            dispatch(addMensagem({
+                id: mensagemId,
+                texto: `Atualizando Job ${jobDto.nome} [${jobDto.id}].`,
+                status: 'INFO'
+            }));
+            const dtoEnvio: JobInfoDTO = {
+                ...jobDto,
+                nome: jobNome,
+                descricao: jobDescricao,
+                caminhoExec: jobDiretorioExec,
+                parametros: jobParametrosExec.split(", "),
+                descricaoParametros: jobParametrosDescricao.split(", "),
+                diretorioEntrada: jobDiretorioCarga,
+                mascaraEntrada: jobMascarasCarga.split(", "),
+                diretorioLog: jobDiretorioLog,
+                mascaraLog: jobMascarasLog.split(", "),
+                diretorioSaida: jobDiretorioRemessa,
+                mascaraSaida: jobMascarasRemessa.split(", "),
+            };
+            const jobAtualizado = await AxiosRequest.saveJob(clienteId, dtoEnvio);
+            dispatch(updateJob(jobAtualizado));
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `Sucesso.`,
+                status: 'OK'
+            }));
+        }
+        catch (error) {
+            dispatch(atualizarMensagem({
+                id: mensagemId,
+                complmento: `${error}`,
+                status: 'ERROR'
+            }));
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+
+    //Handler para gerar requisição que deleta Job no banco de dados
     const deletarJob = async () => {
         const mensagemId = `Delete_Job@${Date.now()}`;
         try {
@@ -198,7 +247,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
         {
             text: "Salvar",
             color: "tertiary",
-            onClick: () => null,
+            onClick: atualizarJob,
             icon: save,
         },
         {
@@ -210,14 +259,14 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
         {
             text: "Excluir",
             color: "danger",
-            onClick: () => exibirAlerta(),
+            onClick: exibirAlerta,
             icon: trashOutline,
         },
     ];
 
     //Separando os tipos de campos em comum, que pertencem ao mesmo grupo/contexto de informação 
-    type JobGruposDeCamposType = "Artefato" | "Cargas" | "Logs" | "Remessas" | "Queries";
-    const listaGruposDosCampo: JobGruposDeCamposType[] = ["Artefato", "Cargas", "Logs", "Remessas", "Queries"];
+    type JobGruposDeCamposType = "Acionamento" | "Cargas" | "Logs" | "Remessas" | "Queries";
+    const listaGruposDosCampo: JobGruposDeCamposType[] = ["Acionamento", "Cargas", "Logs", "Remessas", "Queries"];
 
     //Interface das propriedades gerais dos campos dos Jobs
     interface JobCampoProps<T> {
@@ -240,7 +289,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
 
     const valoresDosGrupoDeCampos: JobGrupoDeCampoProps<string>[] = [
         {
-            grupo: "Artefato",
+            grupo: "Acionamento",
             campos: [
                 {
                     nome: "Diretório",
@@ -257,6 +306,14 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
                     aoDigitar: setJobNome,
                     reverer: () => setJobNome(jobDto.nome)
                 }, {
+                    nome: "Descrição do Job",
+                    colunas: 12,
+                    lista: false,
+                    multiline: true,
+                    valor: jobDescricao,
+                    aoDigitar: setJobDescricao,
+                    reverer: () => setJobDescricao(jobDto.descricao)
+                }, {
                     nome: "Lista dos Parâmetros",
                     colunas: 4,
                     lista: true,
@@ -272,14 +329,6 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
                     valor: jobParametrosDescricao,
                     aoDigitar: (texto) => setJobParametrosDescricao(adaptarStringEmLista(texto)),
                     reverer: () => setJobParametrosDescricao(jobDto.descricaoParametros.join("\n"))
-                }, {
-                    nome: "Descrição do Artefto",
-                    colunas: 12,
-                    lista: false,
-                    multiline: true,
-                    valor: jobDescricao,
-                    aoDigitar: setJobDescricao,
-                    reverer: () => setJobDescricao(jobDto.descricao)
                 }
             ]
         }, {
@@ -345,17 +394,17 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
         }
     ];
 
-    const [segment, setSegment] = useState<JobGruposDeCamposType>("Artefato");
+    const [segment, setSegment] = useState<JobGruposDeCamposType>("Acionamento");
 
-    //Exibe o conteúdo principal dentro do card (loading ou dados)
-    const content = () => {
+    //Exibe os detalhes do cadastro do Job se não estiver realizando request ao banco
+    const jobContent = () => {
         if (loading) return <Informativo status="Carregando" />
         return <>
             <IonItem slot="header" color="primary" className='' >
-                <IonCardHeader className='p-0'>
+                <IonCardHeader className={`p-0 w-100 ${retratil ? 'text-start' : 'text-center'} `}>
                     <IonCardTitle color='dark' className='p-0'>
-                        <IonBadge color="light" style={{ transform: 'translate(0, 5px)' }}>ID {jobDto.id}</IonBadge>
-                        <span className="ms-1">{jobDto.nome}</span>
+                        <span className="me-1">{jobDto.nome}</span>
+                        <IonBadge color="light" style={{ transform: 'translate(0, 3px)' }}>ID {jobDto.id}</IonBadge>
                     </IonCardTitle>
                 </IonCardHeader>
             </IonItem>
@@ -365,7 +414,7 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
                         <IonRow className="d-flex ion-justify-content-between">
                             <IonSegment scrollable={true} value={segment} onIonChange={e => {
                                 const tipo = listaGruposDosCampo.find(tipo => tipo === e.detail.value)
-                                setSegment(tipo ? tipo : "Artefato");
+                                setSegment(tipo ? tipo : "Acionamento");
                             }}>
                                 {
                                     listaGruposDosCampo.map((grupo, index) =>
@@ -409,7 +458,10 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
                                                 className="font-monospace glass m-0 px-2 pt-1"
                                                 value={item.valor}
                                                 onIonChange={(e) => {
-                                                    if (!e.detail.value) return;
+                                                    if (!e.detail.value) {
+                                                        item.aoDigitar("")
+                                                        return;
+                                                    }
                                                     item.aoDigitar(e.detail.value);
                                                 }}
                                                 color="light"
@@ -419,7 +471,10 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
                                                 className="font-monospace glass m-0 px-2 pt-1"
                                                 value={item.valor}
                                                 onIonChange={(e) => {
-                                                    if (!e.detail.value) return;
+                                                    if (!e.detail.value) {
+                                                        item.aoDigitar("")
+                                                        return;
+                                                    }
                                                     item.aoDigitar(e.detail.value);
                                                 }}
                                                 color="light"
@@ -433,14 +488,16 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
                     <IonRow className="w-100 m-0 mt-2 px-3 ion-justify-content-around" hidden={segment !== "Queries"}>
                         {
                             queries.map((item, index) =>
-                                <IonLabel key={index} className={`font-monospace p-0 pb-2`} >
-                                    <Botao text={item.nome} handler={() => abrirModal(index)} icon={server} />
-                                    <IonBadge className="stick rounded rounded-circle m-0 p-0"
+                                <IonLabel key={index} className={`font-monospace p-0 py-2 mt-2`} >
+                                    <Botao text={item.nome} handler={() => abrirModal(index)} icon={server} className="h-100" />
+                                    <IonChip 
+                                        color="#"
+                                        className="position-absolute p-0 m-0 ms-1 bg-light" 
                                         onClick={() => deletarQuery(index)}
-                                        style={{ transform: 'translate(-16px, 0)' }}
+                                        style={{ transform: 'scale(0.75) translate(-40px, -16px)' }}
                                     >
-                                        <IonIcon icon={trash} color="danger" className="btn btn-light p-1 m-0" />
-                                    </IonBadge>
+                                        <IonIcon icon={trash} color="danger" className="p-1 m-0 item-lista" />
+                                    </IonChip>
                                 </IonLabel>
                             )
                         }
@@ -463,19 +520,24 @@ const JobCard: React.FC<JobCardProps> = ({ jobDto, retratil = true }) => {
     //Renderização do componente
     return (
         <IonCard className="shadow-none">
+
+            {/* Opção de visualização para modo retrátil */}
             <IonAccordionGroup hidden={!retratil}>
                 <IonAccordion value="first" className='bg-transparent' >
-                    {content()}
+                    {jobContent()}
                 </IonAccordion>
             </IonAccordionGroup>
+
+            {/* Opção de visualização para modo card simples */}
             <div hidden={retratil}>
-                <IonCardHeader className="p-0 m-0">
-                    <IonCardTitle color="light" className="h3 w-100 text-center">
+                <IonCardHeader color="primary" className="p-0 m-0">
+                    <IonCardTitle className="h3 m-0 p-0 w-100 text-center">
                         Cadastro do Job
                     </IonCardTitle>
                 </IonCardHeader>
-                {content()}
+                {jobContent()}
             </div>
+
         </IonCard>
     );
 }

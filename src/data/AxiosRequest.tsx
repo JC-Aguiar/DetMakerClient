@@ -21,7 +21,7 @@ import { QueuePushResponseDTO } from './QueuePushResponseDTO';
 import { FilaResumoDTO } from './FilaResumoDTO';
 
 //Configurações gerais
-export const LOCAL_SERVER = false; 
+export const LOCAL_SERVER = true; 
 export const LOCAL_CLIENT = true;
 
 //URLs do servidor

@@ -1,11 +1,11 @@
-import { IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCol, IonContent, IonIcon, IonInput, IonItem, IonList, IonRow, } from "@ionic/react";
+import { IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCol, IonContent, IonFabButton, IonIcon, IonInput, IonItem, IonList, IonRow, } from "@ionic/react";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as axiosRequest from "../data/AxiosRequest";
 import { RootState } from "../Store/ReduxStore";
 import { RelatorioResumoDTO } from "../data/RelatorioResumoDTO";
 import { loadingRelatorios, setRelatorios } from "../Store/Reducer/ReducerRelatorios";
-import { calendar, caretBack, caretForward, closeCircle, filter, flag, layers, personCircle, pricetag, search, ticketOutline, trailSign } from "ionicons/icons";
+import { calendar, caretBack, caretForward, close, closeCircle, filter, flag, layers, personCircle, pricetag, search, ticketOutline, trailSign } from "ionicons/icons";
 import Carregando from "../components/Core/Carregando";
 import Informativo from "../components/Core/Informativo";
 import ListaRelatorios from "../components/Lists/ListaRelatorios";
@@ -31,6 +31,7 @@ const EscolherRelatorios: React.FC = () => {
     const mainCliente = useSelector((state: RootState) => state.store.configAtividade.mainCliente);
     const meusTickets = useSelector((state: RootState) => state.store.configAtividade.meusTickets);
     const usuario = useSelector((state: RootState) => state.store.login.user);
+    const catalogoPipeline = useSelector((state: RootState) => state.store.catalogoPipelines.catalogo); 
 
     //Atributos com estado gerenciado pelo React 
     const [relatoriosSucesso, setRelatoriosSucesso] = useState<boolean | null>(null);
@@ -107,6 +108,7 @@ const EscolherRelatorios: React.FC = () => {
             valor: nomePipeline,
             handler: setNomePipeline,
             reset: () => setNomePipeline(""),
+            autofill: catalogoPipeline.map(pipe => pipe.nome),
         },
         {
             nome: "Autor",
@@ -287,37 +289,62 @@ const EscolherRelatorios: React.FC = () => {
                                                         )
                                                     }
                                                 </datalist>
-                                                <IonIcon
-                                                    icon={closeCircle}
-                                                    size='small'
-                                                    className="glass btn position-fixed m-0 p-0"
-                                                    style={{ top: '0.8em', right: '5px', zIndex: '500' }}
-                                                    onClick={() => opcao.reset()}
-                                                />
+                                                {/* Botão para resetar campo */}
+                                                <div className="position-absolute m-0 p-0" style={{ right: '-4px' }}>
+                                                    <IonFabButton
+                                                        color="tertiary"
+                                                        size="small"
+                                                        className="p-0 m-0 mt-1"
+                                                        onClick={() => opcao.reset()}
+                                                        style={{ transform: 'scale(0.6)' }}
+                                                    >
+                                                        <IonIcon icon={close}
+                                                            color="light"
+                                                            size="large"
+                                                        />
+                                                    </IonFabButton>
+                                                </div>
                                             </IonItem>
                                         </GlassInput>
                                     );
                                 })
                             }
                             <IonRow className="w-100 ion-justify-content-center p-1">
-                                <Botao {...botaoAplicarFIltros} />
-                                <span className="mx-1" />
-                                <Botao text="Nova Consulta" icon={search} handler={() => obterRelatoriosBanco(0)} />
+                            <Botao 
+                                    text={filtroAplicado ? "Remover" : "Aplicar"} 
+                                    icon={filtroAplicado ? closeCircle : filter}
+                                    color={filtroAplicado ? "warning" : "light"}
+                                    className="small me-1"
+                                    handler={() => aplicarFiltros()}
+                                />
+                                <Botao 
+                                    text="Nova Consulta" 
+                                    className="small" 
+                                    icon={search} 
+                                    handler={() => obterRelatoriosBanco(0)} 
+                                />
                             </IonRow>
                         </IonCardContent>
                     </IonCard>
                     <IonCard className="p-0 m-0 ms-2 shadow shadow-0" disabled={paginaVazia()}>
                         <IonRow className="p-0 m-0 my-2 w-100 ion-align-items-center ion-justify-content-center">
-                            <IonIcon icon={caretBack}
+                            {/* Botão seta de voltar página */}
+                            <IonFabButton
+                                size="small"
                                 color="primary"
-                                size="large"
-                                className="btn m-0 p-0"
-                                onClick={(e) => {
-                                    if (catalogoRelatorios.first) return;
-                                    obterRelatoriosBanco(catalogoRelatorios.number - 1);
-                                }}
-                            />
-                            <IonRow className="glass d-flex ion-align-items-center pe-1" >
+                                className="p-0 m-0"
+                                disabled={catalogoRelatorios.first}
+                                onClick={() => obterRelatoriosBanco(catalogoRelatorios.number - 1)}
+                            >
+                                <IonIcon icon={caretBack}
+                                    color="dark"
+                                    size="large"
+                                    className="m-0 p-0 pe-1"
+                                />
+                            </IonFabButton>
+
+                            {/* Navegador de páginas */}
+                            <IonRow className="glass d-flex ion-align-items-center pe-1 mx-1" >
                                 <span className="ms-1">Página </span> 
                                 <IonInput value={pageIndex}
                                     type='number'
@@ -339,22 +366,34 @@ const EscolherRelatorios: React.FC = () => {
                                     disabled={paginaVazia()}
                                 />
                                 <span>/{totalPages()}</span>
-                                <IonIcon icon={search}
-                                    color="light"
-                                    className="glass btn item-lista ms-1 my-1 p-2"
-                                    style={{ height: '16px' }}
+                                <IonButton
+                                    size="small"
+                                    color="primary"
+                                    shape="round"
+                                    fill="outline"
+                                    className="m-0 p-0 ms-1"
+                                    disabled={paginaVazia()}
                                     onClick={(e) => novaConsultaPageIndex()}
-                                />
+                                    style={{ transform: 'scale(0.8)' }}
+                                >
+                                    <IonIcon icon={search} color="light"/>
+                                </IonButton>
                             </IonRow>
-                            <IonIcon icon={caretForward}
+
+                            {/* Botão seta de avançar página */}
+                            <IonFabButton
+                                size="small"
                                 color="primary"
-                                size="large"
-                                className="btn m-0 p-0"
-                                onClick={(e) => {
-                                    if (catalogoRelatorios.last) return;
-                                    obterRelatoriosBanco(catalogoRelatorios.number + 1);
-                                }}
-                            />
+                                className="p-0 m-0"
+                                disabled={catalogoRelatorios.last}
+                                onClick={() => obterRelatoriosBanco(catalogoRelatorios.number + 1)}
+                            >
+                                <IonIcon icon={caretForward}
+                                    color="dark"
+                                    size="large"
+                                    className="m-0 p-0 ps-1"
+                                />
+                            </IonFabButton>
                         </IonRow>
                     </IonCard>
                 </IonContent>

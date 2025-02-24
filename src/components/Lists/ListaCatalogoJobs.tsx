@@ -1,10 +1,10 @@
-import { InputChangeEventDetail, IonIcon, IonInput, IonList, IonRadio, IonRadioGroup, RadioGroupChangeEventDetail, useIonAlert } from "@ionic/react";
+import { InputChangeEventDetail, IonIcon, IonInput, IonList, IonRadio, IonRadioGroup, IonRow, RadioGroupChangeEventDetail } from "@ionic/react";
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../Store/ReduxStore";
 import { addOneMainJob, setViewJob } from "../../Store/Reducer/ReducerAtividade";
 import { JobInfoDTO } from "../../data/JobInfoDTO";
-import { addCircleOutline, checkbox, checkmark, closeCircle, search, square, trashOutline } from "ionicons/icons";
+import { addCircleOutline, closeCircle, search } from "ionicons/icons";
 import { JobConfig } from "../../data/JobConfig";
 import ItemLista from "../Core/ItemLista";
 import * as AxiosRequest from "../../data/AxiosRequest";
@@ -40,7 +40,7 @@ const ListaCatalogoJobs = forwardRef<ListaCatalogoRef>((props, ref) => {
 
     //Atributos com estado gerenciado via React
     const [jobPesquisado, setJobPesquisado] = useState<string>("");
-    const [mainJob, setMainJob]  = useState<JobInfoDTO | undefined>(undefined);
+    const [mainJob, setMainJob] = useState<JobInfoDTO | undefined>(undefined);
     //const [alerta] = useIonAlert();
 
     //Acionamento sempre que o array dos Jobs ID for alterado
@@ -133,13 +133,13 @@ const ListaCatalogoJobs = forwardRef<ListaCatalogoRef>((props, ref) => {
 
     //Renderizando componente
     return (
-        <IonRadioGroup 
+        <IonRadioGroup
             value={mainJob?.id}
             className='border-0 h-100'
             onIonChange={selecionarMainJob}
         >
             <IonList className='m-0 p-0'>
-                <ItemLista text="" icon={search} >
+                <ItemLista text="" icon={search} className="w-100">
                     <IonInput inputmode='text'
                         maxlength={500}
                         placeholder="Pesquisar Job"
@@ -149,12 +149,7 @@ const ListaCatalogoJobs = forwardRef<ListaCatalogoRef>((props, ref) => {
                         required
                     />
                 </ItemLista>
-                <ItemLista text="Desselecionar Jobs" icon={closeCircle} trigger={cancelarJobsSelecionados} />
-                {/*
-                    <ItemLista text="Deletar Selecionados" icon={trashOutline} trigger={
-                        () => jobsSelecionados.length > 0 ? exibirAlerta() : null
-                    } />
-                */}
+                <ItemLista text="Desmarcar Opção" className="w-100" icon={closeCircle} trigger={cancelarJobsSelecionados} />
                 {
                     catalogoJobs.filter(item => item.nome.includes(jobPesquisado))
                         .map((item, index) => {

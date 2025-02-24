@@ -1,11 +1,8 @@
 import { IonIcon, IonBadge, IonCard, IonCardContent, IonRow, IonFab, IonLabel, } from "@ionic/react";
-import { calendarOutline, layers, newspaperOutline, ticket, personCircle, flash, timer } from "ionicons/icons";
-import { useDispatch, useSelector } from "react-redux";
+import { calendarOutline, layers, ticket, personCircle, flash, timer } from "ionicons/icons";
+import { useDispatch } from "react-redux";
 import { FilaResumoDTO } from "../../data/FilaResumoDTO";
 import { offsetDateTimeParaString } from "../../App";
-import { useHistory } from "react-router";
-import { RootState } from "../../Store/ReduxStore";
-import { UserDTO } from "../../data/UserDTO";
 
 //Atributos de entrada do componente ListaFilas
 export interface ListaFilasProps {
@@ -16,10 +13,7 @@ export interface ListaFilasProps {
 const ListaFilas: React.FC<ListaFilasProps> = ({ fila: fila, index }) => { 
     //Atributos do componente
     const dispatch = useDispatch();
-    const history = useHistory();
-    const user: UserDTO | null = useSelector((state: RootState) => state.store.login.user);
     const fonteCodigo = 'h6 lh-1 font-monospace text-white ';
-    const buttonClass = `btn btn-outline-dark border-0 my-1 p-0 w-100`;
 
     //Renderiza o componente
     return (
@@ -45,7 +39,7 @@ const ListaFilas: React.FC<ListaFilasProps> = ({ fila: fila, index }) => {
                             className="w-100" 
                             style={{transform: 'translate(0px, 3px)'}} 
                         />
-                        {fila.status === "EXECUTANDO" ? 'Running' : 'Wating'}
+                        {fila.status === "EXECUTANDO" ? 'Running' : 'Waiting'}
                     </IonLabel>
                 </IonRow>
                 <IonCard className="ms-0 mb-0 w-100 bg-transparent border-0" style={{boxShadow: '0 0 0 '}}>

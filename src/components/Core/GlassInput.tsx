@@ -1,4 +1,4 @@
-import { IonItem, InputChangeEventDetail, IonLabel, IonIcon, IonRow, IonChip } from "@ionic/react";
+import { IonItem, InputChangeEventDetail, IonLabel, IonIcon, IonRow, IonChip, IonFabButton } from "@ionic/react";
 import React, { ReactNode, useState } from "react";
 
 
@@ -51,11 +51,19 @@ const GlassInput: React.FC<GlassInputProps> = ({ text, icon, children, ...props 
                 </IonLabel>
                 {
                     props.textButtons?.map((item, index) => 
-                        <IonIcon icon={item.icon} 
+                        <IonFabButton
                             key={index}
-                            className={`btn p-0 ps-1 m-0 ${item.className ? item.className : ""}`}
+                            size="small"
+                            color="light"
+                            className={`p-0 m-0 ${item.className ? item.className : ""}`}
+                            style={{ width: '16px', height: '16px', transform: 'translate(5px, -.5px)' }}
                             onClick={() => item.handler()}
-                        />
+                        >
+                            <IonIcon 
+                                icon={item.icon}
+                                className="m-0 p-0"
+                            />
+                        </IonFabButton>
                     )
                 }
             </IonChip>

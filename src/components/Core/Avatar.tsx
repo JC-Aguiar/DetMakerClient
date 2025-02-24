@@ -1,5 +1,5 @@
-import { IonAvatar, IonBadge, IonCol, IonFab, IonGrid, IonIcon, IonRow, useIonModal, useIonToast } from "@ionic/react";
-import { close, } from "ionicons/icons";
+import { IonAvatar, IonBadge, IonCol, IonFab, IonFabButton, IonGrid, IonIcon, IonRow, useIonModal, useIonToast } from "@ionic/react";
+import { close, logOut, logOutOutline, } from "ionicons/icons";
 import { UserDTO } from "../../data/UserDTO";
 import { useDispatch, useSelector } from "react-redux";
 import { setJwt, setUser } from '../../Store/Reducer/ReducerUser';
@@ -72,15 +72,6 @@ const Avatar: React.FC<AvatarProps> = ({ user }) => {
         history.push(URL_LOGIN);
     }
 
-    //Renderiza ou não a tag de informação flutuante do Cliente e Ambiente selecionados pelo usuário
-    const ambiente = () => {
-        if (mainAmbiente === '') return <></>;
-        //<IonCol size="12" className="p-0 m-0">
-        return <IonBadge color="primary" className="position-absolute w-100 text-center lh-1 p-0 m-0 " style={{right: '49px', top: '18px'}}>
-            <small className="text-dark text-wrap">{mainCliente}<br/>{mainAmbiente}</small>
-        </IonBadge>
-    };
-
     //Renderização do componente
     if (user === null) return(<></>);
     return (
@@ -89,22 +80,38 @@ const Avatar: React.FC<AvatarProps> = ({ user }) => {
                 <IonGrid className="p-0 m-0">
                     <IonRow className="p-0 m-0 ion-justify-content-start">
                         <IonCol size="12" className="p-0 m-0">
-                            {ambiente()}
-                            <IonAvatar className="p-0 m-0 border border-4 border-primary" 
-                                style={{ transform: 'scale(0.8)', cursor: 'pointer' }}
+                            <IonBadge 
+                                color="primary" 
+                                className="position-absolute w-100 text-center lh-1 p-0 m-0 " 
+                                style={{right: '49px', top: '18px'}}
+                                hidden={mainAmbiente === ''}
+                            >
+                                <small className="text-dark text-wrap">
+                                    {mainCliente}
+                                    <br/>
+                                    {mainAmbiente}
+                                </small>
+                            </IonBadge>
+                            <IonAvatar className="p-0 m-0" 
+                                style={{ transform: 'scale(0.9)', cursor: 'pointer', border: "4px solid var(--ion-color-primary)" }}
                                 onClick={() => modalMensagens({ cssClass: 'modal-notificacoes' })}
                             >
                                 <img src={user.picture} alt="user avatar"  referrerPolicy="no-referrer" />
-                                <IonBadge color='#' 
-                                    className="position-absolute bg-transparent" 
-                                    style={{top: '-10%', right: '-38%'}}
+                               
+                                {/* Botão para deslogar */}
+                                <IonFabButton
+                                    size="small"
+                                    color="primary"
+                                    className="position-absolute bg-transparent m-0 p-0" 
+                                    style={{top: '-16%', right: '-48%', transform: 'scale(0.8)' }}
+                                    onClick={() => logOff()}
                                 >
-                                    <IonIcon icon={close} 
+                                    <IonIcon icon={logOutOutline}
                                         color="dark"
-                                        className="btn p-1 m-1 bg-primary border-0 rounded rounded-circle"
-                                        onClick={logOff}
+                                        size="large"
+                                        className="m-0 p-0"
                                     />
-                                </IonBadge>
+                                </IonFabButton>
                             </IonAvatar>
                         </IonCol>
                         <IonCol size="12" className="p-0 m-0">

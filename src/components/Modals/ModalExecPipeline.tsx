@@ -1,15 +1,11 @@
-import { IonTextarea, IonInput, IonItem, InputChangeEventDetail, TextareaChangeEventDetail, IonTitle, IonRow, IonCol, IonBadge, IonIcon, useIonAlert } from "@ionic/react";
+import { IonTextarea, IonInput, IonItem, InputChangeEventDetail, TextareaChangeEventDetail, IonTitle, IonRow, IonCol, IonBadge, IonIcon, useIonAlert, IonFabButton } from "@ionic/react";
 import { useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { JobConfig } from "../../data/JobConfig";
 import { RootState } from "../../Store/ReduxStore";
-import * as axiosRequest from "../../data/AxiosRequest";
-import { removeRevisao, addRevisao } from "../../Store/Reducer/ReducerRevisao";
+import { removeRevisao } from "../../Store/Reducer/ReducerRevisao";
 import { PipelineJobInputDTO } from "../../data/PipelineJobInputDTO";
 import { PipelineExecDTO } from "../../data/PipelineExecDTO";
-import { RelatorioHistoricoDTO } from "../../data/RelatorioHistoricoDTO";
-import { AtividadeInfoDTO } from "../../data/AtividadeInfoDTO";
-import { UserInfoDTO } from "../../data/UserInfoDTO";
 import { UserDTO } from "../../data/UserDTO";
 import { useHistory } from "react-router";
 import { closeCircle } from "ionicons/icons";
@@ -18,8 +14,8 @@ import { VariavelDinamica } from "../../data/VariavelDinamica";
 import { MassaTabelaDTO } from "../../data/MassaTabelaDTO";
 import { QueryInfo } from "../../data/QueryInfoDTO";
 import { BotaoProps, Botoes } from "../Core/Botao";
-import { PipelineQueryInputDTO } from "../../data/PipelineQueryInputDTO";
 import { QueuePushResponseDTO } from "../../data/QueuePushResponseDTO";
+import * as axiosRequest from "../../data/AxiosRequest";
 
 
 export interface ModalExecPipelineProps {
@@ -121,28 +117,6 @@ const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
         
         try {
             if(!user) throw "Usuário não identificado/logado para executar Pipeline";
-            /*
-            const pipelineDto: PipelineInfoDTO = {
-                id: mainPipelineId,
-                nome: mainPipeline,
-                descricao: mainPipelineDescricao,
-                clienteId: mainClienteId,
-                jobs: mainJobs.map((item) => item.nome),
-                checked: true,
-            };
-            const relatorioDto: AtividadeInfoDTO = {
-                idProjeto: projetoId,
-                nomeProjeto: projetoNome,
-                nomeAtividade: atividadeNome,
-                configuracao: configuracao,
-                testeTipo: "Unitário",
-            };
-            const userDto: UserInfoDTO = {
-                nome: user ? user.name : null,
-                papel: user ? "DEV" : null,
-                empresa: user ? "PPW" : null,
-            }:
-            */
             const body: PipelineExecDTO = {
                 pipelineId: mainPipelineId,
                 //atividade: relatorioDto,
@@ -158,23 +132,7 @@ const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
 
             dispatch(removeRevisao());
             const solicitacao: QueuePushResponseDTO = await axiosRequest.executarPipeline(body);
-            //dispatch(loadingRelatorios(true));
-            //dispatch(addRevisao({ value: relatorio }));
-            /*
-            const buttons = [
-                {
-                  text: 'Revisar',
-                  role: 'Revisar DET',
-                  handler: () => {
-                    dispatch(addRevisao(relatorioParaRevisar));
-                    console.log(`[CONFIGURAR-JOBS] Navegando para: ${axiosRequest.URL_DET}`);
-                    history.push(axiosRequest.URL_DET);
-                  },
-                }
-            ];
-            */
-            //dispatch(setRelatorios(null));
-            //dispatch(loadingRelatorios(false));
+
             dispatch(atualizarMensagem({ 
                 id: mensagemId, 
                 complmento: `Solicitação ${solicitacao.ticket}: ${solicitacao.message}.`,
@@ -283,13 +241,20 @@ const ModalExecPipeline: React.FC<ModalExecPipelineProps> = (props) => {
                                                 Nº{index+1}
                                             </span>
                                             <span className="ms-1">{item.nome}</span>
-                                            <IonIcon icon={closeCircle} 
-                                                color="light"
-                                                className="btn btn-outline m-0 p-0 ms-1 mb-1" 
+                                            <IonFabButton
+                                                size="small"
+                                                color="primary"
+                                                className="m-0 p-0 ms-1 mb-1" 
                                                 onClick={() => setJobsParaExec(
                                                     jobsParaExec.filter((job, jobIndex) => jobIndex !== index)
                                                 )} 
-                                            />
+                                            >
+                                                <IonIcon icon={closeCircle}
+                                                    color="dark"
+                                                    size="large"
+                                                    className="m-0 p-0 ps-1"
+                                                />
+                                            </IonFabButton>
                                         </IonBadge>
                                     </IonCol>
                                 )

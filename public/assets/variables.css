@@ -130,6 +130,10 @@ ion-accordion.accordion-expanded ion-item {
 }
 */
 
+ion-icon {
+  pointer-events: none;
+}
+
 ion-icon.userAvatar {
   color: white;
   font-size: 72px;
@@ -315,6 +319,8 @@ ion-item.selected {
 }
 
 ion-tab-button {
+  min-width: 8%;
+  max-width: 8%;
   --color: white;
   --color-selected: var(--ion-color-success);
   --color-focused: var(--ion-color-primary);

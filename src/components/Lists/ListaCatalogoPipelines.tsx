@@ -83,7 +83,7 @@ const ListaCatalogoPipelines: React.FC = () => {
                         required
                     />
                 </ItemLista>
-                <ItemLista text="Desselecionar Pipeline" icon={closeCircle} trigger={cancelarMainPipeline} />
+                <ItemLista text="Desmarcar Opção" icon={closeCircle} trigger={cancelarMainPipeline} />
                 {
                     catalogoPipelines.filter(item => item.nome.includes(pipelinePesquisada))
                         .map((item, index) => {

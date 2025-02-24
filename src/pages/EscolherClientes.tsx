@@ -1,6 +1,6 @@
-import { IonCol, IonContent, IonIcon, IonImg, IonItem, IonLabel, IonList, IonRow, IonThumbnail, IonTitle, useIonModal } from '@ionic/react';
+import { IonChip, IonCol, IonContent, IonFabButton, IonIcon, IonImg, IonItem, IonLabel, IonList, IonRow, IonThumbnail, IonTitle, useIonModal } from '@ionic/react';
 import { useRef, useState } from 'react';
-import { addCircle, radioButtonOff, radioButtonOn } from 'ionicons/icons';
+import { addCircle, closeCircle, radioButtonOff, radioButtonOn } from 'ionicons/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { setMainAmbiente, setMainJobs, setMainMassas, setMainPipeline, setViewJob } from '../Store/Reducer/ReducerAtividade';
 import { RootState } from '../Store/ReduxStore';
@@ -46,7 +46,7 @@ const EscolherClientes: React.FC = () => {
     function setClienteAmbiente(cliente: ClienteInfoDTO, ambiente: AmbienteInfoDTO): void {
         console.log(`[ESCOLHER-CLIENTES]: Usuário selecionou Cliente: '${cliente.nome}', Ambiente: '${ambiente.nome}'.`);
         dispatch(setMainAmbiente({
-            cliente: cliente.nome, 
+            cliente: cliente.nome,
             clienteId: cliente.id,
             ambiente: ambiente.nome,
             ambienteId: ambiente.id,
@@ -68,104 +68,111 @@ const EscolherClientes: React.FC = () => {
 
     //Renderiza (ou não) a lista dos Ambientes no card de cada Cliente
     const listarAmbientes = (cliente: ClienteInfoDTO, indexCliente: number) => {
-        if (cliente.ambientes.length < 1) return(
+        if (cliente.ambientes.length < 1) return (
             <div className='m-3 p-2 opacity-50'>
                 Cliente sem ambientes disponíveis
             </div>
         );
-        return(
+        return (
             <IonList className='m-3 p-2 glass'>
-            {
-                cliente.ambientes.map((ambiente, indexAmbiente) => {
-                    const checked = (mainCliente === cliente.nome && mainAmbiente === ambiente.nome) ? 
-                        radioButtonOn : radioButtonOff;
-                    return (
-                        <IonItem key={indexCliente * 10 + indexAmbiente} lines='none'
-                            color='#'
-                            className='p-0 m-0 align-items-center text-white w-100'
-                            style={{ '--min-height': '32px' }}
-                        >
-                            <IonIcon icon={checked} 
-                                color="primary" 
-                                className='btn border-0 m-0 p-0 pe-1' 
-                                style={{ transform: 'scale(1.5) translate(1.75px, 1.75px)' }}
-                                onClick={(e) => setClienteAmbiente(cliente, ambiente)}
-                            />
-                            <IonLabel className='px-1 py-2 m-0 rounded rounded-3'>
-                                <p className='lh-1 p-0 m-0 mx-1 mt-1 fw-bold text-white '>
-                                    Ambiente {ambiente.nome}
-                                </p>
-                                <p className='lh-1 p-0 m-0'>
-                                    <span className='text-white p-0 mx-1'>
-                                        <span>SFTP: </span> 
-                                        <span className='font-monospace'>{ambiente.ftp.conexao}</span>
-                                    </span>
-                                </p>
-                                <p className='lh-1 p-0 m-0'>
-                                    <span className='text-white p-0 mx-1'>
-                                        <span>BANCO: </span> 
-                                        <span className='font-monospace'>{ambiente.banco.conexao}</span>
-                                    </span>
-                                </p>
-                            </IonLabel>
-                        </IonItem>
-                    );
-                })
-            }
+                {
+                    cliente.ambientes.map((ambiente, indexAmbiente) => {
+                        const checked = (mainCliente === cliente.nome && mainAmbiente === ambiente.nome) ?
+                            radioButtonOn : radioButtonOff;
+                        return (
+                            <IonItem key={indexCliente * 10 + indexAmbiente} lines='none'
+                                color='#'
+                                className='p-0 m-0 align-items-center text-white w-100'
+                                style={{ '--min-height': '32px' }}
+                            >
+                                <IonChip
+                                    color="#"
+                                    className="m-0 p-0 bg-transparent"
+                                    style={{ transform: 'scale(0.75)' }}
+                                    onClick={(e) => setClienteAmbiente(cliente, ambiente)}
+                                >
+                                    <IonIcon icon={checked}
+                                        color="light"
+                                        size="large"
+                                        className="m-0 p-0"
+                                    />
+                                </IonChip>
+
+                                <IonLabel className='px-1 py-2 m-0 rounded rounded-3'>
+                                    <p className='lh-1 p-0 m-0 mx-1 mt-1 fw-bold text-white '>
+                                        Ambiente {ambiente.nome}
+                                    </p>
+                                    <p className='lh-1 p-0 m-0'>
+                                        <span className='text-white p-0 mx-1'>
+                                            <span>SFTP: </span>
+                                            <span className='font-monospace'>{ambiente.ftp.conexao}</span>
+                                        </span>
+                                    </p>
+                                    <p className='lh-1 p-0 m-0'>
+                                        <span className='text-white p-0 mx-1'>
+                                            <span>BANCO: </span>
+                                            <span className='font-monospace'>{ambiente.banco.conexao}</span>
+                                        </span>
+                                    </p>
+                                </IonLabel>
+                            </IonItem>
+                        );
+                    })
+                }
             </IonList>
         );
     }
 
     if (isLoading) return <Carregando />;
     if (catalogoClientes.length < 1) {
-        return <Informativo status='SemDados'/>
+        return <Informativo status='SemDados' />
     };
     return (
         <div className='container'>
             <div className='ion-justify-content-center '>
-                <Swiper 
-                    navigation={true} 
-                    modules={[Navigation]} 
-                    ref={swiperRef} 
+                <Swiper
+                    navigation={true}
+                    modules={[Navigation]}
+                    ref={swiperRef}
                     shortSwipes={false}
                     longSwipesRatio={0.1}
                     longSwipesMs={100}
                 >
-                {
-                    catalogoClientes.map((cliente, indexCliente) =>
-                        <SwiperSlide key={indexCliente} className=''>
-                            <IonRow key={indexCliente} id="card-filme" className='ion-justify-content-center mb-4'>
-                                <IonCol size='12' sizeMd='5' id="filme-texto" className="glass m-2">
-                                    <IonThumbnail>
-                                        <IonImg 
-                                            id="filme-capa" 
-                                            alt="Logo do cliente" 
-                                            src={`data:image/png;base64,${cliente.banner}`} 
-                                            className=''
-                                        />
-                                    </IonThumbnail> 
-                                </IonCol>
-                                <IonCol size='12' sizeMd='5' className='glass m-2'>
-                                    <IonContent className='ion-justify-content-center p-0 m-0'>
-                                        <IonTitle color='#' className='text-white m-0 py-3 text-center w-100'>
-                                            <span id="filme-title" className='h3 align-middle'>{cliente.nome}</span>
-                                        </IonTitle>
-                                        {listarAmbientes(cliente, indexCliente)}
-                                        <IonRow className='ion-justify-content-center'>
-                                            <Botao text='Novo Ambiente' 
-                                                icon={addCircle} 
-                                                handler={() => {
-                                                    setClienteId(cliente.id);
-                                                    modalNovoAmbienteOn();
-                                                }} 
+                    {
+                        catalogoClientes.map((cliente, indexCliente) =>
+                            <SwiperSlide key={indexCliente} className=''>
+                                <IonRow key={indexCliente} id="card-filme" className='ion-justify-content-center mb-4'>
+                                    <IonCol size='12' sizeMd='5' id="filme-texto" className="glass m-2">
+                                        <IonThumbnail>
+                                            <IonImg
+                                                id="filme-capa"
+                                                alt="Logo do cliente"
+                                                src={`data:image/png;base64,${cliente.banner}`}
+                                                className=''
                                             />
-                                        </IonRow>
-                                    </IonContent>
-                                </IonCol>
-                            </IonRow>
-                        </SwiperSlide>
-                    )
-                }
+                                        </IonThumbnail>
+                                    </IonCol>
+                                    <IonCol size='12' sizeMd='5' className='glass m-2'>
+                                        <IonContent className='ion-justify-content-center p-0 m-0'>
+                                            <IonTitle color='#' className='text-white m-0 py-3 text-center w-100'>
+                                                <span id="filme-title" className='h3 align-middle'>{cliente.nome}</span>
+                                            </IonTitle>
+                                            {listarAmbientes(cliente, indexCliente)}
+                                            <IonRow className='ion-justify-content-center'>
+                                                <Botao text='Novo Ambiente'
+                                                    icon={addCircle}
+                                                    handler={() => {
+                                                        setClienteId(cliente.id);
+                                                        modalNovoAmbienteOn();
+                                                    }}
+                                                />
+                                            </IonRow>
+                                        </IonContent>
+                                    </IonCol>
+                                </IonRow>
+                            </SwiperSlide>
+                        )
+                    }
                 </Swiper>
             </div>
         </div>

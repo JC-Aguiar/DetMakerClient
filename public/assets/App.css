@@ -9,10 +9,11 @@
   src: url('./font-hokjesgeest.otf') format('opentype');
 }
 
-
-ion-tab-button {
-  min-width: 8%;
-  max-width: 8%;
+* {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 
@@ -501,7 +502,6 @@ input[type="file"]::-webkit-file-upload-button {
   z-index: 59789;
   position: fixed;
   top: inherit;
-  left: 65%;
   transform: translate(0%, 0%);
   box-shadow: none;
   width: 0%;
